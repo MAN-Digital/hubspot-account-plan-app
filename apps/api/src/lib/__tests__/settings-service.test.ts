@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createDatabase, llmConfig, providerConfig, tenants } from "@hap/db";
+import { settingsResponseSchema } from "@hap/validators";
 import { and, eq, like } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { __resetEncryptionCacheForTests, decryptProviderKey } from "../encryption";
@@ -76,6 +77,23 @@ describe("readSettings", () => {
         minConfidence: 0.5,
       },
     });
+  });
+
+  it("normalizes a blank endpoint_url so the response schema accepts it", async () => {
+    const tenant = await seedTenant();
+
+    await db.insert(llmConfig).values({
+      tenantId: tenant.id,
+      providerName: "openai",
+      modelName: "gpt-5.4-mini",
+      apiKeyEncrypted: null,
+      endpointUrl: "",
+    });
+
+    const settings = await readSettings({ db, tenantId: tenant.id });
+
+    expect(settings.llm.endpointUrl).toBeUndefined();
+    expect(() => settingsResponseSchema.parse(settings)).not.toThrow();
   });
 });
 
