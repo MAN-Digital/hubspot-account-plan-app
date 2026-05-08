@@ -163,7 +163,7 @@ export async function readSettings(deps: SettingsServiceDeps): Promise<SettingsR
     llm: {
       provider: (llmRow?.providerName as LlmProviderType | undefined) ?? null,
       model: llmRow?.modelName ?? "",
-      endpointUrl: llmRow?.endpointUrl ?? undefined,
+      endpointUrl: llmRow?.endpointUrl || undefined,
       hasApiKey: !!llmRow?.apiKeyEncrypted,
     },
     eligibility: {
