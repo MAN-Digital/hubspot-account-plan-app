@@ -136,7 +136,7 @@ subscriptions are registered.
    lines per delivery — one as the request arrives and one summarising
    what was applied vs. ignored:
 
-   ```
+   ```text
    hubspot-lifecycle-webhook: request received
    hubspot-lifecycle-webhook: applied=1 ignored=0 portalIds=<id>
    ```
@@ -151,7 +151,7 @@ subscriptions are registered.
    Uninstall.
 2. Tail the receiver logs. Expect the same two-line pattern as install:
 
-   ```
+   ```text
    hubspot-lifecycle-webhook: request received
    hubspot-lifecycle-webhook: applied=1 ignored=0 portalIds=<id>
    ```
