@@ -169,26 +169,42 @@ failed (existing line 118 `console.warn` fires too); both lines with
 
 Rationale, citing maintainer-stated and HubSpot-doc evidence:
 
-1. **HubSpot OAuth does NOT pass `returnUrl` to the callback.** Verified
-   2026-05-10 against HubSpot's OAuth Quickstart Guide and "Working with
-   OAuth" docs (URLs in Sources). The documented callback contract is `?code=<x>`
-   only — no `returnUrl`, no portalId hint. The existing
-   `c.req.query("returnUrl")` branch in `apps/api/src/routes/oauth.ts:267`
-   is a defensive fallback for non-standard install flows that may pass it
-   via the install link's `state` round-trip, but in the marketplace install
-   path it will rarely be present. Implementation must NOT assume it
-   exists.
-2. **HubSpot has no canonical post-install URL inside its UI** for OAuth
-   apps (also verified). Issue #16's body suggested
+1. **HubSpot DOES pass `returnUrl` for marketplace install flows.**
+   Correction posted 2026-05-10 (post-Wave-0 review): the original draft
+   asserted HubSpot OAuth never passes `returnUrl`. That was wrong — it
+   conflated the standalone OAuth Quickstart flow (which only passes
+   `code`/`state`) with the marketplace "App Install Flow," which is the
+   relevant flow for this product. Verified against HubSpot's official
+   Developer Documentation via Context7 (`/websites/developers_hubspot`,
+   trust score 10) on 2026-05-10:
+   - "Example Initial Installation Request URL" —
+     `https://www.myinstallserver.com/install?returnUrl=<hubspot-return>&step=authorize`
+   - "Example Final Installation Request URL" —
+     `https://www.myinstallserver.com/install?code=123&state=...&returnUrl=<hubspot-return>&step=finalize`
+     The codebase also already documents this at
+     `apps/api/src/routes/oauth.ts:261` ("HubSpot passes `returnUrl` on some
+     install flows") with active 302-to-`returnUrl` handling at lines 264–267.
+     Implementation MUST treat the validated `returnUrl` 302 as the primary
+     path and the new `htmlSuccess` page as the fallback when `returnUrl` is
+     absent or fails the `isAllowedReturnUrl(...)` guard.
+2. **HubSpot has no documented canonical post-install URL** for OAuth
+   apps when `returnUrl` is absent (verified). Issue #16's body suggested
    `https://app-eu1.hubspot.com/settings/{portalId}/integrations/connected-apps`
    as a fallback — that path exists but is NOT documented as the
    recommended post-install destination by HubSpot. It is also region-
-   specific (`-eu1`) which would mis-route US-region installs.
+   specific (`-eu1`) which would mis-route US-region installs. Therefore
+   the fallback path stays the rendered `htmlSuccess` page with a manual
+   CTA, NOT a guessed HubSpot URL redirect.
 3. **Issue #16 explicitly asks for a polished, branded, in-app success
-   page** with primary CTA + supporting copy + countdown auto-redirect.
-   The maintainer's acceptance criteria say "success path no longer uses
-   the generic `htmlError()` presentation" and "page is visually polished
-   and intentional." That maps cleanly to an HTML page, NOT a 302.
+   page** with primary CTA and supporting copy. The maintainer's
+   acceptance criteria say "success path no longer uses the generic
+   `htmlError()` presentation" and "page is visually polished and
+   intentional." That maps cleanly to a polished HTML page in the
+   `returnUrl`-absent fallback path. The 302-to-`returnUrl` happy path
+   already exists (oauth.ts:264–267) and is unchanged by this slice. The
+   issue body also mentions a countdown / auto-redirect — declined for
+   this slice (see "No meta-refresh tag" guarantee below); if reinstated
+   later, that needs its own preflight.
 4. **The existing `htmlError(...)` helper at oauth.ts:98** already
    establishes the safe HTML pattern we must mirror: server-rendered
    inline HTML, no inline scripts, no third-party assets,
@@ -201,26 +217,24 @@ Task 4 introduces an `htmlSuccess(title, detail, options)` helper alongside
 `htmlError`. Required guarantees:
 
 - Server-rendered inline HTML; no client-side fetch, no inline `<script>`,
-  no third-party CDN/asset/font loads. CSP-compliant by construction:
-  the only allowed external behavior is the `<meta http-equiv="refresh"
-content="N;url=...">` tag.
+  no third-party CDN/asset/font loads. CSP-compliant by construction.
 - All interpolated values pass through the existing `escapeHtml(...)` at
   oauth.ts:94. No raw `identity.hubDomain` or `portalIdAsText` may reach
   the rendered HTML unescaped.
 - Status code: `200`.
 - `Content-Type: text/html; charset=utf-8` (Hono's `c.html(...)` already
   sets this).
-- Meta-refresh interval: **5 seconds** (matches issue #16 "roughly 3-5
-  seconds").
-- Meta-refresh target precedence:
-  1. If `c.req.query("returnUrl")` is present AND passes
-     `isAllowedReturnUrl(...)` (oauth.ts:79–91), use it. This preserves
-     the existing open-redirect guard (CodeRabbit C1) without modification.
-  2. Else: NO meta-refresh. The page renders without auto-redirect — the
-     user clicks the primary CTA themselves. Do NOT default to a guessed
-     HubSpot URL; per HubSpot's docs there is no canonical post-install
-     destination, and a region-specific guess (`-eu1` etc.) would
-     mis-route.
+- **No meta-refresh tag.** The existing 302-to-`returnUrl` branch at
+  `apps/api/src/routes/oauth.ts:264–267` already handles auto-redirect
+  when HubSpot supplies a valid `returnUrl`. By the time `htmlSuccess` is
+  rendered, control flow has already proven that path is unavailable
+  (returnUrl absent or fails `isAllowedReturnUrl`). A meta-refresh inside
+  `htmlSuccess` would be dead code — it can never fire because the 302
+  beats it to the response. Task 4's job is purely to upgrade the
+  fallback HTML, not to duplicate redirect logic. Do NOT add a
+  meta-refresh tag in this slice. If a future requirement asks for a
+  countdown UX on the no-`returnUrl` fallback, that is a separate slice
+  with its own preflight.
 - Primary CTA: a plain `<a href="https://app.hubspot.com/">Return to
 HubSpot</a>` button-styled link. The href is the documented HubSpot
   app entry — neutral, region-agnostic, and the user's session takes
@@ -251,10 +265,9 @@ HubSpot</a>` button-styled link. The href is the documented HubSpot
 
 `apps/hubspot-project/src/app/app-hsmeta.json`'s `redirectUrls` is the
 list HubSpot honors as legitimate `redirect_uri` targets for the OAuth
-flow itself — NOT the `meta-refresh` target. Since Task 4 does not
-introduce a new OAuth `redirect_uri`, **no `redirectUrls` change is
-required**. The existing whitelist (covering the API origin's
-`/oauth/callback`) remains correct.
+flow itself. Since Task 4 does not introduce a new OAuth `redirect_uri`,
+**no `redirectUrls` change is required**. The existing whitelist
+(covering the API origin's `/oauth/callback`) remains correct.
 
 If a future change introduces a server-rendered redirect to a URL
 outside the API origin, that new origin would need whitelisting —
@@ -376,8 +389,9 @@ auto-enabled toggles), file a new issue. Out of scope for this slice.
   third-party assets, `escapeHtml` for all interpolations).
 - `apps/api/src/routes/oauth.ts:212` — tenant insert site for #28's
   default-on toggle (`.values({...})` block).
-- `apps/api/src/routes/oauth.ts:267` — existing `returnUrl` query
-  fallback that #16's meta-refresh precedence reuses unchanged.
+- `apps/api/src/routes/oauth.ts:264–267` — existing 302-to-`returnUrl`
+  branch that runs BEFORE the success-page render path. #16 leaves this
+  branch unchanged and only upgrades the fallback HTML.
 - `packages/db/src/schema/tenants.ts:10` — `settings` JSONB column
   (already exists; no migration for #28).
 - `apps/api/src/routes/lifecycle.ts:94` — handler entry (request-arrival
