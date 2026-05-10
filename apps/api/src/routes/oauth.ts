@@ -238,6 +238,7 @@ export function createOAuthRoutes(deps: OAuthDeps) {
       .values({
         hubspotPortalId: portalIdAsText,
         name: identity.hubDomain || portalIdAsText,
+        settings: { enrichmentEnabled: true },
       })
       .onConflictDoUpdate({
         target: tenants.hubspotPortalId,
