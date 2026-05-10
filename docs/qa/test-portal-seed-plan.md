@@ -102,7 +102,8 @@ hs accounts list   # confirm the test portal id is listed
 
 # 3. Run the live seed (idempotent).
 pnpm seed:test-portal --portal <testPortalId>
-# or, with HUBSPOT_TEST_PORTAL_ID set in .env:
+# or, with HUBSPOT_TEST_PORTAL_ID exported in your shell
+# (or wrapped via `pnpm dlx dotenv-cli -e .env --` per the prereqs above):
 pnpm seed:test-portal
 ```
 
