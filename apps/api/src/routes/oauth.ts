@@ -101,6 +101,31 @@ function htmlError(title: string, detail: string): string {
   return `<!doctype html><html><head><meta charset="utf-8"><title>${safeTitle}</title></head><body><h1>${safeTitle}</h1><p>${safeDetail}</p></body></html>`;
 }
 
+/**
+ * Polished post-install success page (slice-12 / Issue #16).
+ *
+ * Rendered when the HubSpot install completes without a `returnUrl` query
+ * parameter (or with one that fails the `isAllowedReturnUrl` open-redirect
+ * guard). When HubSpot DOES supply a valid `returnUrl`, the route uses a
+ * 302 redirect upstream of this helper — by the time `htmlSuccess` is
+ * called, that path has already been proven unavailable, which is why
+ * there is intentionally no `<meta http-equiv="refresh">` tag here (would
+ * be dead code; see docs/slice-12-preflight-notes.md §3).
+ *
+ * CSP guarantees by construction:
+ *   - No inline `<script>`, no `<iframe>`, no third-party assets, no web
+ *     fonts, no remote images.
+ *   - All interpolated values flow through `escapeHtml(...)`.
+ *   - Primary CTA is a plain `<a>` to the region-agnostic
+ *     https://app.hubspot.com/ root — never an `app-eu1.hubspot.com` or
+ *     other region-specific origin (would mis-route US installs).
+ */
+export function htmlSuccess(title: string, detail: string): string {
+  const safeTitle = escapeHtml(title);
+  const safeDetail = escapeHtml(detail);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${safeTitle}</title><style>:root{color-scheme:light dark}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;margin:0;padding:48px 24px;display:flex;justify-content:center;background:#f6f8fb;color:#1f2937}main{max-width:520px;width:100%;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.04);padding:40px 32px;text-align:center}.badge{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:999px;background:#e8f5ee;color:#0a7a3b;font-size:24px;font-weight:600;margin-bottom:16px}h1{font-size:22px;font-weight:600;margin:0 0 12px}p{font-size:15px;color:#4b5563;margin:0 0 24px}.cta{display:inline-block;padding:10px 20px;border-radius:8px;background:#ff7a59;color:#fff;text-decoration:none;font-weight:600;font-size:15px}.cta:hover{background:#e8623f}@media (prefers-color-scheme:dark){body{background:#0f172a;color:#e5e7eb}main{background:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,.4)}p{color:#cbd5e1}.badge{background:#0a7a3b;color:#e8f5ee}}</style></head><body><main><div class="badge" aria-hidden="true">&#10003;</div><h1>${safeTitle}</h1><p>${safeDetail}</p><a class="cta" href="https://app.hubspot.com/">Return to HubSpot</a></main></body></html>`;
+}
+
 export function createOAuthRoutes(deps: OAuthDeps) {
   const { config } = deps;
   const db = deps.db as OAuthDb;
@@ -266,9 +291,9 @@ export function createOAuthRoutes(deps: OAuthDeps) {
       return c.redirect(returnUrl, 302);
     }
     return c.html(
-      htmlError(
+      htmlSuccess(
         "Install successful",
-        `Signal-First Account Workspace is now installed on portal ${identity.hubDomain}. Next, open the app settings in HubSpot to finish setup. You can close this tab when you are done.`,
+        `Signal-First Account Workspace is now connected to portal ${identity.hubDomain || portalIdAsText}. Next, open the app settings in HubSpot to finish setup. You can close this tab when you are done, or return to HubSpot to continue.`,
       ),
       200,
     );
