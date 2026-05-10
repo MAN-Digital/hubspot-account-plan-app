@@ -1,0 +1,27 @@
+apps/api/src/routes/lifecycle.ts
+  s_596c8338e587e6::t_9df32da7fdcc9a 137
+  s_596c8338e587e6::t_caadc3e4b3d052 95-96
+  s_596c8338e587e6::t_2a36633305899c 168,171-173
+docs/runbooks/slice-11-dev-quickstart.md
+  s_596c8338e587e6::t_0fd2406db85c83 135-137,140-141,144-146
+  s_596c8338e587e6::t_cc4460cf495671 152,155-156,159
+apps/api/src/__tests__/lifecycle-logging.test.ts
+  s_596c8338e587e6::t_3ae2912fef40f3 1-14,21,23,25,29,33-43,51-61,63-95,97-114,116-118,120,122-147,149-150,152-153
+  s_596c8338e587e6::t_2f5ed8530507e1 15-20,22,24,26-28,30-32,44-50,62,96,115,119,121,148,151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "c67215eb860a8934954095bd6b382ceef0fb88dc",
+  "prompts": {},
+  "sessions": {
+    "s_596c8338e587e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0c78bfee-2f05-4908-9b23-c6188ec0185e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
