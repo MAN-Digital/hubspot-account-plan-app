@@ -1,0 +1,24 @@
+apps/api/src/__tests__/default-enrichment-28.test.ts
+  s_596c8338e587e6::t_144ba3d0a6aa3f 96-100,109,113-115,118-119
+  s_596c8338e587e6::t_283326dbc63384 46-52
+  s_596c8338e587e6::t_86a600ca25ef3f 1-45,53-95,103-104,106-108,110,116-117,121-246
+  s_596c8338e587e6::t_85af444a88dd35 101-102,105,111-112,120
+apps/api/src/routes/oauth.ts
+  s_596c8338e587e6::t_d6358d1c9b0f32 241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "d41bd231050871aeef59f78559db608d38665038",
+  "prompts": {},
+  "sessions": {
+    "s_596c8338e587e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0c78bfee-2f05-4908-9b23-c6188ec0185e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
