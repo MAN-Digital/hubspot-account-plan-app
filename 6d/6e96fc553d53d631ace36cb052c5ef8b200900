@@ -1,0 +1,20 @@
+docs/qa/test-portal-seed-plan.md
+  s_596c8338e587e6::t_26515e76e11e3c 71-72
+  s_596c8338e587e6::t_e88dfac6d13547 84-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "6d6e96fc553d53d631ace36cb052c5ef8b200900",
+  "prompts": {},
+  "sessions": {
+    "s_596c8338e587e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0c78bfee-2f05-4908-9b23-c6188ec0185e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
