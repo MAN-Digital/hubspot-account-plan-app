@@ -18,6 +18,8 @@
     "db:generate": "pnpm --filter @hap/db run generate",
     "db:migrate": "pnpm --filter @hap/db run migrate",
     "db:studio": "pnpm --filter @hap/db run studio",
+    "seed:test-portal": "tsx scripts/seed-hubspot-test-portal.ts",
+    "seed:test-portal:dry": "tsx scripts/seed-hubspot-test-portal.ts --dry-run",
     "typecheck": "tsc --build",
     "prepare": "husky"
   },
