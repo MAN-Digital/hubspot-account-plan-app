@@ -68,8 +68,8 @@ per-tenant OAuth token from the local `tenant_hubspot_oauth` table:
    against the test portal so a tenant row exists.
 2. Operator runs `pnpm seed:test-portal --portal <portalId>`.
 3. The script reads `tenants` by `hubspotPortalId`, instantiates a tenant-
-   bound client, and issues `companies/search` + `companies` + `contacts`
-   - `associations/default/contacts/{id}` calls.
+   bound client, and issues calls to `companies/search`, `companies`,
+   `contacts`, and `associations/default/contacts/{id}`.
 
 The script is a no-op without `--portal` / `HUBSPOT_TEST_PORTAL_ID` unless
 `--dry-run` is passed; dry-run mode runs entirely offline (no DB, no HTTP)
@@ -81,8 +81,13 @@ and just prints the planned operations.
 
 - Test portal installed via the dev OAuth callback (a row exists in
   `tenants` with the matching `hubspot_portal_id`).
-- `DATABASE_URL` set in `.env` (or `.env.test`) so the script can resolve
-  the per-tenant token.
+- `DATABASE_URL` exported in your shell so the script can resolve the
+  per-tenant token. The seed script reads `process.env` directly and does
+  NOT load `.env` files automatically. Either:
+  - export the variables in your shell:
+    `export DATABASE_URL=...` (and any other vars), or
+  - prefix the command with a dotenv loader, e.g.:
+    `pnpm dlx dotenv-cli -e .env -- pnpm seed:test-portal --portal <id>`.
 - `pnpm install` has been run at the repo root.
 
 ### Commands
