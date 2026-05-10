@@ -92,6 +92,8 @@ export function lifecycleWebhookRoutes(deps: LifecycleWebhookDeps): Hono {
   const app = new Hono();
 
   app.post("/", async (c) => {
+    console.log("hubspot-lifecycle-webhook: request received");
+
     const signature = c.req.header(SIGNATURE_HEADER);
     const timestampRaw = c.req.header(TIMESTAMP_HEADER);
 
@@ -132,6 +134,7 @@ export function lifecycleWebhookRoutes(deps: LifecycleWebhookDeps): Hono {
 
     let applied = 0;
     let ignored = 0;
+    const portalIds: string[] = [];
 
     for (const event of events) {
       const eventType = mapEventTypeId(event?.eventTypeId);
@@ -162,7 +165,12 @@ export function lifecycleWebhookRoutes(deps: LifecycleWebhookDeps): Hono {
       });
 
       applied += 1;
+      portalIds.push(portalId);
     }
+
+    console.log(
+      `hubspot-lifecycle-webhook: applied=${applied} ignored=${ignored} portalIds=${portalIds.join(",")}`,
+    );
 
     return c.json({ received: events.length, applied, ignored }, 200);
   });

@@ -132,27 +132,31 @@ subscriptions are registered.
 1. In the HubSpot developer UI, open the app's "Install URL" for your dev
    test portal (a non-production portal you own).
 2. Approve the requested scopes.
-3. Tail your receiver logs. You should see, within a few seconds, a line
-   like:
+3. Tail your receiver logs. You should see, within a few seconds, two
+   lines per delivery — one as the request arrives and one summarising
+   what was applied vs. ignored:
 
    ```
-   [lifecycle] APP_INSTALL received portalId=<id> timestamp=<iso>
+   hubspot-lifecycle-webhook: request received
+   hubspot-lifecycle-webhook: applied=1 ignored=0 portalIds=<id>
    ```
 
-4. Record that log line (redact nothing — `portalId` and timestamp are
-   safe to share; no secrets are emitted by the Slice 7 receiver).
+4. Record both lines (redact nothing — `portalId` and the applied/ignored
+   counts are safe to share; no secrets are emitted by the Slice 7
+   receiver).
 
 ### 4.3 Uninstall
 
 1. In the dev test portal, go to Settings → Connected apps → your app →
    Uninstall.
-2. Tail the receiver logs. Expect:
+2. Tail the receiver logs. Expect the same two-line pattern as install:
 
    ```
-   [lifecycle] APP_UNINSTALL received portalId=<id> timestamp=<iso>
+   hubspot-lifecycle-webhook: request received
+   hubspot-lifecycle-webhook: applied=1 ignored=0 portalIds=<id>
    ```
 
-3. Record that log line.
+3. Record both lines.
 
 Two bootstrap reports + two receiver log lines = verification evidence
 called for in the Slice 11 dev operationalization plan, acceptance
