@@ -166,6 +166,52 @@ describe("GET /oauth/callback — polished success page (no returnUrl)", () => {
       await db.delete(schema.tenants).where(eq(schema.tenants.id, tenantId));
     }
   });
+
+  it("falls back to portalIdAsText in success copy when hub_domain is empty", async () => {
+    // Locks the documented `identity.hubDomain || portalIdAsText` fallback
+    // (oauth.ts success path). If hub_domain comes back empty from
+    // HubSpot, the success page MUST identify the connection by portal id,
+    // not by an empty string. Addresses CodeRabbit coverage nit on PR #34.
+    const ident = identityResponseForPortal(`${PORTAL_PREFIX}${randomUUID().slice(0, 4)}`);
+    const identBodyEmptyDomain = {
+      ...(ident.body as Record<string, unknown>),
+      hub_domain: "",
+    };
+    const exchange = loadCassette("oauth-token-exchange.json");
+
+    const state = signState({
+      secret: CONFIG.clientSecret,
+      ttlSeconds: CONFIG.stateTtlSeconds,
+    });
+
+    const routes = createOAuthRoutes({
+      config: CONFIG,
+      db,
+      fetch: fakeFetchSequence([
+        { status: exchange.response.status, body: exchange.response.body },
+        { status: ident.status, body: identBodyEmptyDomain },
+      ]),
+    });
+
+    const res = await routes.request(`/callback?code=auth-code&state=${encodeURIComponent(state)}`);
+    expect(res.status).toBe(200);
+
+    const body = await res.text();
+    // Must NOT mention the (now empty) hub_domain.
+    expect(body).not.toContain("qa-account.example.com");
+    // MUST identify the connection by numeric portal id instead.
+    expect(body).toContain(ident.portalIdAsText);
+
+    // Cleanup
+    const tenantRows = await db
+      .select()
+      .from(schema.tenants)
+      .where(eq(schema.tenants.hubspotPortalId, ident.portalIdAsText));
+    const tenantId = tenantRows[0]?.id;
+    if (tenantId) {
+      await db.delete(schema.tenants).where(eq(schema.tenants.id, tenantId));
+    }
+  });
 });
 
 describe("GET /oauth/callback — returnUrl regression guard", () => {
