@@ -1,0 +1,30 @@
+docs/qa/test-portal-seed-plan.md
+  s_290b48e5632296::t_f3f805452bd76c 63,65-78,80-84,86
+  s_290b48e5632296::t_87ded0b3004e38 90,92-117,125-126,128-130,134
+scripts/__tests__/seed-hubspot-private-app-client.test.ts
+  s_290b48e5632296::t_e5ba2660e1d280 62-63
+  s_290b48e5632296::t_1b4488431fe344 1-22,24-52,54-61,64-66,68-70,72-85,87-93,95-127,129-158,160-265,267-269,271-273
+scripts/seed-hubspot-test-portal.ts
+  s_290b48e5632296::t_61e4f3e3133a90 27
+  s_290b48e5632296::t_c1df5d34d53f8a 429-438,442-443
+scripts/__tests__/seed-hubspot-test-portal.test.ts
+  s_290b48e5632296::t_9f0b392581847f 227-293
+scripts/seed-hubspot-private-app-client.ts
+  s_290b48e5632296::t_8753e4c329506c 1-108,110-191,193-206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.9",
+  "base_commit_sha": "b2e8f17fed36b77e3dedc47cd8fa30bc794d2c99",
+  "prompts": {},
+  "sessions": {
+    "s_290b48e5632296": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "febc8bab-03d7-40d9-a2b6-ee0ec0c161bf",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
