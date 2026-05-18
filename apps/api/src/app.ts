@@ -1,12 +1,14 @@
 import { resolveHubSpotOAuthRedirectUri } from "@hap/config";
-import { createDatabase } from "@hap/db";
+import { createDatabase, sql as drizzleSql } from "@hap/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { sweepExpiredNonces } from "./lib/replay-nonce.js";
 import { withTenantTxHandle } from "./lib/tenant-tx.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { type CorrelationVariables, correlationMiddleware } from "./middleware/correlation.js";
 import { nonceMiddleware } from "./middleware/nonce.js";
 import { type TenantVariables, tenantMiddleware } from "./middleware/tenant.js";
+import { createKeepAliveRoute } from "./routes/admin/keep-alive.js";
 import { createLifecycleBootstrapRoute } from "./routes/admin/lifecycle-bootstrap.js";
 import { lifecycleWebhookRoutes } from "./routes/lifecycle.js";
 import { createOAuthRoutes } from "./routes/oauth.js";
@@ -128,6 +130,20 @@ app.route("/webhooks/hubspot/lifecycle", lifecycleWebhookRoutes({ db: getDb() })
 // and the tenant middleware because it is gated on a static internal token
 // rather than a HubSpot-signed request. Mirrors the webhook mount posture.
 app.route("/admin/lifecycle", createLifecycleBootstrapRoute());
+
+// Vercel cron — daily `select 1` + nonce TTL sweep. Mounted OUTSIDE `/api/*`
+// because the caller is Vercel's scheduler, not an authenticated tenant. Auth
+// is `Authorization: Bearer <CRON_SECRET>` (Vercel cron convention). Schedule
+// lives in `apps/api/vercel.json` -> `crons[]`.
+app.route(
+  "/admin/keep-alive",
+  createKeepAliveRoute({
+    ping: async () => {
+      await getDb().execute(drizzleSql`select 1`);
+    },
+    sweep: () => sweepExpiredNonces(getDb()),
+  }),
+);
 
 // Composed middleware chain for /api/* routes: auth -> tenant -> route.
 app.use("/api/*", authMiddleware());
