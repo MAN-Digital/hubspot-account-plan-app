@@ -1,0 +1,20 @@
+docs/decisions/oauth-scope-policy.md
+  s_290b48e5632296::t_f6a9223c190214 1-12,14-39,48-54,64-69,71-74,76-79,90-127,129-133,135-138,140-149,151-164
+  ai_agent 13,40-47,55-63,70,75,80-89,128,134,139,150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "71e3996432abf4b47863616972ec76a6e43a985d",
+  "prompts": {},
+  "sessions": {
+    "s_290b48e5632296": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "febc8bab-03d7-40d9-a2b6-ee0ec0c161bf",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
