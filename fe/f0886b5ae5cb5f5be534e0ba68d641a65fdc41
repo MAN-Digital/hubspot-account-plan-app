@@ -1,0 +1,30 @@
+docs/runbooks/supabase-auto-pause.md
+  ai_agent 1-86
+apps/api/src/app.ts
+  s_290b48e5632296::t_7629998acbb282 2,5,11
+  s_290b48e5632296::t_d0180b7ff2d3df 134-147
+apps/api/src/routes/admin/__tests__/keep-alive.test.ts
+  s_290b48e5632296::t_7449f0bd318773 1-148,150-164
+  ai_agent 149
+apps/api/src/routes/admin/keep-alive.ts
+  s_290b48e5632296::t_54aa8d2679da5e 66
+  s_290b48e5632296::t_f4b0deac06b228 1-65,67-117
+apps/api/vercel.json
+  s_290b48e5632296::t_7afe304c6b8152 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "fef0886b5ae5cb5f5be534e0ba68d641a65fdc41",
+  "prompts": {},
+  "sessions": {
+    "s_290b48e5632296": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "febc8bab-03d7-40d9-a2b6-ee0ec0c161bf",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
