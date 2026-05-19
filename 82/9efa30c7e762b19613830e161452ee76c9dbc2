@@ -1,0 +1,19 @@
+docs/qa/slice-12-wave-d-walkthrough.md
+  s_290b48e5632296::t_a684647465b92a 1-18,25-213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.9",
+  "base_commit_sha": "829efa30c7e762b19613830e161452ee76c9dbc2",
+  "prompts": {},
+  "sessions": {
+    "s_290b48e5632296": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "febc8bab-03d7-40d9-a2b6-ee0ec0c161bf",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
