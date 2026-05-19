@@ -24,6 +24,7 @@
 
 import { HubSpotClient } from "../apps/api/src/lib/hubspot-client";
 import { createDatabase, eq, tenants } from "../packages/db/src";
+import { PrivateAppSeedClient } from "./seed-hubspot-private-app-client";
 
 /**
  * Marker scheme used to find previously-seeded rows for idempotency.
@@ -425,10 +426,22 @@ export async function runSeed(
   let client: SeedHubSpotClient;
   if (deps.clientFactory) {
     client = deps.clientFactory();
+  } else if (env.HUBSPOT_PRIVATE_APP_TOKEN) {
+    // Path C — HubSpot Private App access token. The production marketplace
+    // app intentionally requests read-only scopes; widening the marketplace
+    // grant just to make the seed write would trigger HubSpot re-review and
+    // change the user-facing trust posture. A portal-scoped Private App
+    // token sidesteps both. Full rationale lives in
+    // `docs/decisions/oauth-scope-policy.md`.
+    client = new PrivateAppSeedClient({
+      token: env.HUBSPOT_PRIVATE_APP_TOKEN,
+    });
   } else {
     const databaseUrl = env.DATABASE_URL;
     if (!databaseUrl) {
-      throw new Error("seed-hubspot-test-portal: DATABASE_URL is required for live seeding.");
+      throw new Error(
+        "seed-hubspot-test-portal: DATABASE_URL is required for live seeding (or set HUBSPOT_PRIVATE_APP_TOKEN for Path C).",
+      );
     }
     const db = createDatabase(databaseUrl);
     const rows = await db.select().from(tenants).where(eq(tenants.hubspotPortalId, portalId));

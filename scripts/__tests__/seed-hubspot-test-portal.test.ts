@@ -224,5 +224,72 @@ describe("seed-hubspot-test-portal", () => {
       expect(results).toBeDefined();
       expect(results ?? []).toHaveLength(8);
     });
+
+    // Path C — HubSpot Private App token. See docs/decisions/oauth-scope-policy.md.
+    // When HUBSPOT_PRIVATE_APP_TOKEN is set, runSeed should construct a
+    // PrivateAppSeedClient and skip the OAuth-token-from-DB path entirely
+    // (no DATABASE_URL needed, no tenant lookup, no decryption).
+    describe("HUBSPOT_PRIVATE_APP_TOKEN branch (Path C)", () => {
+      it("uses PrivateAppSeedClient and does NOT require DATABASE_URL", async () => {
+        // global.fetch backs the PrivateAppSeedClient. The first call is
+        // searchCompaniesByMarker → empty results → plan is 8 creates →
+        // 8 createCompany calls, plus 3 contacts for eligible-strong, 1 each
+        // for the rest (= 9 contacts), + 9 associations. Lots of fetch calls;
+        // we don't need to hand-craft each — let HubSpot's "id-then-empty"
+        // response shape carry through.
+        const fetchMock = vi.fn<typeof fetch>().mockImplementation(async (input) => {
+          const urlString = typeof input === "string" ? input : (input as Request).url;
+          if (urlString.includes("/companies/search") || urlString.includes("/contacts/search")) {
+            return new Response(JSON.stringify({ results: [] }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          // Defaults for create/update/associate.
+          return new Response(JSON.stringify({ id: `id-${Math.random()}`, properties: {} }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        });
+        vi.stubGlobal("fetch", fetchMock);
+
+        const log: string[] = [];
+        const { plan, results } = await runSeed(["--portal", "147062576"], {
+          env: {
+            // Intentionally NO DATABASE_URL — Path C must not require it.
+            HUBSPOT_PRIVATE_APP_TOKEN: "pat-na1-test-secret",
+          },
+          log: (s) => log.push(s),
+        });
+
+        expect(plan).toHaveLength(8);
+        expect(plan.every((r) => r.action === "create")).toBe(true);
+        expect(results).toBeDefined();
+        // First fetch must be the marker search and carry the Bearer header.
+        const firstCall = fetchMock.mock.calls[0];
+        expect(firstCall).toBeDefined();
+        const firstInit = firstCall?.[1] as RequestInit | undefined;
+        const firstHeaders = firstInit?.headers as Headers | undefined;
+        expect(firstHeaders?.get("authorization")).toBe("Bearer pat-na1-test-secret");
+
+        vi.unstubAllGlobals();
+      });
+
+      it("clientFactory injection wins over HUBSPOT_PRIVATE_APP_TOKEN (tests stay deterministic)", async () => {
+        const client = stubClient();
+        const { results } = await runSeed(["--portal", "147062576"], {
+          env: { HUBSPOT_PRIVATE_APP_TOKEN: "pat-should-be-ignored" },
+          clientFactory: () => client,
+          log: () => {
+            /* noop */
+          },
+        });
+
+        expect(results).toBeDefined();
+        // The injected stub was used — if the env path had won, this stub's
+        // searchCompaniesByMarker mock would not have been invoked.
+        expect(client.searchCompaniesByMarker).toHaveBeenCalled();
+      });
+    });
   });
 });
