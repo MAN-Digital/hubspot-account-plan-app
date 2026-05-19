@@ -2,9 +2,14 @@
  * Slice 12 follow-up — Vercel cron endpoint to prevent Supabase auto-pause.
  *
  * GET /admin/keep-alive
- *   Mounted OUTSIDE /api/* and the tenant middleware because it is invoked
- *   by Vercel's scheduler, not by an authenticated tenant. Mirrors the
- *   /admin/lifecycle/bootstrap mount posture.
+ *   Mounted as a direct handler on the main Hono app (NOT a sub-app via
+ *   `app.route`). The sub-app pattern with an inner `app.get("/")` registers
+ *   the route as `/admin/keep-alive/` (with trailing slash) in Hono's
+ *   production router, which doesn't match the bare `/admin/keep-alive` path
+ *   that Vercel cron + curl hit. Direct registration sidesteps that quirk.
+ *   The original sub-app implementation in PR #46 produced a 404 in
+ *   production despite passing all local tests — see follow-up PR for
+ *   the post-mortem.
  *
  *   Pings the DB (caller-supplied `ping`) and sweeps expired
  *   signed_request_nonce rows (caller-supplied `sweep`). Two birds:
@@ -16,8 +21,7 @@
  * Auth:
  *   - Header `Authorization: Bearer <CRON_SECRET>` (Vercel cron convention).
  *   - Constant-time compare via length-safe `timingSafeEqual`.
- *   - Missing env  -> 503 `keepalive_not_configured` (loud failure surfaces
- *     in Vercel cron alerts; never 500).
+ *   - Missing env  -> 503 `keepalive_not_configured`.
  *   - Missing/malformed header -> 401 `missing_cron_token`.
  *   - Wrong bearer (any length) -> 403 `invalid_cron_token`.
  *
@@ -31,7 +35,7 @@
  */
 
 import { timingSafeEqual } from "node:crypto";
-import { Hono } from "hono";
+import type { Context } from "hono";
 
 const BEARER_PREFIX = "Bearer ";
 
@@ -46,10 +50,7 @@ export type KeepAliveDeps = {
 
 /**
  * Length-safe constant-time string compare. Mirrors the pattern used in
- * `lifecycle-bootstrap.ts` and `middleware/hubspot-signature.ts`:
- * `timingSafeEqual` throws on unequal `Buffer.byteLength`, so we gate on
- * length and still burn a compare against a padded buffer to keep timing
- * roughly flat across length-mismatch and content-mismatch paths.
+ * `lifecycle-bootstrap.ts` and `middleware/hubspot-signature.ts`.
  */
 function safeEquals(a: string, b: string): boolean {
   const aBuf = Buffer.from(a, "utf8");
@@ -68,11 +69,17 @@ function extractBearer(header: string | undefined): string | null {
   return token.length === 0 ? null : token;
 }
 
-export function createKeepAliveRoute(deps: KeepAliveDeps) {
+/**
+ * Build the keep-alive route handler. Mount with
+ * `app.get("/admin/keep-alive", createKeepAliveHandler({...}))`.
+ *
+ * Returns a Hono handler rather than a sub-app on purpose — see file
+ * header for the production-routing reason.
+ */
+export function createKeepAliveHandler(deps: KeepAliveDeps) {
   const env = deps.env ?? process.env;
-  const app = new Hono();
 
-  app.get("/", async (c) => {
+  return async (c: Context) => {
     const expected = env.CRON_SECRET;
     if (!expected || expected.length === 0) {
       return c.json({ error: "keepalive_not_configured" }, 503);
@@ -111,7 +118,5 @@ export function createKeepAliveRoute(deps: KeepAliveDeps) {
       },
       200,
     );
-  });
-
-  return app;
+  };
 }

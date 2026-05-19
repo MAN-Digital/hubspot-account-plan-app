@@ -8,7 +8,7 @@ import { authMiddleware } from "./middleware/auth.js";
 import { type CorrelationVariables, correlationMiddleware } from "./middleware/correlation.js";
 import { nonceMiddleware } from "./middleware/nonce.js";
 import { type TenantVariables, tenantMiddleware } from "./middleware/tenant.js";
-import { createKeepAliveRoute } from "./routes/admin/keep-alive.js";
+import { createKeepAliveHandler } from "./routes/admin/keep-alive.js";
 import { createLifecycleBootstrapRoute } from "./routes/admin/lifecycle-bootstrap.js";
 import { lifecycleWebhookRoutes } from "./routes/lifecycle.js";
 import { createOAuthRoutes } from "./routes/oauth.js";
@@ -135,9 +135,14 @@ app.route("/admin/lifecycle", createLifecycleBootstrapRoute());
 // because the caller is Vercel's scheduler, not an authenticated tenant. Auth
 // is `Authorization: Bearer <CRON_SECRET>` (Vercel cron convention). Schedule
 // lives in `apps/api/vercel.json` -> `crons[]`.
-app.route(
+//
+// Registered as a direct handler (not via `app.route` sub-app) because the
+// sub-app + inner `app.get("/")` pattern that PR #46 used registers the path
+// as `/admin/keep-alive/` in Hono's production router and 404s on the bare
+// `/admin/keep-alive` path that Vercel cron + curl hit.
+app.get(
   "/admin/keep-alive",
-  createKeepAliveRoute({
+  createKeepAliveHandler({
     ping: async () => {
       await getDb().execute(drizzleSql`select 1`);
     },

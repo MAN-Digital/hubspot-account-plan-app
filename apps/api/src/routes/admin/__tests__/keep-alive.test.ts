@@ -13,7 +13,7 @@
  */
 import { Hono } from "hono";
 import { describe, expect, it, vi } from "vitest";
-import { createKeepAliveRoute } from "../keep-alive";
+import { createKeepAliveHandler } from "../keep-alive";
 
 const VALID_TOKEN = "cron-secret-token-0123456789abcdef";
 
@@ -28,8 +28,13 @@ function mount(
   const sweep = deps.sweep ?? vi.fn(async () => ({ deletedCount: 0 }));
   const env = deps.env ?? { CRON_SECRET: VALID_TOKEN };
 
+  // Mount as a direct handler on the main Hono app — same pattern as
+  // production. The previous test used `app.route("/admin/keep-alive", subApp)`
+  // with an inner `app.get("/")`, which passed in tests but 404'd in
+  // production because Hono's production router registers that combo as
+  // `/admin/keep-alive/` (trailing slash) and doesn't normalize.
   const app = new Hono();
-  app.route("/admin/keep-alive", createKeepAliveRoute({ ping, sweep, env }));
+  app.get("/admin/keep-alive", createKeepAliveHandler({ ping, sweep, env }));
   return { app, ping, sweep };
 }
 
