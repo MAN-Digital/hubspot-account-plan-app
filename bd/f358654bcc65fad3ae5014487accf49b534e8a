@@ -1,0 +1,19 @@
+.claude/tasks/2026-05-29-worktree-prune-evidence.md
+  s_ebd3088fde07f6::t_844c5a60939804 1-21,23-37,39-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bdf358654bcc65fad3ae5014487accf49b534e8a",
+  "prompts": {},
+  "sessions": {
+    "s_ebd3088fde07f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9430fee8-953f-4ed1-894f-e6c9cada605d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
