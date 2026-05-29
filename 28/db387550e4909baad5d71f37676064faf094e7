@@ -1,0 +1,23 @@
+README.md
+  s_ebd3088fde07f6::t_a9d804f50b7ab9 10
+CHANGELOG.md
+  s_ebd3088fde07f6::t_c3e24700054a58 1-65
+docs/decisions/oauth-scope-policy.md
+  s_ebd3088fde07f6::t_de30989c144ba1 3-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "28db387550e4909baad5d71f37676064faf094e7",
+  "prompts": {},
+  "sessions": {
+    "s_ebd3088fde07f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9430fee8-953f-4ed1-894f-e6c9cada605d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
