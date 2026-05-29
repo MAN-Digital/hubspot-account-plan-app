@@ -1,0 +1,19 @@
+docs/runbooks/vercel-deploy.md
+  s_12fea474f89023::t_3e31d9b83a1db5 115-238
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ab5af1a673241935d6e347d2253d333322e44bff",
+  "prompts": {},
+  "sessions": {
+    "s_12fea474f89023": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "74795bdd-79f0-4969-a071-37c85e29dc68",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
