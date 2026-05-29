@@ -7,7 +7,7 @@ A HubSpot-native company-record extension that surfaces **one credible reason to
 ### Prerequisites
 
 - Node.js 22+
-- pnpm 9+
+- pnpm 10+ (repo pins `pnpm@10.33.0` via `packageManager`)
 - Docker (for local Postgres)
 - HubSpot CLI (`hs`)
 

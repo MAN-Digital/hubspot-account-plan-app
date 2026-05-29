@@ -1,8 +1,8 @@
 # Decision: OAuth scope policy — read-only vs. seed-write
 
-**Status**: Proposed (awaiting product sign-off)
-**Decision needed by**: before Wave D operator walkthrough (#37) ships, or sooner if anyone tries `pnpm seed:test-portal` against a live portal
-**Tracking**: [#38](https://github.com/MAN-Digital/hubspot-account-plan-app/issues/38)
+**Status**: Accepted — **Path C adopted and shipped** in [#47](https://github.com/MAN-Digital/hubspot-account-plan-app/pull/47) (closed tracking issue [#38](https://github.com/MAN-Digital/hubspot-account-plan-app/issues/38) on 2026-05-19)
+**Decision needed by**: before Wave D operator walkthrough (#37) ships, or sooner if anyone tries `pnpm seed:test-portal` against a live portal — resolved
+**Tracking**: [#38](https://github.com/MAN-Digital/hubspot-account-plan-app/issues/38) (closed)
 **Recommendation**: **Path C (Private App token for the seed script)**, with Path A as the cheap fallback if engineering time is the bottleneck
 
 ## TL;DR
