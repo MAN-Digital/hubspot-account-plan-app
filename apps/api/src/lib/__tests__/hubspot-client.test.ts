@@ -98,6 +98,9 @@ function makeMockDb(overrides?: {
     // For UPDATE (token refresh persist)
     update: updateMock,
     delete: deleteMock,
+    // deactivateTenant sets the app.tenant_id GUC via execute() inside its tx
+    // so the FORCE-RLS oauth delete is authorized under a least-privilege role.
+    execute: vi.fn().mockResolvedValue([]),
     transaction: vi.fn(async (callback: (tx: unknown) => unknown) => callback(mockDb)),
   } as unknown as Database;
 
