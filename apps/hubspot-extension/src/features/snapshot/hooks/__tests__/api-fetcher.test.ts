@@ -155,4 +155,28 @@ describe("createHubSpotApiFetcher", () => {
     const fetcher = createHubSpotApiFetcher();
     await expect(fetcher("company-1")).rejects.toThrow("network-failed");
   });
+
+  it("passes the documented 15s timeout cap to hubspot.fetch by default", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, VALID_WIRE_SNAPSHOT));
+    const fetcher = createHubSpotApiFetcher();
+    await fetcher("company-1");
+
+    const call = fetchMock.mock.calls[0];
+    if (!call) throw new Error("hubspot.fetch was not called");
+    const [, options] = call;
+    // Without an explicit timeout a hung backend would block the card on the
+    // platform default. Pin it to HubSpot's documented 15s cap.
+    expect((options as { timeout?: number }).timeout).toBe(15_000);
+  });
+
+  it("honours a custom timeoutMs override", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, VALID_WIRE_SNAPSHOT));
+    const fetcher = createHubSpotApiFetcher({ timeoutMs: 8_000 });
+    await fetcher("company-1");
+
+    const call = fetchMock.mock.calls[0];
+    if (!call) throw new Error("hubspot.fetch was not called");
+    const [, options] = call;
+    expect((options as { timeout?: number }).timeout).toBe(8_000);
+  });
 });
