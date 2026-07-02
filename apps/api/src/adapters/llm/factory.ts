@@ -32,6 +32,7 @@ import {
   type RateLimitConfig,
   type RateLimiter,
 } from "../../lib/rate-limiter.js";
+import { assertSafeCustomEndpoint } from "../../lib/settings-connection-test.js";
 import type { LlmAdapter, LlmOptions, LlmResponse } from "../llm-adapter.js";
 import { AnthropicAdapter } from "./anthropic.js";
 import { GeminiAdapter } from "./gemini.js";
@@ -102,6 +103,11 @@ export function createLlmAdapter(config: LlmProviderConfig, deps?: LlmFactoryDep
       if (!config.endpointUrl || config.endpointUrl.length === 0) {
         throw new Error("Custom LLM provider requires endpointUrl in llm_config");
       }
+      // SSRF guard on the EXECUTION path (H2). The connection-test path already
+      // validates, but a stored endpoint reaches inference through this factory
+      // — a tenant-controlled URL must be re-checked here so it cannot target
+      // link-local/metadata (169.254.169.254), loopback, or private hosts.
+      assertSafeCustomEndpoint(config.endpointUrl);
       return new OpenAiCompatibleAdapter({
         apiKey: config.apiKeyRef,
         model: config.model,
