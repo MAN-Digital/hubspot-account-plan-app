@@ -21,10 +21,10 @@
 
 import { type Database, sql as drizzleSql } from "@hap/db";
 
-export interface DbRoleAttributes {
+export type DbRoleAttributes = {
   rolsuper: boolean;
   rolbypassrls: boolean;
-}
+};
 
 export class DbRoleSecurityError extends Error {
   constructor(message: string) {

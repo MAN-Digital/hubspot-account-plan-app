@@ -16,6 +16,49 @@ const VALID_ENV = {
   ROOT_KEK: VALID_KEK,
 };
 
+describe("loadEnv: ALLOW_TEST_AUTH production-DB guard (M2)", () => {
+  it("throws when ALLOW_TEST_AUTH=true and DATABASE_URL targets a managed prod DB", () => {
+    expect(() =>
+      loadEnv({
+        ...VALID_ENV,
+        DATABASE_URL:
+          "postgresql://postgres.abc:pw@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
+        ALLOW_TEST_AUTH: "true",
+        NODE_ENV: "test",
+      }),
+    ).toThrow(/ALLOW_TEST_AUTH/);
+  });
+
+  it("allows ALLOW_TEST_AUTH=true against a local DB (bypass gating handles NODE_ENV)", () => {
+    expect(() =>
+      loadEnv({ ...VALID_ENV, ALLOW_TEST_AUTH: "true", NODE_ENV: "test" }),
+    ).not.toThrow();
+  });
+
+  it("allows ALLOW_TEST_AUTH=true with NODE_ENV=production on a local DB (bypass is inert)", () => {
+    // The signature middleware refuses the bypass whenever NODE_ENV!=='test',
+    // so this stray combo on a non-prod DB is not a loadEnv failure.
+    expect(() =>
+      loadEnv({
+        ...VALID_ENV,
+        ALLOW_TEST_AUTH: "true",
+        NODE_ENV: "production",
+      }),
+    ).not.toThrow();
+  });
+
+  it("allows a managed prod DB when ALLOW_TEST_AUTH is unset", () => {
+    expect(() =>
+      loadEnv({
+        ...VALID_ENV,
+        DATABASE_URL:
+          "postgresql://postgres.abc:pw@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
+        NODE_ENV: "production",
+      }),
+    ).not.toThrow();
+  });
+});
+
 describe("loadEnv: happy path", () => {
   it("parses all required vars", () => {
     const env = loadEnv(VALID_ENV);
