@@ -552,12 +552,20 @@ Slice 3 enables Postgres row-level security on every tenant-scoped data table th
 ### 17.2 Why this closes the gap
 
 - App code can no longer accidentally read or write tenant-scoped rows outside the current tenant transaction context.
-- The RLS boundary sits in the database, not just in application `where tenant_id = ...` discipline.
 - `signed_request_nonce` and `tenant_hubspot_oauth` now inherit the same tenant boundary as snapshots and provider config.
+
+**Critical operational precondition (C1).** RLS is enforced by the database **only when the connecting role neither is a superuser nor carries `BYPASSRLS`.** A superuser bypasses RLS unconditionally (even with `rolbypassrls = false`); `FORCE ROW LEVEL SECURITY` removes only the _table-owner_ exemption, not the superuser/`BYPASSRLS` exemption. The Supabase project pooler role `postgres.<project-ref>` is both, so if production connects as that role, **every policy above is inert and tenant isolation rests on application `where tenant_id = ...` filtering alone.** The database-level boundary is real only when the app connects as the least-privilege `hap_app` role. See:
+
+- `packages/db/drizzle/0010_least_privilege_app_role.sql` — provisions `hap_app` (`NOSUPERUSER`/`NOBYPASSRLS`).
+- `docs/runbooks/least-privilege-db-role.md` — operator rollout (set password, repoint `DATABASE_URL`).
+- `apps/api/src/lib/db-role-guard.ts` — `assertDbRoleEnforcesRls` fails `/api/*` closed in production if the connected role bypasses RLS (break-glass: `HAP_ALLOW_DB_SUPERUSER=true`).
+
+Two write paths touch `FORCE`-RLS tables outside the `/api/*` request scope and therefore set `app.tenant_id` explicitly so they work under a non-bypass role: the OAuth callback token upsert (`routes/oauth.ts`, wrapped in `withTenantTx`) and lifecycle deactivation's token delete (`lib/tenant-lifecycle.ts`).
 
 ### 17.3 Verification notes
 
-- Local dev role `hap` has `BYPASSRLS`, so truthful enforcement tests use a dedicated non-bypass role in `tenant-tx.test.ts`.
+- Local dev / CI role is a superuser, so truthful enforcement tests use a dedicated non-bypass role: `tenant-tx.test.ts` (read isolation) and `rls-write-paths.test.ts` (connects as a real `NOSUPERUSER`/`NOBYPASSRLS` LOGIN role and proves the lifecycle delete touches only the target tenant).
+- `db-role-guard.test.ts` proves the boot guard rejects a bypass role and that a superuser is correctly treated as non-enforcing.
 - Regression coverage proves the snapshot route uses the request-scoped DB handle and no longer constructs its own DB client.
 - Biome now forbids importing `createDatabase` in live `apps/api/src/routes/**` and `apps/api/src/services/**` code.
 
