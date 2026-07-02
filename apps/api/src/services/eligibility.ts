@@ -75,6 +75,19 @@ type CacheEntry = {
  */
 const cache = new Map<string, CacheEntry>();
 
+type PropertyNameCacheEntry = {
+  propertyName: string;
+  expiresAt: number;
+};
+
+/**
+ * Tenant-scoped cache of the resolved eligibility property name. Keyed by
+ * `tenantId` with the same TTL as the result cache. Without this, every
+ * `checkEligibility` call — even a result-cache hit — paid a `provider_config`
+ * round-trip to re-resolve the (rarely-changing) property name.
+ */
+const propertyNameCache = new Map<string, PropertyNameCacheEntry>();
+
 /** Build a tenant-scoped cache key. Exposed for test assertions. */
 export function buildCacheKey(tenantId: string, companyId: string, propertyName: string): string {
   return `${tenantId}:${companyId}:${propertyName}`;
@@ -83,6 +96,7 @@ export function buildCacheKey(tenantId: string, companyId: string, propertyName:
 /** Clear all cached eligibility entries. Tests call this in `beforeEach`. */
 export function clearEligibilityCache(): void {
   cache.clear();
+  propertyNameCache.clear();
 }
 
 /**
@@ -93,7 +107,17 @@ export function clearEligibilityCache(): void {
  * always safe because the fetcher read will then surface `unconfigured` for
  * missing data.
  */
-async function resolvePropertyName(db: Database, tenantId: string): Promise<string> {
+async function resolvePropertyName(
+  db: Database,
+  tenantId: string,
+  currentTime: number,
+): Promise<string> {
+  const cached = propertyNameCache.get(tenantId);
+  if (cached && cached.expiresAt > currentTime) {
+    return cached.propertyName;
+  }
+
+  let resolved: string;
   try {
     const rows = await db
       .select({ settings: providerConfig.settings })
@@ -107,17 +131,28 @@ async function resolvePropertyName(db: Database, tenantId: string): Promise<stri
       .limit(1);
 
     const settings = rows[0]?.settings;
+    let override: string | undefined;
     if (settings && typeof settings === "object" && !Array.isArray(settings)) {
       const raw = (settings as Record<string, unknown>)[ELIGIBILITY_PROPERTY_SETTINGS_KEY];
       if (typeof raw === "string" && raw.length > 0) {
-        return raw;
+        override = raw;
       }
     }
+    resolved = override ?? DEFAULT_ELIGIBILITY_PROPERTY;
   } catch {
-    // Intentional: fail open to the default property name. The fetcher call
-    // will still determine eligibility/unconfigured correctly.
+    // Transient DB error: fail open to the default property name WITHOUT
+    // caching, so a recovered DB is picked up on the next call. The fetcher
+    // read will still determine eligibility/unconfigured correctly.
+    return DEFAULT_ELIGIBILITY_PROPERTY;
   }
-  return DEFAULT_ELIGIBILITY_PROPERTY;
+
+  // Cache the successfully-resolved name (override or default) so the common
+  // no-override case also avoids a per-request provider_config read.
+  propertyNameCache.set(tenantId, {
+    propertyName: resolved,
+    expiresAt: currentTime + ELIGIBILITY_CACHE_TTL_MS,
+  });
+  return resolved;
 }
 
 /**
@@ -148,11 +183,11 @@ export async function checkEligibility(
   const now = deps.now ?? Date.now;
   const { tenantId, companyId } = args;
 
-  const propertyName = await resolvePropertyName(db, tenantId);
+  const currentTime = now();
+  const propertyName = await resolvePropertyName(db, tenantId, currentTime);
   const key = buildCacheKey(tenantId, companyId, propertyName);
 
   const cached = cache.get(key);
-  const currentTime = now();
   if (cached && cached.expiresAt > currentTime) {
     return cached.result;
   }

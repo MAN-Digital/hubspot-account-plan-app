@@ -220,6 +220,50 @@ describe("checkEligibility", () => {
     expect(fetcherB).toHaveBeenCalledTimes(1);
   });
 
+  it("caches the resolved property name per tenant — second call skips the provider_config read", async () => {
+    const tenant = await seedTenant();
+    await setHubspotProviderConfig(tenant.id, {
+      eligibilityPropertyName: "custom_target_flag",
+    });
+    const fetcher = vi.fn().mockResolvedValue(true);
+    const now = () => 2_000_000;
+
+    // First call resolves the property name from provider_config and caches it.
+    await checkEligibility({ db, fetcher, now }, { tenantId: tenant.id, companyId: "company-A" });
+    expect(fetcher).toHaveBeenLastCalledWith(tenant.id, "company-A", "custom_target_flag");
+
+    // Remove the provider_config row. If the property name is re-read from the
+    // DB on the next call it would fall back to the default; a per-tenant cache
+    // must retain "custom_target_flag".
+    await db.delete(providerConfig).where(eq(providerConfig.tenantId, tenant.id));
+
+    // Different company → eligibility-result cache misses, so the fetcher runs
+    // again and reveals which property name was used (cached vs re-read).
+    await checkEligibility({ db, fetcher, now }, { tenantId: tenant.id, companyId: "company-B" });
+    expect(fetcher).toHaveBeenLastCalledWith(tenant.id, "company-B", "custom_target_flag");
+  });
+
+  it("expires the cached property name after the TTL", async () => {
+    const tenant = await seedTenant();
+    await setHubspotProviderConfig(tenant.id, {
+      eligibilityPropertyName: "custom_target_flag",
+    });
+    const fetcher = vi.fn().mockResolvedValue(true);
+    let clock = 5_000_000;
+    const now = () => clock;
+
+    await checkEligibility({ db, fetcher, now }, { tenantId: tenant.id, companyId: "company-A" });
+    expect(fetcher).toHaveBeenLastCalledWith(tenant.id, "company-A", "custom_target_flag");
+
+    // Drop the override and advance past the TTL: the stale property name must
+    // be re-resolved, now falling back to the default.
+    await db.delete(providerConfig).where(eq(providerConfig.tenantId, tenant.id));
+    clock += ELIGIBILITY_CACHE_TTL_MS + 1;
+
+    await checkEligibility({ db, fetcher, now }, { tenantId: tenant.id, companyId: "company-C" });
+    expect(fetcher).toHaveBeenLastCalledWith(tenant.id, "company-C", DEFAULT_ELIGIBILITY_PROPERTY);
+  });
+
   // Keep the `and` import meaningful for type-check without a dead reference.
   it("db helper imports are wired (sanity)", () => {
     expect(typeof and).toBe("function");
