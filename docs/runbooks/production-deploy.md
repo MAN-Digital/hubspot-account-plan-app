@@ -15,10 +15,23 @@ Set deploy-time environment variables for the API:
 - `ROOT_KEK`
 - `HUBSPOT_OAUTH_REDIRECT_URI`
 
+Also required in the deployed environment (request-time, not boot-time —
+missing values fail the individual route, not startup):
+
+- `CRON_SECRET` — bearer token Vercel sends to the `/admin/keep-alive` cron
+  (`apps/api/vercel.json`). Without it the daily keep-alive returns 401 and
+  Supabase may auto-pause (see `docs/runbooks/supabase-auto-pause.md`).
+- `INTERNAL_BOOTSTRAP_TOKEN` — guards `POST /admin/lifecycle/bootstrap`.
+- `HUBSPOT_APP_ID`, `HUBSPOT_APP_CLIENT_ID`, `HUBSPOT_APP_CLIENT_SECRET`,
+  `LIFECYCLE_TARGET_URL` — lifecycle subscription bootstrap
+  (see `docs/runbooks/lifecycle-subscription-bootstrap.md` §2).
+
 Production/staging note:
 
 - `HUBSPOT_OAUTH_REDIRECT_URI` must be HTTPS
 - do not allow the API to rely on localhost fallback outside local development
+- `LIFECYCLE_TARGET_URL` must byte-for-byte equal
+  `<API_ORIGIN>/webhooks/hubspot/lifecycle` for the selected HubSpot profile
 
 ## 2. Verify local repo state
 

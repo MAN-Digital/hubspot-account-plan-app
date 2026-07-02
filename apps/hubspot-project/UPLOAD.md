@@ -87,6 +87,21 @@ cd "$TMP" && hs project upload --profile staging
 
 `@todo Slice 3` — file an issue against `@hubspot/cli` reproducing the worktree upload failure with a minimal repro, and remove this indirection if/when the CLI handles worktrees correctly.
 
+## CLI version status (checked 2026-07-02)
+
+The workflow above was diagnosed against `@hubspot/cli` 8.4.0; the latest
+release on npm is 8.9.1. Nothing here blocks staying on 8.4.0 (the 2026.03
+platform migration requires only ≥8.3.0), but when upgrading:
+
+1. `npm i -g @hubspot/cli@latest`
+2. Retest the worktree upload bug — run `hs project upload --profile local`
+   directly from `.worktrees/<branch>/apps/hubspot-project/`. If the build no
+   longer reports `*.tsx not found`, the temp-dir wrapper indirection in
+   `scripts/hs-project-upload.ts` can be removed (see the Slice 3 follow-up).
+3. Also retest that `--profile` resolution still requires the profile
+   mirrored into `src/` (`mirrorProfileIntoSrc`) — that workaround is
+   version-sensitive too.
+
 ## Current Slice 5 production contract
 
 The app is already on the OAuth marketplace model. The remaining production

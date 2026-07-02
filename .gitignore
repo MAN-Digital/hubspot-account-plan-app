@@ -93,3 +93,6 @@ apps/hubspot-project/local.json
 # Temporary
 *.tmp
 *.temp
+
+# Temp bundle output from scripts/bundle-hubspot-card.ts
+.bundle-artifacts/

@@ -2,7 +2,12 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { buildUploadRunner, extractProfileName, type UploadDeps } from "../hs-project-upload";
+import {
+  buildUploadRunner,
+  extractProfileName,
+  shouldCopyProjectFile,
+  type UploadDeps,
+} from "../hs-project-upload";
 
 function makeDeps(overrides: Partial<UploadDeps> = {}): UploadDeps {
   return {
@@ -50,6 +55,28 @@ describe("extractProfileName", () => {
     ["-p followed by another flag", ["-p", "--other"]],
   ])("throws a clear missing-value error: %s", (_label, argv) => {
     expect(() => extractProfileName(argv)).toThrow(/missing value for --profile/i);
+  });
+});
+
+describe("shouldCopyProjectFile", () => {
+  it.each([
+    ["bundled card output", "src/app/cards/dist/index.js"],
+    ["card entrypoint", "src/app/cards/SignalCard.tsx"],
+    ["settings entrypoint", "src/app/settings/Settings.tsx"],
+    ["profile file", "hsprofile.local.json"],
+    ["digits without a space", "src/app/cards/card2.js"],
+  ])("copies %s", (_label, path) => {
+    expect(shouldCopyProjectFile(path)).toBe(true);
+  });
+
+  it.each([
+    ["node_modules", "node_modules/react/index.js"],
+    ["tsbuildinfo", "tsconfig.tsbuildinfo"],
+    ["macOS duplicate .js", "src/app/cards/dist/index 2.js"],
+    ["macOS duplicate .tsx", "src/app/settings/Settings 3.tsx"],
+    ["macOS duplicate without extension", "src/app/cards/dist/index 2"],
+  ])("excludes %s", (_label, path) => {
+    expect(shouldCopyProjectFile(path)).toBe(false);
   });
 });
 
