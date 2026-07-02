@@ -71,6 +71,13 @@
       "when": 1776556800000,
       "tag": "0009_drop_news_provider",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776600000000,
+      "tag": "0010_least_privilege_app_role",
+      "breakpoints": true
     }
   ]
 }

@@ -25,7 +25,7 @@
  *     are never echoed to the user.
  */
 
-import { tenantHubspotOauth, tenants } from "@hap/db";
+import { type Database, tenantHubspotOauth, tenants } from "@hap/db";
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { encryptProviderKey } from "../lib/encryption.js";
@@ -40,6 +40,7 @@ import {
   signState,
   verifyState,
 } from "../lib/oauth.js";
+import { withTenantTx } from "../lib/tenant-tx.js";
 
 export type OAuthConfig = {
   clientId: string;
@@ -129,6 +130,11 @@ export function htmlSuccess(title: string, detail: string): string {
 export function createOAuthRoutes(deps: OAuthDeps) {
   const { config } = deps;
   const db = deps.db as OAuthDb;
+  // The tenant-scoped token upsert (step 6) must run inside a tenant tx so the
+  // FORCE-RLS `tenant_hubspot_oauth` WITH CHECK passes under a least-privilege
+  // (NOBYPASSRLS) role. The `tenants` upsert (step 4) stays on the raw handle
+  // because that table is RLS-excluded (it is the bootstrap lookup).
+  const txDb = deps.db as Database;
   const fetchImpl = deps.fetch ?? fetch;
 
   const app = new Hono();
@@ -262,27 +268,31 @@ export function createOAuthRoutes(deps: OAuthDeps) {
     const refreshTokenEncrypted = encryptProviderKey(tenantId, tokens.refreshToken);
     const expiresAt = new Date(Date.now() + tokens.expiresIn * 1000);
 
-    // Step 6 — upsert tenant_hubspot_oauth keyed on tenant_id.
-    await db
-      .insert(tenantHubspotOauth)
-      .values({
-        tenantId,
-        accessTokenEncrypted,
-        refreshTokenEncrypted,
-        expiresAt,
-        scopes: identity.scopes,
-      })
-      .onConflictDoUpdate({
-        target: tenantHubspotOauth.tenantId,
-        set: {
+    // Step 6 — upsert tenant_hubspot_oauth keyed on tenant_id. Runs inside a
+    // tenant tx so `app.tenant_id` is set for the FORCE-RLS WITH CHECK under a
+    // least-privilege (NOBYPASSRLS) role. See db-role-guard.ts / migration 0010.
+    await withTenantTx(txDb, tenantId, async (tx) => {
+      await tx
+        .insert(tenantHubspotOauth)
+        .values({
+          tenantId,
           accessTokenEncrypted,
           refreshTokenEncrypted,
           expiresAt,
           scopes: identity.scopes,
-          updatedAt: sql`now()`,
-        },
-      })
-      .returning();
+        })
+        .onConflictDoUpdate({
+          target: tenantHubspotOauth.tenantId,
+          set: {
+            accessTokenEncrypted,
+            refreshTokenEncrypted,
+            expiresAt,
+            scopes: identity.scopes,
+            updatedAt: sql`now()`,
+          },
+        })
+        .returning();
+    });
 
     // Step 7 — redirect. HubSpot passes `returnUrl` on some install flows.
     // SECURITY (CodeRabbit C1): validate returnUrl to prevent open-redirect.

@@ -139,5 +139,31 @@ export function loadEnv(source: Record<string, string | undefined> = process.env
       .join("\n");
     throw new Error(`Invalid environment:\n${issues}`);
   }
+
+  // Fail-closed guard (audit M2): the test-auth bypass activates only when
+  // NODE_ENV==='test' AND ALLOW_TEST_AUTH==='true' (see hubspot-signature.ts /
+  // nonce.ts). In that state any caller can impersonate an arbitrary portal via
+  // the x-test-portal-id header. The signature middleware already refuses the
+  // bypass whenever NODE_ENV!=='test', so a stray ALLOW_TEST_AUTH in a
+  // production-NODE_ENV deploy is inert. The one case that layer does NOT catch
+  // is test-auth enabled against the managed production database (e.g. a deploy
+  // that somehow runs with NODE_ENV=test but the prod DATABASE_URL) — that is
+  // full tenant impersonation over real data. Refuse to load in that case.
+  if (result.data.ALLOW_TEST_AUTH === "true") {
+    let dbHost = "";
+    try {
+      dbHost = new URL(result.data.DATABASE_URL).hostname.toLowerCase();
+    } catch {
+      // A malformed URL would already have failed schema validation above.
+    }
+    if (dbHost.endsWith(".pooler.supabase.com")) {
+      throw new Error(
+        "ALLOW_TEST_AUTH=true is forbidden against a managed production database. Test-auth " +
+          "bypasses HubSpot signature and replay verification and would allow arbitrary tenant " +
+          "impersonation over production data.",
+      );
+    }
+  }
+
   return result.data;
 }

@@ -1,4 +1,4 @@
-import { type Database, tenantHubspotOauth, tenants } from "@hap/db";
+import { type Database, sql as drizzleSql, tenantHubspotOauth, tenants } from "@hap/db";
 import { eq } from "drizzle-orm";
 import { invalidateTenantConfig } from "./config-resolver.js";
 
@@ -30,6 +30,13 @@ export async function deactivateTenant(args: DeactivateTenantArgs): Promise<void
 
   await db.transaction(async (tx) => {
     const txDb = tx as unknown as Database;
+
+    // Set the tenant GUC so the FORCE-RLS `tenant_hubspot_oauth` delete below
+    // is authorized under a least-privilege (NOBYPASSRLS) role. Without this,
+    // the delete either matches zero rows or errors on the empty-GUC uuid cast,
+    // leaving OAuth tokens for an uninstalled tenant in the database. The
+    // `tenants` update itself is unaffected (that table is RLS-excluded).
+    await txDb.execute(drizzleSql`select set_config('app.tenant_id', ${tenantId}, true)`);
 
     const updatedRows = await txDb
       .update(tenants)

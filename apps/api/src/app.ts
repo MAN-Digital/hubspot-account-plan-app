@@ -2,6 +2,7 @@ import { resolveHubSpotOAuthRedirectUri } from "@hap/config";
 import { createDatabase, sql as drizzleSql } from "@hap/db";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { assertDbRoleEnforcesRls } from "./lib/db-role-guard.js";
 import { sweepExpiredNonces } from "./lib/replay-nonce.js";
 import { withTenantTxHandle } from "./lib/tenant-tx.js";
 import { authMiddleware } from "./middleware/auth.js";
@@ -24,11 +25,20 @@ type AppVars = TenantVariables & CorrelationVariables & { portalId?: string; raw
  *   - https://app.hubspot.com
  *   - https://*.hubspot.com
  *   - https://*.hubspotpreview-na1.com (and other regional preview hosts)
- *   - `*` in dev/test only (NODE_ENV !== 'production')
+ *   - `*` ONLY in explicit dev/test (NODE_ENV === 'development' | 'test')
+ *
+ * The permissive branch is gated on an explicit allow-list rather than
+ * `!== 'production'` so that an environment with NODE_ENV unset or set to an
+ * unexpected value (e.g. a misconfigured preview deploy) fails closed to the
+ * HubSpot allow-list instead of reflecting arbitrary origins (audit M4).
  */
+function isDevLikeEnv(): boolean {
+  return process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+}
+
 function resolveCorsOrigin(origin: string): string | null {
   if (!origin) {
-    return process.env.NODE_ENV === "production" ? null : "*";
+    return isDevLikeEnv() ? "*" : null;
   }
   try {
     const url = new URL(origin);
@@ -40,7 +50,7 @@ function resolveCorsOrigin(origin: string): string | null {
   } catch {
     // Fall through to dev/test permissive branch below
   }
-  if (process.env.NODE_ENV !== "production") return origin || "*";
+  if (isDevLikeEnv()) return origin || "*";
   return null;
 }
 
@@ -89,6 +99,26 @@ function getDb() {
   const db = createDatabase(url);
   cachedDb = { url, db };
   return db;
+}
+
+/**
+ * Memoized RLS-role safety check (C1). The first authenticated request per
+ * cold start verifies the connected DB role actually enforces RLS; the result
+ * is cached so the check runs once, not on every request. In production a
+ * bypass role (superuser/BYPASSRLS) rejects here — failing closed before any
+ * tenant data is served — because RLS is the database-level tenant boundary
+ * and it is inert under such a role. On failure we clear the cache so a
+ * transient DB blip can be retried; a genuine misconfiguration keeps failing.
+ */
+let dbRoleCheck: Promise<void> | null = null;
+function ensureDbRoleEnforcesRls(): Promise<void> {
+  if (!dbRoleCheck) {
+    dbRoleCheck = assertDbRoleEnforcesRls(getDb()).catch((error) => {
+      dbRoleCheck = null;
+      throw error;
+    });
+  }
+  return dbRoleCheck;
 }
 
 // Memoize the tenant middleware too so we build it once per process,
@@ -161,6 +191,9 @@ app.use("/api/*", async (c, next) => {
   if (!tenantId) {
     return next();
   }
+
+  // Fail closed before serving tenant data if the DB role bypasses RLS.
+  await ensureDbRoleEnforcesRls();
 
   const handle = await withTenantTxHandle(getDb(), tenantId);
   c.set("db", handle);

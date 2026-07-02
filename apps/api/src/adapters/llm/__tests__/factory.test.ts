@@ -1,5 +1,6 @@
 import type { LlmProviderConfig } from "@hap/config";
 import { describe, expect, it } from "vitest";
+import { SsrfError } from "../../../lib/settings-connection-test";
 import { AnthropicAdapter } from "../anthropic";
 import { createLlmAdapter } from "../factory";
 import { GeminiAdapter } from "../gemini";
@@ -80,6 +81,44 @@ describe("createLlmAdapter", () => {
 
   it("refuses custom config when endpointUrl is missing", () => {
     expect(() => createLlmAdapter(cfg({ provider: "custom" }))).toThrow(/endpointUrl/);
+  });
+
+  it("rejects a custom endpoint pointing at a link-local/metadata address (SSRF, H2)", () => {
+    expect(() =>
+      createLlmAdapter(
+        cfg({
+          provider: "custom",
+          endpointUrl: "https://169.254.169.254/latest",
+        }),
+      ),
+    ).toThrow(SsrfError);
+  });
+
+  it("rejects a custom endpoint on a loopback host (SSRF, H2)", () => {
+    expect(() =>
+      createLlmAdapter(cfg({ provider: "custom", endpointUrl: "https://localhost:8080/v1" })),
+    ).toThrow(SsrfError);
+  });
+
+  it("rejects a non-HTTPS custom endpoint (SSRF, H2)", () => {
+    expect(() =>
+      createLlmAdapter(
+        cfg({
+          provider: "custom",
+          endpointUrl: "http://inference.example.com/v1",
+        }),
+      ),
+    ).toThrow(SsrfError);
+  });
+
+  it("allows a well-formed public HTTPS custom endpoint", () => {
+    const adapter = createLlmAdapter(
+      cfg({
+        provider: "custom",
+        endpointUrl: "https://inference.example.com/v1",
+      }),
+    );
+    expect(adapter.provider).toBe("custom");
   });
 
   it("throws on unknown provider", () => {
