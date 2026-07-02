@@ -98,6 +98,13 @@ export class ApiFetcherError extends Error {
   }
 }
 
+/**
+ * HubSpot's documented per-account outbound `hubspot.fetch` timeout cap (15s).
+ * We pin to it explicitly so a hung backend can't leave the card spinning on
+ * whatever the platform default happens to be.
+ */
+export const DEFAULT_FETCH_TIMEOUT_MS = 15_000;
+
 export type HubSpotApiFetcherDeps = {
   /**
    * API origin to target. Defaults to the result of {@link resolveApiBaseUrl},
@@ -106,6 +113,11 @@ export type HubSpotApiFetcherDeps = {
    * want a deterministic origin pass it explicitly.
    */
   baseUrl?: string;
+  /**
+   * Per-request timeout (ms) forwarded to `hubspot.fetch`. Defaults to
+   * {@link DEFAULT_FETCH_TIMEOUT_MS}. HubSpot caps this at 15s regardless.
+   */
+  timeoutMs?: number;
 };
 
 /**
@@ -121,6 +133,7 @@ export type HubSpotApiFetcherDeps = {
  */
 export function createHubSpotApiFetcher(deps: HubSpotApiFetcherDeps = {}): SnapshotFetcher {
   const baseUrl = deps.baseUrl ?? resolveApiBaseUrl();
+  const timeoutMs = deps.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
 
   return async function fetchSnapshot(companyId: string): Promise<unknown> {
     const url = `${baseUrl}/api/snapshot/${companyId}`;
@@ -140,6 +153,7 @@ export function createHubSpotApiFetcher(deps: HubSpotApiFetcherDeps = {}): Snaps
     const response = await hubspot.fetch(url, {
       method: "POST",
       body: { companyId },
+      timeout: timeoutMs,
     });
 
     if (!response.ok) {
