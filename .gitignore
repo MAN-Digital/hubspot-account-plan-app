@@ -77,6 +77,8 @@ supabase/.temp
 .hubspot/
 apps/hubspot-project/hsprofile.*.json
 !apps/hubspot-project/hsprofile.*.example.json
+# CLI ≥8.4 loads profiles from src/ — real profiles get mirrored there too
+apps/hubspot-project/src/hsprofile.*.json
 apps/hubspot-project/local.json
 
 # Claude Code
