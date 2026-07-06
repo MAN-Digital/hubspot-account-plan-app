@@ -1,0 +1,22 @@
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c2b65b25fb8214::t_29c52778bca316 200-209,269-279
+  s_c2b65b25fb8214::t_e849d83be97d12 14-22
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c2b65b25fb8214::t_5344ba807aaa91 386-388,451-456,615-619,639-642,662-674,678,738-747,797-801
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6858bd2365dbc294e9a5bc21535f4bdce7b61f97",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
