@@ -23,6 +23,10 @@ Transcript work remains deferred.
 Currently present under `planning/`:
 
 - `planning/chatprd/AI_CODING_RULES_AND_STANDARDS.md`
+- `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` — the V2 expansion authorization
+  (Trigify signals, 5-tab workspace UI, account research, outreach engine, notifications,
+  workflow action). Synced into the ChatPRD cloud docs 2026-07-06; local mirror kept for
+  re-sync.
 - `planning/local/AI_CODING_RULES_AND_STANDARDS.md`
 - `planning/local/TASKMASTER_EXECUTION_PRD.md`
 - `planning/local/STACK_HOSTING_AND_TEST_ENV_NOTES.md`
@@ -62,6 +66,10 @@ Important:
 - `.claude/tasks/2026-04-17-slice-10-upload-profile-wiring.md`
 - `.claude/tasks/2026-04-18-slice-11-lifecycle-subscription-bootstrap.md`
 - `.claude/tasks/2026-04-19-slice-11-dev-operationalization.md`
+- `.claude/tasks/trigify-signals-into-account-planning.md` — ACTIVE plan: Stage A
+  (Trigify signal substrate, tasks 1–11) + Stage B (V2 expansion, tasks 13–19, gated on
+  the ChatPRD sync — satisfied 2026-07-06). Contains the ChatPRD doc-UUID registry in
+  its Notes section.
 - `docs/runbooks/slice-11-dev-quickstart.md`
 - `docs/superpowers/plans/2026-04-14-slice-1-core-domain.md`
 - `docs/superpowers/plans/2026-04-15-slice-2-live-integrations.md`
@@ -123,7 +131,26 @@ https://app.chatprd.ai/chat/2cdfb7f1-cd53-4fc1-8b99-383cbd2a06c4?doc=deacf6b3-ef
 
 ### QA & Verification Plan
 
-https://app.chatprd.ai/chat/1ebac952-f6d6-461b-8c4b-982e49146e8b?doc=7aed1d8b-2b0d-4b37-bb52-9bfdedec013a&vers=ef0be73a-faa2-44bb-a8f9-235af86a894b
+https://app.chatprd.ai/chat/a2f0a41d-35d7-46f9-91e7-161f0e8817ac?doc=041bbd8a-57bb-4e87-85bd-4c490dead022
+
+(Canonical copy — carries the 2026-07-06 V2 update. Two older duplicates exist in
+ChatPRD: docs `7aed1d8b-...` and `f704414e-...`; ignore or delete them.)
+
+### Technical Design Document
+
+https://app.chatprd.ai/chat/ea452928-c142-415c-9012-871d72d550ae?doc=86ffe0e4-63d1-43a1-a96a-28e92dcdf533
+
+### Database Schema Design
+
+https://app.chatprd.ai/chat/74f66593-e087-4903-8352-02d2c76adbdc?doc=8554b95a-8da2-428c-9a24-d3dd92d4904e
+
+### Feature Implementation Spec (Workspace Snapshot, Summary, Signals)
+
+https://app.chatprd.ai/chat/fa28a503-d968-44a6-97f9-4cb5f8a428d3?doc=ca7aa079-e1a7-45c9-b719-7552d51c275e
+
+All ChatPRD documents above carry the V2 expansion delta as of 2026-07-06
+(source: `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`). Programmatic access:
+the `chatprd` MCP (`get_document` with the `doc=` UUID from each link).
 
 ---
 
