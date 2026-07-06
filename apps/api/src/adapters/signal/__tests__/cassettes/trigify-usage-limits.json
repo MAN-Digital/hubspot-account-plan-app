@@ -1,0 +1,32 @@
+{
+  "_comment": "Recorded cassette for Trigify /usage and /social-signals/limits. SCRUBBED of the Authorization header value before commit.",
+  "_recordedAt": "2026-07-03",
+  "usage": {
+    "request": {
+      "url": "https://api.trigify.io/v1/usage",
+      "method": "GET"
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "credits_used": 120,
+        "credits_remaining": 880,
+        "monitor_count": 3
+      }
+    }
+  },
+  "limits": {
+    "request": {
+      "url": "https://api.trigify.io/v1/social-signals/limits",
+      "method": "GET"
+    },
+    "response": {
+      "status": 200,
+      "body": {
+        "plan": "growth",
+        "max_lookback_window_ms": 2592000000,
+        "max_subscriptions": 50
+      }
+    }
+  }
+}
