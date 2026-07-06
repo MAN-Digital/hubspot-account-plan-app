@@ -1,0 +1,42 @@
+packages/db/src/schema/__tests__/trigify-signals-rls.test.ts
+  s_c2b65b25fb8214::t_cd2415f04a8b59 1-108,112-117
+  s_c2b65b25fb8214::t_8216854db2d15d 109-111
+packages/db/drizzle/0011_trigify_signals.sql
+  s_c2b65b25fb8214::t_6e47fcae142746 1-155
+packages/db/src/schema/__tests__/trigify-signals-migration.test.ts
+  s_c2b65b25fb8214::t_ac85d080734b51 1-305
+packages/db/src/schema/signals.ts
+  s_c2b65b25fb8214::t_ae6812533787f3 1-79
+packages/db/src/schema/company-signal-map.ts
+  s_c2b65b25fb8214::t_eee88c2285fb1a 1-39
+packages/db/src/schema/trigify-monitors.ts
+  s_c2b65b25fb8214::t_6a80c75a507356 1-51
+packages/db/src/schema/index.ts
+  s_c2b65b25fb8214::t_08604b4a13d189 2,7,12,15,20,25,37-39,50-52
+packages/db/drizzle/meta/_journal.json
+  s_63ba6c6bdae866::t_703dcdd9222803 81-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7248819ee3ea72e00f564c0d9993791da3dc867a",
+  "prompts": {},
+  "sessions": {
+    "s_63ba6c6bdae866": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a3f3e120064922332",
+        "model": "unknown"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    },
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
