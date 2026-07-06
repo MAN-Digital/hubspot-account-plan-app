@@ -72,6 +72,59 @@ describe("rankContacts", () => {
     const ranked = rankContacts(contacts, null);
     expect(typeof ranked[0]?.score).toBe("number");
   });
+
+  // ─── Stage A Task 8: person-level Trigify signal ranks its contact first ──
+
+  it("ranks the contact matching the dominant signal's hsContactId FIRST, ahead of title/keyword scoring", () => {
+    const signal = createEvidence(TENANT, {
+      id: "sig-person",
+      source: "trigify",
+      confidence: 0.95,
+      content: "Jane changed role to VP Sales",
+      signalType: "T_Role_Change",
+      signalClass: "observable",
+      copyAssertable: true,
+      hsContactId: "contact-jane",
+    });
+    const contacts: RawContact[] = [
+      // Higher title-keyword score than Jane under the existing scoring model.
+      {
+        id: "contact-other",
+        name: "Other Exec",
+        title: "Chief Revenue Officer",
+      },
+      { id: "contact-jane", name: "Jane Doe", title: "Individual Contributor" },
+    ];
+    const ranked = rankContacts(contacts, signal);
+    expect(ranked[0]?.id).toBe("contact-jane");
+  });
+
+  it("does not reorder when the dominant signal has no hsContactId (company-level signal)", () => {
+    const signal = signalFor("Funding round, new CFO hire announced.");
+    const contacts: RawContact[] = [
+      { id: "a", name: "A", title: "VP Sales" },
+      { id: "b", name: "B", title: "CFO" },
+    ];
+    const ranked = rankContacts(contacts, signal);
+    // Existing keyword-scoring behavior unchanged — CFO wins on title match.
+    expect(ranked[0]?.id).toBe("b");
+  });
+
+  it("does not fabricate a rank-first contact when hsContactId does not match any fetched contact", () => {
+    const signal = createEvidence(TENANT, {
+      id: "sig-person-2",
+      source: "trigify",
+      confidence: 0.95,
+      content: "Someone changed role",
+      hsContactId: "contact-unresolved",
+    });
+    const contacts: RawContact[] = [
+      { id: "contact-a", name: "A", title: "VP Sales" },
+      { id: "contact-b", name: "B", title: "CFO" },
+    ];
+    const ranked = rankContacts(contacts, signal);
+    expect(ranked.map((r) => r.id).sort()).toEqual(["contact-a", "contact-b"]);
+  });
 });
 
 describe("selectPeople", () => {

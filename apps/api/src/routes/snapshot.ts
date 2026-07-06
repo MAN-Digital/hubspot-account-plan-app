@@ -20,6 +20,11 @@ import { TenantAccessRevokedError } from "../lib/hubspot-client.js";
 import { getProcessRateLimiter } from "../lib/rate-limiter.js";
 import type { CorrelationVariables } from "../middleware/correlation.js";
 import type { TenantVariables } from "../middleware/tenant.js";
+import {
+  createHubSpotCompanyPropertyFetcher,
+  createHubSpotContactFetcher,
+  type HubSpotClientFactory,
+} from "../services/crm-fetchers.js";
 import type { CompanyPropertyFetcher } from "../services/eligibility.js";
 import type { ContactFetcher } from "../services/people-selector.js";
 import { assembleSnapshot } from "../services/snapshot-assembler.js";
@@ -270,10 +275,11 @@ async function resolveSignalAdapter(
 }
 
 /**
- * V1 fixture property fetchers. Selected via `?eligibility=` query param so
- * the route can produce the eligible / ineligible / unconfigured snapshot
- * shapes end-to-end. Slice 2 replaces these with a real HubSpot CRM property
- * fetch (one fetcher, gating value comes from real CRM data).
+ * V1 fixture property fetchers. ONLY reachable outside production (see
+ * {@link resolvePropertyFetcher}) via the `?eligibility=` query param, so QA
+ * fixtures / dev convenience keep working. Production ALWAYS uses the real
+ * HubSpot-backed fetcher — this override is completely inert there
+ * regardless of what the caller passes.
  */
 const eligiblePropertyFetcher: CompanyPropertyFetcher = async () => true;
 const ineligiblePropertyFetcher: CompanyPropertyFetcher = async () => false;
@@ -285,7 +291,7 @@ function isEligibilityMode(v: unknown): v is EligibilityMode {
   return typeof v === "string" && (ELIGIBILITY_MODES as readonly string[]).includes(v);
 }
 
-function pickPropertyFetcher(mode: EligibilityMode): CompanyPropertyFetcher {
+function pickFixturePropertyFetcher(mode: EligibilityMode): CompanyPropertyFetcher {
   switch (mode) {
     case "ineligible":
       return ineligiblePropertyFetcher;
@@ -296,22 +302,53 @@ function pickPropertyFetcher(mode: EligibilityMode): CompanyPropertyFetcher {
   }
 }
 
+/**
+ * Resolve the {@link CompanyPropertyFetcher} the snapshot route should use.
+ *
+ * Production (`NODE_ENV === "production"`) ALWAYS returns the real
+ * HubSpot-backed fetcher — the `?eligibility=` fixture override never fires
+ * there, even if a caller supplies the query param. Outside production, an
+ * explicit `eligibilityParam` still selects a fixture fetcher (QA/dev
+ * convenience, matching pre-Task-8 behavior); when absent, the real fetcher
+ * is used so local/dev testing against a real HubSpot test portal works
+ * without the query param.
+ *
+ * Exported (like {@link composeSignalAdapters}) so this env-gate boundary is
+ * unit-testable without spinning up the full Hono app + auth stack.
+ */
+export function resolvePropertyFetcher(
+  db: Database,
+  eligibilityParam: string | undefined,
+  clientFactory?: HubSpotClientFactory,
+): CompanyPropertyFetcher {
+  const isProduction = process.env.NODE_ENV === "production";
+  if (!isProduction && isEligibilityMode(eligibilityParam)) {
+    return pickFixturePropertyFetcher(eligibilityParam);
+  }
+  return createHubSpotCompanyPropertyFetcher({ db, clientFactory });
+}
+
+/**
+ * Resolve the {@link ContactFetcher} the snapshot route should use.
+ *
+ * Always the real HubSpot-backed fetcher — there is no fixture contact
+ * override in the resolver (the three-hardcoded-contacts fixture is gone).
+ * Kept as its own function (rather than inlined) so route code stays a thin
+ * caller and the resolution is independently unit-testable.
+ */
+export function resolveContactFetcher(
+  db: Database,
+  clientFactory?: HubSpotClientFactory,
+): ContactFetcher {
+  return createHubSpotContactFetcher({ db, clientFactory });
+}
+
 function isTenantAccessRevokedError(error: unknown): boolean {
   return (
     error instanceof TenantAccessRevokedError ||
     (error instanceof Error && error.name === "TenantAccessRevokedError")
   );
 }
-
-/**
- * V1 fixture contact fetcher — returns three ICP-shaped contacts for any
- * company. Step 9+ replace with a real HubSpot contact association fetch.
- */
-const fixtureContactFetcher: ContactFetcher = async () => [
-  { id: "contact-1", name: "Alex Champion", title: "VP Engineering" },
-  { id: "contact-2", name: "Jordan Decider", title: "CTO" },
-  { id: "contact-3", name: "Sam Influencer", title: "Head of Platform" },
-];
 
 snapshotRoutes.post("/:companyId", async (c) => {
   const rawCompanyId = c.req.param("companyId") ?? "";
@@ -334,7 +371,6 @@ snapshotRoutes.post("/:companyId", async (c) => {
   }
 
   const eligibilityParam = c.req.query("eligibility");
-  const mode: EligibilityMode = isEligibilityMode(eligibilityParam) ? eligibilityParam : "eligible";
 
   try {
     const db = c.get("db");
@@ -367,8 +403,8 @@ snapshotRoutes.post("/:companyId", async (c) => {
         db,
         providerAdapter: signal.adapter,
         llmAdapter,
-        propertyFetcher: pickPropertyFetcher(mode),
-        contactFetcher: fixtureContactFetcher,
+        propertyFetcher: resolvePropertyFetcher(db, eligibilityParam),
+        contactFetcher: resolveContactFetcher(db),
         thresholds,
         allowList: signal.allowList,
         blockList: signal.blockList,
@@ -385,7 +421,7 @@ snapshotRoutes.post("/:companyId", async (c) => {
       console.warn("snapshot_route.tenant_access_revoked", {
         tenantId,
         companyId,
-        eligibilityMode: mode,
+        eligibilityParam,
         errorClass: err instanceof Error ? err.constructor.name : typeof err,
       });
       return c.json(
@@ -402,7 +438,7 @@ snapshotRoutes.post("/:companyId", async (c) => {
     console.error("snapshot_route_error", {
       tenantId,
       companyId,
-      eligibilityMode: mode,
+      eligibilityParam,
       errorClass: err instanceof Error ? err.constructor.name : typeof err,
     });
     return c.json({ error: "internal_error" }, 500);
