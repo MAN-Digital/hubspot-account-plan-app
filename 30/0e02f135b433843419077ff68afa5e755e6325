@@ -1,0 +1,79 @@
+packages/validators/src/trigify-monitor-request.ts
+  s_c2b65b25fb8214::t_ffa2ea7642cbec 1-19,23
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 20-22,24-25
+apps/api/src/services/trigify/drizzle-monitor-store.ts
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 45,56,67,72,84
+  s_c2b65b25fb8214::t_6c6d2728839631 14-19
+  s_c2b65b25fb8214::t_0559223c903819 1-13,20-44,46-55,57-66,68-71,73-83,85-87
+packages/validators/src/index.ts
+  s_c2b65b25fb8214::t_44c69a452feff4 11
+  s_c2b65b25fb8214::t_2ba920208cb9d9 10
+apps/api/src/services/trigify/monitor-manager.ts
+  s_c2b65b25fb8214::t_2a02411828e3a6 98-107
+  s_c2b65b25fb8214::t_6c6d2728839631 262-266
+  s_c2b65b25fb8214::t_b84148f40f8148 36,54,164,197,201,205,223,234,268,288-289,377
+  s_c2b65b25fb8214::t_d3330e41456952 156-163,165-167
+  s_c2b65b25fb8214::t_593fa6665e3248 248-258,260-261,267,269-274
+  s_c2b65b25fb8214::t_169b857fd24bf2 42-46
+  s_c2b65b25fb8214::t_1ae0bf6a00a68d 126-127
+  s_c2b65b25fb8214::t_583a3b0b3e9b50 1-35,37-41,47-53,55-97,108-125,128-155,168-196,198-200,202-204,206-222,224-233,235-247,259,275-287,290-376,378-454
+apps/api/src/services/trigify/__tests__/plan-limits.test.ts
+  s_c2b65b25fb8214::t_8abd1726a8f7a2 1-13,20-67,69-77,81-83,87-92
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 14,16,68,78-80,84-86
+  s_c2b65b25fb8214::t_6c6d2728839631 15,17-19
+packages/validators/src/__tests__/trigify-monitor-config.test.ts
+  s_c2b65b25fb8214::t_b0bf7873390001 1-39,43-45,47-68
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 40-42,46
+apps/api/src/routes/settings-trigify.ts
+  s_c2b65b25fb8214::t_aaee2a07d5fb81 1-26,34,36,38-40,42-51,54-72,74-76,109-120,122-134,136,138-142,145-147,149-161,163,165-192,194-205,207-221,223-246,248-261,263-279,281-288
+  s_c2b65b25fb8214::t_12aaea8203a554 33
+  s_c2b65b25fb8214::t_17f38b9e4a3b52 137,164
+  s_c2b65b25fb8214::t_77a82e137a0478 144
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 27,35,37,41,73,102,143,193,222,247,262,280
+  s_c2b65b25fb8214::t_71804716749ea3 28-32,52-53
+  s_c2b65b25fb8214::t_a38ca562b3de92 77-101,103-108
+  s_c2b65b25fb8214::t_87a92166583faf 121,135,148,162,206
+apps/api/src/services/trigify/plan-limits.ts
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 16,49,58,79
+  s_c2b65b25fb8214::t_3c4c7ca652d631 1-15,17-48,50-57,59-78,80-96
+apps/api/src/routes/__tests__/settings-trigify.test.ts
+  s_c2b65b25fb8214::t_0f40f68fdbce90 1-19,21-24,26-28,30-39,41-58,64-79,81-90,92-143,145-155,157-169,171-212,214-231,234-250,252-267,269-277,279-300,304-332
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 20,25,29,40,59-63,80,91,144,156,213,232-233,251,301-303
+  s_c2b65b25fb8214::t_4dc96b1ac7837e 170,268,278
+apps/api/src/services/trigify/__tests__/monitor-manager.test.ts
+  s_c2b65b25fb8214::t_6c6d2728839631 318
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 22-23,53,63,159,320-323,369,395,406,413,420,427
+  s_c2b65b25fb8214::t_5c708968f4fd2f 1-17,19-21,24-52,54-62,64-137,183-310,317,319,324-368,370-394,396-405,407-412,414-419,421-426,428-429
+  s_c2b65b25fb8214::t_d1b281d9734071 18
+  s_c2b65b25fb8214::t_dd4569cfb3509b 138-158,160-182
+  s_c2b65b25fb8214::t_b5daea1f21afb9 311-316
+apps/api/src/app.ts
+  s_c2b65b25fb8214::t_5aeeefd780a352 214
+  s_c2b65b25fb8214::t_fa5ec71af87455 17
+apps/api/src/services/trigify/__tests__/drizzle-monitor-store.test.ts
+  s_c2b65b25fb8214::t_92267014c68b97 76-81,92-94,100-105,108
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 20,29,35,39,106-107,109,132,165,182,199
+  s_c2b65b25fb8214::t_5bee64ca1aad97 1-19,21-28,30-34,36-38,40-75,82-91,95-99,110-131,133-164,166-181,183-198,200-232
+packages/validators/src/__tests__/trigify-monitor-request.test.ts
+  s_c2b65b25fb8214::t_f2908fc52c9909 35-37
+  s_c2b65b25fb8214::t_a21ff415aa0d04 1-34,38-77
+packages/validators/src/trigify-monitor-config.ts
+  s_c2b65b25fb8214::t_c7a9af7922dfbd 50-51
+  s_c2b65b25fb8214::t_37b015b20c64bd 1-49,52-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "300e02f135b433843419077ff68afa5e755e6325",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
