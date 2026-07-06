@@ -1,0 +1,31 @@
+apps/api/src/adapters/signal/__tests__/cassettes/trigify-feed.json
+  s_c2b65b25fb8214::t_ddd6f2634fe72b 1-45
+apps/api/src/adapters/signal/__tests__/cassettes/trigify-subscriptions.json
+  s_c2b65b25fb8214::t_93579ced32f6d2 1-30
+apps/api/src/adapters/signal/__tests__/cassettes/trigify-usage-limits.json
+  s_c2b65b25fb8214::t_fbe7db4a855d9d 1-32
+apps/api/src/adapters/signal/__tests__/trigify-client.test.ts
+  s_c2b65b25fb8214::t_8517c61cef1c3a 1-29,35-80,85-172,176-197,203-205,209-239,243-250
+  s_c2b65b25fb8214::t_d0b81e3d3aa530 30-34
+  s_c2b65b25fb8214::t_96ce8403501687 81-84,173-175,198-202,206-208,240-242
+apps/api/src/adapters/signal/trigify-client.ts
+  s_c2b65b25fb8214::t_96ce8403501687 62,184,263,293
+  s_c2b65b25fb8214::t_0523e21e2b9d94 1-54,61,63-183,185-262,264-292,294-297,305-306
+  s_c2b65b25fb8214::t_e89cc1c4804cec 55-60,298-304
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "24266601900f4dabb376d3b952914e5a13bae202",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
