@@ -1,0 +1,62 @@
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c2b65b25fb8214::t_e02c893654d813 31-33
+  s_c2b65b25fb8214::t_3c1b96d12845cf 496-498
+  s_c2b65b25fb8214::t_34e92d63bf30a2 526-529,531,533-544,549
+  s_c2b65b25fb8214::t_ffcc7c32753229 261
+  s_c2b65b25fb8214::t_690ac9e5421e87 654
+  s_c2b65b25fb8214::t_aa1a1c4b33aa5d 730-750
+  s_c2b65b25fb8214::t_cef4af21e9368e 573-578
+  s_c2b65b25fb8214::t_69664e6ccac7f8 365-399
+  s_c2b65b25fb8214::t_6e7b59f8d13c4f 263-272
+  s_c2b65b25fb8214::t_22d261b1a4988e 122-128
+  s_c2b65b25fb8214::t_577185e0a7a12b 508
+  s_c2b65b25fb8214::t_a8204b36c60546 27-30,34-36
+  s_c2b65b25fb8214::t_ebd0e9d99938f2 306-314
+  s_c2b65b25fb8214::t_0df3eeb3904932 84-94,96-104
+  s_c2b65b25fb8214::t_c20c62ef86a0e3 343-350
+  s_c2b65b25fb8214::t_947da6f8047e59 400
+  s_c2b65b25fb8214::t_71fe8b950eed17 551
+  s_c2b65b25fb8214::t_1fb9f945415904 553,556
+  s_c2b65b25fb8214::t_5092668c0534fc 189-247
+  s_c2b65b25fb8214::t_d3aa8475bdd34e 682-690
+  s_c2b65b25fb8214::t_5d2c72f4b95d37 571,579-647,649
+  s_c2b65b25fb8214::t_a4c849527d9db5 724-729,751-758
+  s_c2b65b25fb8214::t_1f689455e39f24 37-41
+  s_c2b65b25fb8214::t_357a5a34db83af 1-26,42-63,65-72,74-83,105-121,129-161,178-188,248-260,262,273-305,315-326,331-342,351-364,401-432,434-495,499-507,509-525,530,532,545-548,550,552,554-555,557-561,563-570,572,648,650-653,655-658,660-681,691,711-713,720-723,759-773
+  s_c2b65b25fb8214::t_9d167811561f77 433
+  s_c2b65b25fb8214::t_6d72ce726876cd 562
+  s_c2b65b25fb8214::t_ecb4157de4fcf7 714-719
+  s_c2b65b25fb8214::t_6393babb577037 327-330
+  s_c2b65b25fb8214::t_37eb2e9015772c 162-177
+  s_c2b65b25fb8214::t_87c9cb6a8e5d83 692-710
+  s_c2b65b25fb8214::t_966f3b1f62cb35 64
+  s_c2b65b25fb8214::t_1530ea053c58e4 73
+  s_c2b65b25fb8214::t_1dddb78cf68915 95
+  s_c2b65b25fb8214::t_5c911fb9ac68bd 659
+  s_c2b65b25fb8214::t_646d645178bd8b 774
+PLANNING_INDEX.md
+  s_c2b65b25fb8214::t_972ac236fecccd 26-29
+  s_c2b65b25fb8214::t_dfa999ab23da11 69-72
+  s_c2b65b25fb8214::t_c36bd3c00edf09 134-153
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c2b65b25fb8214::t_efe9cfb651b178 3,5-13
+  s_c2b65b25fb8214::t_c9fe084f3157ea 1-2,4,14-260
+.gitignore
+  s_c2b65b25fb8214::t_99a2a84ce45f8c 79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b6230a5ea4570b866b9c7baaee640fb74fd7c3ff",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
