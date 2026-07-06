@@ -63,6 +63,7 @@ running `hs project dev`.
 | `pnpm dev:api`       | Start Hono API server       |
 | `pnpm dev:extension` | Start HubSpot extension     |
 | `pnpm build`         | Build all apps              |
+| `pnpm test:db:up`    | Bootstrap the local test DB |
 | `pnpm test`          | Run tests                   |
 | `pnpm test:watch`    | Run tests in watch mode     |
 | `pnpm lint`          | Lint with Biome             |
@@ -72,6 +73,21 @@ running `hs project dev`.
 | `pnpm db:generate`   | Generate Drizzle migrations |
 | `pnpm db:migrate`    | Apply migrations            |
 | `pnpm db:studio`     | Open Drizzle Studio         |
+
+### Running tests
+
+Tests run against a **local** Postgres (never the managed Supabase pooler —
+a security guard forbids `ALLOW_TEST_AUTH=true` against a production host).
+One-time per machine:
+
+```bash
+pnpm test:db:up   # start local Postgres, scaffold .env.test.local, migrate
+```
+
+Then `pnpm test` forever after. If the DB is misconfigured or not running,
+the suite fails fast with a single actionable error telling you to run
+`pnpm test:db:up`. Details and troubleshooting:
+[`docs/runbooks/local-test-database.md`](docs/runbooks/local-test-database.md).
 
 ## Architecture
 
