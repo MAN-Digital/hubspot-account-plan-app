@@ -1,0 +1,24 @@
+packages/config/src/__tests__/evidence-trigify-fields.test.ts
+  s_c2b65b25fb8214::t_0a17183f90951a 104-135
+packages/config/src/domain-types.ts
+  s_c2b65b25fb8214::t_c58cd469ee6418 103-111
+packages/config/src/factories.ts
+  s_c2b65b25fb8214::t_dcc40ee71d6988 71
+  s_c2b65b25fb8214::t_9a099eedb77e67 72-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a5570b95e83092d3012d3af6007194e5c4125abc",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
