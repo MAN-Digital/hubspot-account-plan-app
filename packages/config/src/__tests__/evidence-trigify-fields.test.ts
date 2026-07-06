@@ -101,4 +101,36 @@ describe("Evidence: Trigify optional fields (additive)", () => {
     expect(evidence.signalClass).toBe("observable");
     expect(evidence.copyAssertable).toBe(true);
   });
+
+  it("accepts an optional hsContactId for person-level signals (undefined by default)", () => {
+    const legacy: Evidence = {
+      id: "ev-4",
+      tenantId: "tenant-1",
+      source: "exa",
+      timestamp: new Date("2026-01-01T00:00:00Z"),
+      confidence: 0.7,
+      content: "Acme Corp raised a Series B",
+      isRestricted: false,
+    };
+    expect(legacy.hsContactId).toBeUndefined();
+
+    const personLevel: Evidence = {
+      ...legacy,
+      id: "ev-5",
+      source: "trigify",
+      signalType: "T_Role_Change",
+      signalClass: "observable",
+      copyAssertable: true,
+      hsContactId: "contact-42",
+    };
+    expect(personLevel.hsContactId).toBe("contact-42");
+  });
+
+  it("createEvidence factory accepts an hsContactId override", () => {
+    const evidence = createEvidence("tenant-1", {
+      source: "trigify",
+      hsContactId: "contact-99",
+    });
+    expect(evidence.hsContactId).toBe("contact-99");
+  });
 });

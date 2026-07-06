@@ -100,6 +100,15 @@ export type Evidence = {
   evidenceUrl?: string;
   /** Date the underlying event occurred (distinct from `timestamp`, the ingestion time). */
   evidenceDate?: Date;
+  /**
+   * Resolved HubSpot contact id when this evidence is a person-level signal
+   * (e.g. a Trigify signal tied to a specific LinkedIn profile that was
+   * matched to a CRM contact). Undefined when the signal is company-level or
+   * the person could not be resolved to a contact — never fabricated.
+   * `people-selector.rankContacts` ranks the contact matching this id first
+   * when present (Stage A Task 8).
+   */
+  hsContactId?: string;
 };
 
 /**

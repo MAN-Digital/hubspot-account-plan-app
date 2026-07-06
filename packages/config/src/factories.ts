@@ -68,6 +68,9 @@ export function createEvidence(tenantId: string, overrides?: Partial<Evidence>):
     ...(overrides?.evidenceUrl !== undefined && {
       evidenceUrl: overrides.evidenceUrl,
     }),
+    ...(overrides?.hsContactId !== undefined && {
+      hsContactId: overrides.hsContactId,
+    }),
     ...(overrides?.evidenceDate !== undefined && {
       evidenceDate: overrides.evidenceDate,
     }),
