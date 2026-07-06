@@ -1,0 +1,21 @@
+.env.test.example
+  s_c2b65b25fb8214::t_a680d0a92d484e 15-23
+docs/runbooks/local-test-database.md
+  s_c2b65b25fb8214::t_d79b0ab5d45971 1-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "12f8a3f9638c46a5a69e5d242cc246ce3e7eb59d",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
