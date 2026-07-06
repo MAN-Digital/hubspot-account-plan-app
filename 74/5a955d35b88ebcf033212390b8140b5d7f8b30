@@ -1,0 +1,39 @@
+README.md
+  s_c2b65b25fb8214::t_6bca8309deb40c 77-91
+  s_c2b65b25fb8214::t_a0abb6e6920183 66
+package.json
+  s_c2b65b25fb8214::t_c4478b069de232 33
+  s_c2b65b25fb8214::t_91376b0221b977 15
+vitest.globalSetup.ts
+  s_c2b65b25fb8214::t_d8c60b898f86f4 1-54,56-78,80-130,136-144
+  s_c2b65b25fb8214::t_d687fcda1dafa0 55,79
+  s_c2b65b25fb8214::t_8797bbe12aaac5 131-135
+scripts/test-db-setup.mjs
+  s_c2b65b25fb8214::t_6f4d75a528a9dc 1-135
+vitest.config.ts
+  s_c2b65b25fb8214::t_83aabdc3d6815b 11-14
+.env.test.example
+  s_c2b65b25fb8214::t_7aab5fa09ce0bc 2,5-7
+  s_c2b65b25fb8214::t_504e34a17d47d7 8
+docs/runbooks/local-test-database.md
+  s_c2b65b25fb8214::t_312d09b1915373 12-30
+  s_c2b65b25fb8214::t_d628fe56b42b0c 82-88,94-103
+pnpm-lock.yaml
+  s_c2b65b25fb8214::t_8d35b23adcbf18 26-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "745a955d35b88ebcf033212390b8140b5d7f8b30",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
