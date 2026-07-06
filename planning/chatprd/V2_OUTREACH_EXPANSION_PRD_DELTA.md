@@ -163,9 +163,8 @@ Magic Patterns styling (Tailwind, HubSpot-like palette) directly.
   (jsonb), copy (jsonb), qa (jsonb), status (draft/qa_passed/approved/exported/rejected),
   approved_by, created_at, updated_at.
 - `outreach_config` — id, tenant_id, positioning (jsonb), vocabulary (jsonb), frameworks
-  (jsonb), export_provider (nullable), settings (jsonb). (Or fold into `provider_config`
-  rows `outreach` + `woodpecker`; decide at design review — prefer explicit table for
-  size.)
+  (jsonb), export_provider (nullable), settings (jsonb). **DECIDED 2026-07-06 (Romeo):
+  own explicit table** — not `provider_config` rows.
 - `notification_settings` — tenant_id, enabled (bool), property_writes_enabled (bool),
   min_tier (A/B/C), updated_at. (May fold into tenant settings jsonb.)
 
@@ -246,15 +245,16 @@ definition), Vercel project for settings app.
 
 ---
 
-## Open decisions (flag in ChatPRD for review)
+## Open decisions (status as of 2026-07-06)
 
-1. Tabs pattern availability in `@hubspot/ui-extensions` — verify at build time; fallback
-   is a segmented ToggleGroup/StepIndicator navigation.
-2. Export adapter set for V2: Woodpecker only (matches OpenClaw), or also HubSpot
-   sequences/draft emails? (HubSpot sequences API access is limited — verify.)
-3. Timeline/app events (new dev platform, needs HubSpot approval) — pursue now or after
-   V2 ships with property-based notifications?
-4. Whether `outreach_config` is its own table or `provider_config` rows.
-5. Prospecting providers (Apollo / HarvestAPI / Icypeas) — OpenClaw uses them to FIND
-   people; V2 keeps people sourced from CRM + Trigify person-signals only. Prospecting is
-   proposed as V2.5, not V2 (scope control).
+1. Tabs pattern availability in `@hubspot/ui-extensions` — OPEN (build-time check);
+   fallback is a segmented ToggleGroup/StepIndicator navigation.
+2. Export adapter set for V2 — **DECIDED (Romeo, 2026-07-06): Woodpecker + HubSpot
+   draft email engagements** (clipboard always included). HubSpot side = DRAFT
+   engagements on the contact, never sent, never sequences enrollment; verify the
+   engagement-creation scopes at build time.
+3. Timeline/app events (new dev platform, needs HubSpot approval) — OPEN; ship
+   property-based notifications first, revisit after V2.
+4. `outreach_config` — **DECIDED (Romeo, 2026-07-06): its own table** (see §4).
+5. Prospecting providers (Apollo / HarvestAPI / Icypeas) — DECIDED: deferred to V2.5;
+   V2 keeps people sourced from CRM + Trigify person-signals only (scope control).

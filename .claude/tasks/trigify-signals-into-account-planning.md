@@ -383,7 +383,8 @@ Monitor management, settings, frontend, end-to-end validation on a real test por
   LLM prompt-chain services on the tenant's LLM; `outreach_drafts` status machine
   (`draft → qa_passed → approved → exported`); **DRAFT-only invariant** — no send path
   exists; Draft Outreach button surfaces the QA-gated draft for human approval; export
-  adapters (clipboard / optional Woodpecker with tenant key + explicit confirm).
+  adapters (clipboard / Woodpecker / HubSpot draft engagement — decided 2026-07-06,
+  each behind explicit confirm).
 
 ### Phase 7 (Stage B): Monitoring, notifications, workflows
 
@@ -623,7 +624,7 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Parallel**: true
 - TDD, porting the OpenClaw contracts (C2/C3/C4) and the golden-envelope test (`test_envelope_contract.py`): `services/outreach/{envelope,cadence,copywriter,copy-qa,pipeline}.ts`, each step an LLM prompt-chain on the tenant's configured LLM receiving the WHOLE envelope; deterministic linter before the LLM judge in QA; any hard failure blocks.
 - `outreach_drafts` status machine (`draft → qa_passed → approved → exported`); routes for run/approve/reject/export; **DRAFT-only invariant enforced by tests** (no code path transmits copy without approved status + explicit user action); derived signals and restricted evidence can never appear in envelopes or copy (zero-leak test).
-- Wire the Draft Outreach button (Next Move card) end to end. Export adapters: clipboard always; Woodpecker behind the provider-adapter pattern + explicit confirm (tenant key), optional.
+- Wire the Draft Outreach button (Next Move card) end to end. Export adapters (DECIDED 2026-07-06): clipboard always; Woodpecker campaign push (tenant key) AND HubSpot DRAFT email engagement (never sent, never sequence enrollment) — both behind the provider-adapter pattern + explicit confirm per export.
 
 ### 18. Notifications + plan-aware monitoring
 
