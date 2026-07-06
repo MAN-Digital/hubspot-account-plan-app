@@ -65,6 +65,69 @@ describe("extractDominantSignal", () => {
     ];
     expect(extractDominantSignal(signals, THRESHOLDS, fakeNow)?.id).toBe("fresh");
   });
+
+  describe("copyAssertable guard (Stage A Task 7 — derived-never-asserted invariant)", () => {
+    it("never selects evidence with copyAssertable === false, even at higher confidence", () => {
+      const signals = [
+        ev({
+          id: "derived-high-conf",
+          confidence: 0.99,
+          copyAssertable: false,
+        }),
+        ev({
+          id: "observable-lower-conf",
+          confidence: 0.6,
+          copyAssertable: true,
+        }),
+      ];
+      expect(extractDominantSignal(signals, THRESHOLDS)?.id).toBe("observable-lower-conf");
+    });
+
+    it("returns null when every qualifying signal is copyAssertable === false", () => {
+      const signals = [
+        ev({ id: "derived-1", confidence: 0.95, copyAssertable: false }),
+        ev({ id: "derived-2", confidence: 0.9, copyAssertable: false }),
+      ];
+      expect(extractDominantSignal(signals, THRESHOLDS)).toBeNull();
+    });
+
+    it("treats legacy evidence with copyAssertable left unset (undefined) as assertable", () => {
+      // Existing Exa/News evidence never sets copyAssertable — the guard must
+      // only exclude an EXPLICIT false, not "unset", so legacy adapters keep
+      // working unmodified.
+      const signals = [ev({ id: "legacy", confidence: 0.8, copyAssertable: undefined })];
+      expect(extractDominantSignal(signals, THRESHOLDS)?.id).toBe("legacy");
+    });
+
+    it("still applies freshness/confidence thresholds alongside the copyAssertable guard", () => {
+      const old = new Date(Date.now() - 90 * DAY_MS);
+      const signals = [
+        ev({
+          id: "assertable-but-stale",
+          confidence: 0.9,
+          copyAssertable: true,
+          timestamp: old,
+        }),
+        ev({ id: "derived-fresh", confidence: 0.9, copyAssertable: false }),
+      ];
+      // Both are disqualified — one by staleness, one by copyAssertable — so
+      // the result must be null, never a fallback to the derived signal.
+      expect(extractDominantSignal(signals, THRESHOLDS)).toBeNull();
+    });
+
+    it("picks the best remaining observable when a derived signal is present among several observables", () => {
+      const signals = [
+        ev({ id: "weak-observable", confidence: 0.55, copyAssertable: true }),
+        ev({
+          id: "derived-boost-only",
+          confidence: 0.97,
+          copyAssertable: false,
+        }),
+        ev({ id: "strong-observable", confidence: 0.85, copyAssertable: true }),
+      ];
+      expect(extractDominantSignal(signals, THRESHOLDS)?.id).toBe("strong-observable");
+    });
+  });
 });
 
 describe("generateReasonText", () => {

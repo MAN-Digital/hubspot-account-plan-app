@@ -28,6 +28,16 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  *  - on equal confidence, more recent `timestamp` wins
  *
  * Returns `null` when no evidence passes both thresholds.
+ *
+ * DERIVED-NEVER-ASSERTED GUARD (Stage A Task 7): evidence with
+ * `copyAssertable === false` is EXCLUDED from the qualifying pool entirely —
+ * it can never be selected as the dominant signal, regardless of confidence.
+ * This is the assembly-level enforcement of the Trigify observable/derived
+ * invariant (every derived signal — buying-window, influence, expansion,
+ * jobs-count-up — sets `copyAssertable: false`) and protects every current
+ * and future adapter, not just Trigify's. Evidence that never sets the field
+ * (legacy Exa/News rows) is treated as assertable — the guard only excludes
+ * an EXPLICIT `false`, never "unset".
  */
 export function extractDominantSignal(
   signals: Evidence[],
@@ -38,6 +48,7 @@ export function extractDominantSignal(
   const maxAgeMs = thresholds.freshnessMaxDays * DAY_MS;
 
   const qualifying = signals.filter((s) => {
+    if (s.copyAssertable === false) return false;
     if (s.confidence < thresholds.minConfidence) return false;
     const ageMs = nowMs - s.timestamp.getTime();
     // Consistent with `trust.evaluateFreshness`: a future-dated row (clock

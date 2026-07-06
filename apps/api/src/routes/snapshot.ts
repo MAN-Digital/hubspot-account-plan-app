@@ -138,16 +138,32 @@ async function resolveLlmAdapter(
 }
 
 /**
- * Signal providers probed from `provider_config` rows in listed order; first
- * enabled match wins.
+ * Signal providers probed from `provider_config` rows.
  *
- * `news` was removed as a top-level provider slot — it now runs as a
- * secondary adapter driven by the Exa row via {@link createExaSignalAdapters}.
+ * Stage A Task 7 changed resolution from FIRST-ENABLED-MATCH-WINS to
+ * COMPOSE ALL ENABLED PROVIDERS: every provider in this list with an
+ * enabled row is built into its own (possibly multi-adapter, e.g. Exa+News)
+ * sub-adapter set, each wrapped individually with {@link wrapSignalWithGuards}
+ * for per-source rate-limiting + observability, then the FULL set is fanned
+ * out via {@link composeSignalAdapters}. A tenant with both Exa and Trigify
+ * enabled gets evidence from both; a tenant with only one enabled is
+ * unaffected (the composite of one provider's sub-adapters behaves exactly
+ * as before).
+ *
+ * Thresholds precedence when multiple rows are enabled: the FIRST enabled
+ * row (in this list's order) with VALID thresholds wins — later rows'
+ * thresholds are ignored even if also valid. This mirrors the pre-Task-7
+ * single-adapter precedence (Exa's thresholds always governed staleness/
+ * confidence gating) so existing Exa-only tenants see byte-identical
+ * eligibility behavior after this change.
+ *
+ * `news` is not a top-level provider slot — it runs as a secondary adapter
+ * driven by the Exa row via {@link createExaSignalAdapters}.
  * `hubspot-enrichment` stays out of this probe list because its factory
  * throws when tenant-scoped deps are missing; the snapshot path treats that
  * the same as "no config row".
  */
-const REAL_SIGNAL_PROVIDERS = ["exa"] as const;
+const REAL_SIGNAL_PROVIDERS = ["exa", "trigify"] as const;
 
 /**
  * Successful signal resolution — contains the adapter plus per-provider
@@ -189,88 +205,126 @@ export function composeSignalAdapters(
 }
 
 /**
- * Resolve the signal adapter for a tenant.
+ * Build the sub-adapter set for ONE enabled provider config row, wrapped
+ * individually with {@link wrapSignalWithGuards} for per-source rate-limiting
+ * + observability.
  *
- * Probes `provider_config` for each of {@link REAL_SIGNAL_PROVIDERS} in order.
- * On the first enabled hit, builds the real adapter and wraps with guards.
  * For the Exa row this fans out to both Exa search and the Exa news vertical
  * (NewsAdapter) via {@link createExaSignalAdapters}, gated by the row's
- * `settings.newsEnabled` flag. Returns `null` when no enabled provider row
- * exists or adapter construction fails. The caller short-circuits to
- * `eligibilityState: "unconfigured"`.
+ * `settings.newsEnabled` flag. Every other provider (currently just Trigify)
+ * resolves to exactly one adapter via {@link createSignalAdapter}. Returns
+ * `[]` when the provider yields no adapters (e.g. Exa disabled mid-resolution)
+ * so the caller can skip it without treating that as a hard failure for the
+ * OTHER enabled providers.
+ */
+function buildWrappedSubAdapters(
+  config: ProviderConfig,
+  db: Database,
+  tenantId: string,
+  correlationId: string | undefined,
+): ProviderAdapter[] {
+  const guardCtx = {
+    tenantId,
+    correlationId,
+    rateLimiter: getProcessRateLimiter(),
+  };
+  if (config.name === "exa") {
+    const subAdapters = createExaSignalAdapters(config, { db, tenantId });
+    return subAdapters.map((sub) => wrapSignalWithGuards(sub, guardCtx));
+  }
+  const real = createSignalAdapter(config, { db, tenantId });
+  return [wrapSignalWithGuards(real, guardCtx)];
+}
+
+/**
+ * Resolve the signal adapter for a tenant.
+ *
+ * Stage A Task 7: probes `provider_config` for EVERY provider in
+ * {@link REAL_SIGNAL_PROVIDERS} (not just the first enabled match) and
+ * COMPOSES all of them into one `ProviderAdapter` via
+ * {@link composeSignalAdapters} — a tenant with both Exa and Trigify enabled
+ * gets evidence from both, fanned out in parallel exactly like the existing
+ * Exa+News composition. Returns `null` when NO enabled provider row exists
+ * (across the whole list) or every enabled provider's adapter construction
+ * fails; the caller short-circuits to `eligibilityState: "unconfigured"`.
+ *
+ * A single provider's construction failure does NOT block the others — it
+ * is logged and that provider is skipped, mirroring the pre-Task-7
+ * "treat construction failure as unconfigured" posture but now scoped
+ * per-provider instead of aborting the whole resolution.
+ *
+ * Thresholds precedence: the FIRST enabled row (in `REAL_SIGNAL_PROVIDERS`
+ * order) with VALID thresholds wins. This keeps Exa-only tenants on
+ * byte-identical eligibility behavior post-Task-7 (Exa's thresholds already
+ * governed staleness/confidence gating before Trigify existed).
  */
 async function resolveSignalAdapter(
   db: Database,
   tenantId: string,
   correlationId: string | undefined,
 ): Promise<SignalResolution | null> {
-  let chosen: ProviderConfig | null = null;
+  const enabledConfigs: ProviderConfig[] = [];
   for (const providerName of REAL_SIGNAL_PROVIDERS) {
     try {
       const cfg = await getProviderConfig({ db }, { tenantId, providerName });
       if (cfg?.enabled) {
-        chosen = cfg;
-        break;
+        enabledConfigs.push(cfg);
       }
     } catch {
       // Resolver failure must not break the snapshot path — try the next
-      // provider, ultimately returning null below.
+      // provider; this one simply contributes nothing.
     }
   }
 
-  if (!chosen) {
+  if (enabledConfigs.length === 0) {
     return null;
   }
 
   // Construction can throw — e.g., required tenant-scoped deps are missing,
   // or a provider config row has a non-null field that's nullable in the
-  // schema. Treat as unconfigured, not a 500.
-  //
-  // For the Exa row we fan out: `createExaSignalAdapters` returns the main
-  // ExaAdapter plus (when `settings.newsEnabled !== false`) a NewsAdapter
-  // driven off the same API key. Each sub-adapter is wrapped individually
-  // so the process rate limiter + observability log apply per-source; the
-  // composite is then handed to the snapshot assembler as a single
-  // `ProviderAdapter` whose `fetchSignals` flattens evidence from all
-  // sub-adapters. Non-Exa providers (none today — `hubspot-enrichment` is
-  // excluded from `REAL_SIGNAL_PROVIDERS`) stay on the single-adapter path.
-  let adapter: ProviderAdapter;
-  try {
-    if (chosen.name === "exa") {
-      const subAdapters = createExaSignalAdapters(chosen, { db, tenantId });
-      if (subAdapters.length === 0) {
-        return null;
+  // schema. A per-provider failure is logged and that provider is skipped
+  // rather than aborting resolution for every enabled provider.
+  const allSubAdapters: ProviderAdapter[] = [];
+  let firstValidThresholds: ThresholdConfig | undefined;
+  let firstAllowList: string[] | undefined;
+  let firstBlockList: string[] | undefined;
+
+  for (const config of enabledConfigs) {
+    try {
+      const wrapped = buildWrappedSubAdapters(config, db, tenantId, correlationId);
+      if (wrapped.length === 0) continue;
+      allSubAdapters.push(...wrapped);
+      if (firstValidThresholds === undefined && isValidThresholds(config.thresholds)) {
+        firstValidThresholds = config.thresholds;
+        firstAllowList = config.allowList;
+        firstBlockList = config.blockList;
       }
-      const wrapped = subAdapters.map((sub) =>
-        wrapSignalWithGuards(sub, {
-          tenantId,
-          correlationId,
-          rateLimiter: getProcessRateLimiter(),
-        }),
-      );
-      adapter = composeSignalAdapters(wrapped, chosen.name);
-    } else {
-      const real = createSignalAdapter(chosen, { db, tenantId });
-      adapter = wrapSignalWithGuards(real, {
+    } catch (err) {
+      console.error("signal_adapter_construction_failed", {
         tenantId,
-        correlationId,
-        rateLimiter: getProcessRateLimiter(),
+        provider: config.name,
+        errorClass: err instanceof Error ? err.constructor.name : typeof err,
       });
     }
-  } catch (err) {
-    console.error("signal_adapter_construction_failed", {
-      tenantId,
-      provider: chosen.name,
-      errorClass: err instanceof Error ? err.constructor.name : typeof err,
-    });
+  }
+
+  if (allSubAdapters.length === 0) {
     return null;
   }
 
+  // Composite name mirrors the first enabled provider so existing logs/metrics
+  // that key on a single adapter name keep working when only one provider is
+  // enabled (the common case today). When multiple providers compose, this
+  // is still a stable, deterministic choice (list order), not "whichever
+  // resolved last".
+  const compositeName = enabledConfigs[0]?.name ?? "composed";
+  const adapter = composeSignalAdapters(allSubAdapters, compositeName);
+
   return {
     adapter,
-    allowList: chosen.allowList,
-    blockList: chosen.blockList,
-    thresholds: isValidThresholds(chosen.thresholds) ? chosen.thresholds : undefined,
+    allowList: firstAllowList,
+    blockList: firstBlockList,
+    thresholds: firstValidThresholds,
   };
 }
 

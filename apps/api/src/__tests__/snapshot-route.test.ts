@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createDatabase, llmConfig, providerConfig, tenants } from "@hap/db";
+import { createDatabase, llmConfig, providerConfig, signals, tenants } from "@hap/db";
 import { like } from "drizzle-orm";
 import { Hono } from "hono";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -276,7 +276,10 @@ describe("POST /api/snapshot/:companyId", () => {
       });
 
       expect(res.status).toBe(200);
-      const body = (await res.json()) as { tenantId: string; eligibilityState: string };
+      const body = (await res.json()) as {
+        tenantId: string;
+        eligibilityState: string;
+      };
       expect(body.tenantId).toBe(tenantId);
       expect(body.eligibilityState).toBe("unconfigured");
     } finally {
@@ -602,5 +605,181 @@ describe("POST /api/snapshot/:companyId", () => {
     const routeHits = grepDir(routesDir);
     const serviceHits = grepDir(servicesDir);
     expect([...routeHits, ...serviceHits]).toHaveLength(0);
+  });
+
+  describe("Trigify composition (Stage A Task 7)", () => {
+    async function setupTenantWithLlm(name: string) {
+      const portal = portalId();
+      const [tenant] = await db
+        .insert(tenants)
+        .values({ hubspotPortalId: portal, name })
+        .returning();
+      if (!tenant) throw new Error("tenant insert failed");
+      await db.insert(llmConfig).values({
+        tenantId: tenant.id,
+        providerName: "openai",
+        modelName: "gpt-4o-mini",
+        apiKeyEncrypted: encryptProviderKey(tenant.id, "sk-real-openai-key"),
+        settings: {},
+      });
+      return { portal, tenant };
+    }
+
+    it("a Trigify-only tenant is no longer unconfigured and surfaces trigify evidence", async () => {
+      const { portal, tenant } = await setupTenantWithLlm("Trigify Only Co");
+
+      await db.insert(providerConfig).values({
+        tenantId: tenant.id,
+        providerName: "trigify",
+        enabled: true,
+        thresholds: { freshnessMaxDays: 30, minConfidence: 0.1 },
+        settings: {},
+      });
+
+      await db.insert(signals).values({
+        tenantId: tenant.id,
+        dedupeKey: "ext:route-test-1",
+        source: "trigify",
+        stream: "trigify",
+        signalType: "T_Role_Change",
+        signalClass: "observable",
+        tier: "A",
+        level: "person",
+        targetId: "linkedin.com/in/route-test",
+        linkedinUrl: "https://www.linkedin.com/in/route-test/",
+        hsCompanyId: "co-trigify-only",
+        evidenceUrl: "https://www.linkedin.com/posts/route-test_promo",
+        evidenceDate: new Date("2026-07-01T00:00:00.000Z"),
+        observedAt: new Date("2026-07-01T09:00:00.000Z"),
+        allowedClaims: [],
+        copyAssertable: true,
+        headline: "Route Test became VP of RevOps",
+        detail: "Promoted",
+        confidence: 0.9,
+        raw: {},
+      });
+
+      const app = await loadApp();
+      const res = await app.request("/api/snapshot/co-trigify-only?eligibility=eligible", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer anything",
+          "x-test-portal-id": portal,
+        },
+      });
+
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as {
+        eligibilityState: string;
+        evidence: Array<{ source: string; signalType?: string }>;
+      };
+      expect(body.eligibilityState).not.toBe("unconfigured");
+      expect(body.evidence.some((e) => e.source === "trigify")).toBe(true);
+    });
+
+    it("an Exa-only tenant is unaffected by the Trigify composition change (regression)", async () => {
+      const { portal, tenant } = await setupTenantWithLlm("Exa Only Regression Co");
+      await db.insert(providerConfig).values({
+        tenantId: tenant.id,
+        providerName: "exa",
+        enabled: true,
+        apiKeyEncrypted: encryptProviderKey(tenant.id, "sk-real-exa-key"),
+        thresholds: { freshnessMaxDays: 30, minConfidence: 0.5 },
+        settings: { newsEnabled: false },
+      });
+
+      const app = await loadApp();
+      const res = await app.request("/api/snapshot/co-exa-only?eligibility=eligible", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer anything",
+          "x-test-portal-id": portal,
+        },
+      });
+
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { eligibilityState: string };
+      // Exa's live network call will fail in this test environment (no real
+      // key), but the important regression assertion is that resolving the
+      // adapter itself does not throw/short-circuit to unconfigured purely
+      // because REAL_SIGNAL_PROVIDERS now also probes "trigify" — an
+      // Exa-only tenant must still resolve its Exa adapter exactly as before.
+      expect(body.eligibilityState).not.toBe("unconfigured");
+    });
+
+    it("a tenant with BOTH Exa and Trigify enabled gets composed evidence from both", async () => {
+      const { portal, tenant } = await setupTenantWithLlm("Exa Plus Trigify Co");
+      await db.insert(providerConfig).values({
+        tenantId: tenant.id,
+        providerName: "exa",
+        enabled: true,
+        apiKeyEncrypted: encryptProviderKey(tenant.id, "sk-real-exa-key"),
+        thresholds: { freshnessMaxDays: 30, minConfidence: 0.1 },
+        settings: { newsEnabled: false },
+      });
+      await db.insert(providerConfig).values({
+        tenantId: tenant.id,
+        providerName: "trigify",
+        enabled: true,
+        thresholds: { freshnessMaxDays: 30, minConfidence: 0.1 },
+        settings: {},
+      });
+      await db.insert(signals).values({
+        tenantId: tenant.id,
+        dedupeKey: "ext:route-test-2",
+        source: "trigify",
+        stream: "trigify",
+        signalType: "T_Role_Change",
+        signalClass: "observable",
+        tier: "A",
+        level: "person",
+        targetId: "linkedin.com/in/route-test-2",
+        linkedinUrl: "https://www.linkedin.com/in/route-test-2/",
+        hsCompanyId: "co-both",
+        evidenceUrl: "https://www.linkedin.com/posts/route-test-2_promo",
+        evidenceDate: new Date("2026-07-02T00:00:00.000Z"),
+        observedAt: new Date("2026-07-02T09:00:00.000Z"),
+        allowedClaims: [],
+        copyAssertable: true,
+        headline: "Route Test Two became VP of RevOps",
+        detail: "Promoted",
+        confidence: 0.9,
+        raw: {},
+      });
+
+      // Stub global fetch so Exa's real network call succeeds with an empty
+      // result instead of erroring in this offline test environment — the
+      // point of this test is proving COMPOSITION (both adapters run and
+      // their evidence merges), not exercising Exa's live transport, which
+      // is already covered by exa.test.ts's cassette suite.
+      const originalFetch = global.fetch;
+      global.fetch = (async () =>
+        new Response(JSON.stringify({ results: [] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })) as typeof fetch;
+
+      try {
+        const app = await loadApp();
+        const res = await app.request("/api/snapshot/co-both?eligibility=eligible", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer anything",
+            "x-test-portal-id": portal,
+          },
+        });
+
+        expect(res.status).toBe(200);
+        const body = (await res.json()) as {
+          eligibilityState: string;
+          evidence: Array<{ source: string }>;
+        };
+        // Trigify evidence must be present alongside Exa's (empty) result —
+        // composition means both adapters run, not "first enabled wins".
+        expect(body.evidence.some((e) => e.source === "trigify")).toBe(true);
+      } finally {
+        global.fetch = originalFetch;
+      }
+    });
   });
 });
