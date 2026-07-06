@@ -11,6 +11,15 @@ preserved verbatim. The full doc-UUID registry lives in
 `.claude/tasks/trigify-signals-into-account-planning.md` (Notes → "ChatPRD synced").
 This file remains the local mirror of the upstream planning update that (per CLAUDE.md)
 authorizes scope beyond the V1 wedge; if it and ChatPRD drift, re-sync from here.
+**PENDING ChatPRD re-sync (2026-07-06, later session):** two revisions below are NOT yet
+in the cloud docs (chatprd MCP was unreachable/needs re-auth): (a) open-decision #2
+revised — export channel is now a per-tenant settings choice with tooltips
+(hubspot_sequences | woodpecker_email | woodpecker_email_linkedin; Sequences =
+enroll-into-existing only, Sales/Service Hub Pro+ seat required); (b) §6 addition —
+Mintlify documentation site (repo romeoman/mintlify-docs). Sync targets: Database Schema
+doc `8554b95a-...` (outreach_config decision line), Technical Design doc `86ffe0e4-...`
+(export adapters bullet), Repo Draft & Execution Checklist doc `d1591ae5-...` (docs
+section).
 
 ---
 
@@ -188,8 +197,16 @@ Magic Patterns styling (Tailwind, HubSpot-like palette) directly.
 (envelope.ts, cadence.ts, copywriter.ts, copy-qa.ts, pipeline.ts), `apps/api/src/routes/
 {research,outreach,workflow-action}.ts`, `apps/settings-web/` (hosted settings app),
 extension tab components per Magic Patterns IA, new schema files per §4, HubSpot app
-manifest changes (scopes: `automation`, company property write scope; workflow action
-definition), Vercel project for settings app.
+manifest changes (scopes: `automation`, sequences scope for enrollment, company property
+write scope; workflow action definition), Vercel project for settings app.
+
+**Documentation (added 2026-07-06):** customer-facing docs on **Mintlify** in the
+separate repo `https://github.com/romeoman/mintlify-docs` (Mintlify GitHub app deploys
+on push to main; local preview: `npm i -g mint && mint dev`). Pages: getting started /
+install, providers & BYO keys, Trigify signals (observable vs derived, credit model),
+account research, outreach drafts (DRAFT-only, export channels incl. the Sequences seat
+requirement), notifications recipes, workflow action, security & tenant isolation,
+troubleshooting. Every claim must match shipped behavior.
 
 ## 7. AI Coding Rules & Standards
 
@@ -249,10 +266,17 @@ definition), Vercel project for settings app.
 
 1. Tabs pattern availability in `@hubspot/ui-extensions` — OPEN (build-time check);
    fallback is a segmented ToggleGroup/StepIndicator navigation.
-2. Export adapter set for V2 — **DECIDED (Romeo, 2026-07-06): Woodpecker + HubSpot
-   draft email engagements** (clipboard always included). HubSpot side = DRAFT
-   engagements on the contact, never sent, never sequences enrollment; verify the
-   engagement-creation scopes at build time.
+2. Export adapter set for V2 — **REVISED (Romeo, 2026-07-06, after verifying the
+   Sequences API):** a per-tenant **settings choice with tooltips** between
+   `hubspot_sequences` | `woodpecker_email` | `woodpecker_email_linkedin` (clipboard
+   always included). Sequences API verified live
+   (https://developers.hubspot.com/docs/api-reference/latest/automation/sequences/guide):
+   `/automation/sequences/2026-03/` supports list/fetch/enroll-contact/enrollment-status
+   only — **no sequence create/edit** — and requires the acting user to hold a Sales Hub
+   or Service Hub Professional/Enterprise seat. So the HubSpot option = enroll the
+   draft's contacts into an EXISTING sequence (drafted copy saved as draft email
+   engagements); the tooltip must state the seat requirement and enroll-only limitation,
+   and the confirm dialog must state that enrollment authorizes HubSpot to send.
 3. Timeline/app events (new dev platform, needs HubSpot approval) — OPEN; ship
    property-based notifications first, revisit after V2.
 4. `outreach_config` — **DECIDED (Romeo, 2026-07-06): its own table** (see §4).

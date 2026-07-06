@@ -383,8 +383,9 @@ Monitor management, settings, frontend, end-to-end validation on a real test por
   LLM prompt-chain services on the tenant's LLM; `outreach_drafts` status machine
   (`draft → qa_passed → approved → exported`); **DRAFT-only invariant** — no send path
   exists; Draft Outreach button surfaces the QA-gated draft for human approval; export
-  adapters (clipboard / Woodpecker / HubSpot draft engagement — decided 2026-07-06,
-  each behind explicit confirm).
+  adapters (clipboard always; settings-chosen channel: HubSpot Sequences enrollment
+  or Woodpecker email / email+LinkedIn — revised 2026-07-06, each behind explicit
+  confirm; sequence enrollment confirm must state it authorizes HubSpot to send).
 
 ### Phase 7 (Stage B): Monitoring, notifications, workflows
 
@@ -447,6 +448,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   - Agent Type: security-auditor
   - Resume: false
   - Spawn Description: `security-auditor - Trigify integration tenant-isolation and spend-gate audit`
+- Specialist
+  - Name: `docs-writer`
+  - Role: Customer-facing Mintlify documentation in the separate `romeoman/mintlify-docs` repo (task 19b) — verified against shipped behavior, never aspirational.
+  - Agent Type: content-writer
+  - Resume: true
+  - Spawn Description: `content-writer - Mintlify product documentation`
 - Quality Engineer (Validator)
   - Name: `validator`
   - Role: Validate completed work against acceptance criteria (read-only inspection mode).
@@ -605,6 +612,11 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Agent Type**: frontend-specialist
 - **Parallel**: true
 - Stand up `apps/settings-web` (React + Tailwind, Magic Patterns styling, own Vercel project) against existing settings routes + new outreach/notification routes: provider keys, Trigify monitors (spend-gated flows with explicit "this spends credits" confirm), outreach config (positioning/vocabulary/frameworks), notification toggles, plan/usage. Auth: reuse the app's OAuth/session model for the install-time flow.
+- **Outreach export channel picker (decided 2026-07-06):** a per-tenant setting choosing how approved drafts export — `hubspot_sequences` | `woodpecker_email` | `woodpecker_email_linkedin` (clipboard always available regardless). Each option gets a **tooltip**:
+  - *HubSpot Sequences* — "Enrolls the selected contacts into one of your existing HubSpot sequences. Requires a Sales Hub or Service Hub Professional/Enterprise seat for the sending user. Note: HubSpot's API cannot create sequences, so your drafted copy is saved as draft email engagements — the sequence itself must already exist in HubSpot."
+  - *Woodpecker (email)* — "Pushes the approved cadence and copy into a Woodpecker campaign (email steps only) using your own Woodpecker API key."
+  - *Woodpecker (email + LinkedIn)* — "Same as email, plus LinkedIn touches as Woodpecker manual/LinkedIn tasks."
+  Stored in `outreach_config.export_provider` (+ variant in `settings` jsonb). Selection is config only — every actual export still requires explicit per-draft confirm.
 
 ### 16. Account research generator
 
@@ -624,7 +636,10 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Parallel**: true
 - TDD, porting the OpenClaw contracts (C2/C3/C4) and the golden-envelope test (`test_envelope_contract.py`): `services/outreach/{envelope,cadence,copywriter,copy-qa,pipeline}.ts`, each step an LLM prompt-chain on the tenant's configured LLM receiving the WHOLE envelope; deterministic linter before the LLM judge in QA; any hard failure blocks.
 - `outreach_drafts` status machine (`draft → qa_passed → approved → exported`); routes for run/approve/reject/export; **DRAFT-only invariant enforced by tests** (no code path transmits copy without approved status + explicit user action); derived signals and restricted evidence can never appear in envelopes or copy (zero-leak test).
-- Wire the Draft Outreach button (Next Move card) end to end. Export adapters (DECIDED 2026-07-06): clipboard always; Woodpecker campaign push (tenant key) AND HubSpot DRAFT email engagement (never sent, never sequence enrollment) — both behind the provider-adapter pattern + explicit confirm per export.
+- Wire the Draft Outreach button (Next Move card) end to end. Export adapters (REVISED 2026-07-06 after Sequences API verification): clipboard always; plus the tenant's configured channel from settings (task 15):
+  - **HubSpot Sequences adapter** — docs-check FIRST against https://developers.hubspot.com/docs/api-reference/latest/automation/sequences/guide. Verified facts (2026-07-06): API base `/automation/sequences/2026-03/`; supports LIST sequences, FETCH sequence, ENROLL contact, and enrollment status — it CANNOT create or edit sequences. Export = user picks an existing sequence (list endpoint) + we enroll the draft's contacts (`userId` of a seat-holding sender required; Sales/Service Hub Pro or Enterprise seat). Drafted copy is additionally saved as HubSpot DRAFT email engagements (never sent) since the API can't inject our copy into a sequence.
+  - **Woodpecker adapter** — campaign push with tenant key; `email` or `email+linkedin` variant per settings.
+  All behind the provider-adapter pattern + explicit confirm per export; nothing ever auto-sends from our app (a sequence enrollment IS a send-authorizing action in HubSpot — the confirm dialog must say so explicitly).
 
 ### 18. Notifications + plan-aware monitoring
 
@@ -644,10 +659,23 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Parallel**: false
 - Docs-check FIRST (Automation API v4 / `POST /automation/actions/2026-03/{appId}`; scopes). TDD. Register the "Generate Account Snapshot/Research" action (`objectTypes: ["COMPANY"]`, input fields, output fields incl. eligibility state + strength + reason headline); implement the signature-verified `actionUrl` endpoint (reuse hubspot-signature + nonce middleware; async completion for long research runs); registration on app install/update.
 
+### 19b. Documentation site (Mintlify)
+
+- **Task ID**: `v2-docs-mintlify`
+- **Depends On**: `v2-workspace-ui`, `v2-settings-app`, `v2-outreach-pipeline`, `v2-notifications`, `v2-workflow-action`
+- **Assigned To**: `docs-writer`
+- **Agent Type**: content-writer
+- **Parallel**: false
+- Customer-facing product documentation on **Mintlify** (Romeo has a free account). The docs live in a SEPARATE repo: `https://github.com/romeoman/mintlify-docs` (already created via Mintlify's GitHub integration). Local workflow: `git clone https://github.com/romeoman/mintlify-docs && npm i -g mint && cd mintlify-docs && mint dev` (preview at localhost:3000); pushing to main deploys via the Mintlify GitHub app.
+- Docs-check FIRST: read https://mintlify.com/docs (docs.json navigation schema, MDX components, mint CLI) — do not guess the config format.
+- Author (MDX pages, organized in docs.json navigation): Getting started / install guide (HubSpot marketplace → OAuth → settings app), Providers & API keys (Exa, Trigify, LLM providers — BYO keys), Trigify signals (signal types, observable vs derived, lookback windows, credit model + spend confirmations), Account research, Outreach drafts (pipeline, QA gates, DRAFT-only guarantee, export channels incl. the Sequences seat requirement), Notifications (hap_* properties + the 2-3 workflow recipes), Workflow action, Security & tenant isolation, Troubleshooting/FAQ.
+- Accuracy rule: every documented behavior must match the shipped implementation — verify claims against the repo before writing; no aspirational features.
+- Verify: `mint dev` renders locally without errors; navigation complete; screenshots from the test portal where useful.
+
 ### 20. Final validation
 
 - **Task ID**: validate-all
-- **Depends On**: `db-signals-schema`, `domain-signal-metadata`, `trigify-client`, `signal-ranking`, `normalize-and-match`, `trigify-poller`, `trigify-adapter`, `real-hubspot-fetchers`, `monitor-management`, `frontend-trigify`, `security-audit`, `v2-schema`, `v2-workspace-ui`, `v2-settings-app`, `v2-account-research`, `v2-outreach-pipeline`, `v2-notifications`, `v2-workflow-action`
+- **Depends On**: `db-signals-schema`, `domain-signal-metadata`, `trigify-client`, `signal-ranking`, `normalize-and-match`, `trigify-poller`, `trigify-adapter`, `real-hubspot-fetchers`, `monitor-management`, `frontend-trigify`, `security-audit`, `v2-schema`, `v2-workspace-ui`, `v2-settings-app`, `v2-account-research`, `v2-outreach-pipeline`, `v2-notifications`, `v2-workflow-action`, `v2-docs-mintlify`
 - **Assigned To**: `validator`
 - **Agent Type**: quality-engineer
 - **Parallel**: false
@@ -707,7 +735,16 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - Signals tab displays the plan-clamped lookback window (30d vs 14d verified with mocked
   limits).
 - Settings app covers install-time setup end to end (keys → monitors → outreach config →
-  notifications) with spend-gated confirms.
+  notifications) with spend-gated confirms, including the outreach export-channel picker
+  (HubSpot Sequences / Woodpecker email / Woodpecker email+LinkedIn) with tooltips; the
+  Sequences option surfaces the Pro/Enterprise-seat requirement and enroll-only
+  limitation.
+- Exporting to HubSpot Sequences enrolls the draft's contacts into the user-chosen
+  existing sequence (verified on the test portal with a seat-holding user) and never
+  fires without the explicit confirm that states enrollment authorizes HubSpot sends.
+- The Mintlify docs site builds (`mint dev`) and documents install, providers, signals,
+  outreach (incl. export channels + seat requirement), notifications, workflow action,
+  and security — all claims matching shipped behavior.
 
 ## Validation Commands
 
@@ -757,7 +794,11 @@ HubSpot"`. If a ChatPRD doc and this plan ever conflict, the precedence in
   input/output fields, COMPANY object type). Legacy timeline events v1/v3 are closed to
   new apps; the new-platform "app events" need HubSpot approval → notifications ship via
   opt-in `hap_*` property writes + native workflow recipes, app events as a later
-  enhancement.
+  enhancement. **Sequences API verified 2026-07-06** (fetched live):
+  `/automation/sequences/2026-03/` — list/fetch sequences, enroll contact, enrollment
+  status; NO sequence create/edit; requires the acting user to hold a Sales Hub or
+  Service Hub Professional/Enterprise seat (userId passed on every call). Hence export =
+  enroll-into-existing-sequence; drafted copy travels as draft email engagements.
 - **Config-driven, no hardcoding:** every threshold, tier weight, cadence, and budget comes
   from provider `thresholds`/`settings` or env, seeded from `trigify_signal_ranking.yaml` —
   never hardcoded in adapter/UI code.
