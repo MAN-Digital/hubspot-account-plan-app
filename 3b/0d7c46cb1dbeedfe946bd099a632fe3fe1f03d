@@ -1,0 +1,31 @@
+packages/validators/src/__tests__/trigify-ranking.test.ts
+  s_c2b65b25fb8214::t_6f1fb97d92ab96 13-16,31-33,43-48,53-55,60-62
+  s_c2b65b25fb8214::t_8afd08067950b0 1-12,17-30,34-42,49-52,56-59,63-96
+apps/api/src/services/trigify/__tests__/signal-ranking.test.ts
+  s_c2b65b25fb8214::t_5fd0df2c0201b3 14,16,140-143,189-192
+  s_c2b65b25fb8214::t_8ba9095567028d 1-13,15,17-139,144-188,193-221
+packages/validators/src/index.ts
+  s_c2b65b25fb8214::t_d6ca6bc787abf1 10
+packages/validators/src/trigify-ranking.ts
+  s_c2b65b25fb8214::t_2177701a310d40 1-124
+  s_c2b65b25fb8214::t_e63db7cfe97063 125-128
+apps/api/src/services/trigify/signal-ranking.ts
+  s_c2b65b25fb8214::t_5fd0df2c0201b3 367-369
+  s_c2b65b25fb8214::t_4456d9c2a4dc98 1-366,370-398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3b0d7c46cb1dbeedfe946bd099a632fe3fe1f03d",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
