@@ -51,6 +51,26 @@ export function createEvidence(tenantId: string, overrides?: Partial<Evidence>):
     confidence: overrides?.confidence ?? 0.8,
     content: overrides?.content ?? "Default evidence content",
     isRestricted: overrides?.isRestricted ?? false,
+    // Spread the optional Trigify signal-metadata fields last so callers can
+    // pass signalType/signalClass/tier/copyAssertable/evidenceUrl/
+    // evidenceDate through without this factory needing per-field defaults
+    // for every future additive Evidence field.
+    ...(overrides?.signalType !== undefined && {
+      signalType: overrides.signalType,
+    }),
+    ...(overrides?.signalClass !== undefined && {
+      signalClass: overrides.signalClass,
+    }),
+    ...(overrides?.tier !== undefined && { tier: overrides.tier }),
+    ...(overrides?.copyAssertable !== undefined && {
+      copyAssertable: overrides.copyAssertable,
+    }),
+    ...(overrides?.evidenceUrl !== undefined && {
+      evidenceUrl: overrides.evidenceUrl,
+    }),
+    ...(overrides?.evidenceDate !== undefined && {
+      evidenceDate: overrides.evidenceDate,
+    }),
   };
 }
 

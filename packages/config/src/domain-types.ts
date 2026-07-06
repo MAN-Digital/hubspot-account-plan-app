@@ -43,10 +43,36 @@ export type StateFlags = {
 };
 
 /**
+ * Trigify's observable-vs-derived signal classification.
+ *
+ * - `observable`: a real event with a citable evidence record (post, job ad,
+ *   role change). May be asserted in copy.
+ * - `derived`: a Trigify inference (buying-window, influence, expansion)
+ *   with no single citable event. Prioritization-only — MUST NEVER be
+ *   asserted in copy, and a derived signal alone can never cross the send
+ *   threshold (see `references/signal-types.md`).
+ */
+export type SignalClass = "observable" | "derived";
+
+/**
+ * Trigify signal strength tier: A (strongest) down to C (weakest).
+ */
+export type SignalTier = "A" | "B" | "C";
+
+/**
  * Single piece of evidence supporting a reason-to-contact.
  *
  * `isRestricted=true` evidence must be filtered out before any UI rendering
  * or LLM summarization.
+ *
+ * The `signalType`/`signalClass`/`tier`/`copyAssertable`/`evidenceUrl`/
+ * `evidenceDate` fields are OPTIONAL and ADDITIVE (Stage A Task 2) —
+ * introduced for the Trigify signal integration. Existing Exa/News evidence
+ * never sets them and keeps working unchanged. `copyAssertable` is the
+ * load-bearing field: any evidence with `copyAssertable === false` (i.e.
+ * every Trigify `derived` signal) must never be selected as the dominant
+ * signal in `extractDominantSignal` (see
+ * `apps/api/src/services/reason-generator.ts`), independent of confidence.
  */
 export type Evidence = {
   id: string;
@@ -57,6 +83,23 @@ export type Evidence = {
   confidence: number;
   content: string;
   isRestricted: boolean;
+  /** Trigify (or future signal-typed provider) trigger code, e.g. "T_Role_Change". */
+  signalType?: string;
+  /** observable = may be asserted in copy; derived = prioritization-only, never asserted. */
+  signalClass?: SignalClass;
+  /** Signal strength tier: A (strongest) .. C (weakest). */
+  tier?: SignalTier;
+  /**
+   * Whether this evidence may be asserted as a fact in generated copy.
+   * Defaults to "yes" semantics for legacy (Exa/News) evidence that never
+   * sets this field — the guard in `extractDominantSignal` only excludes
+   * evidence where this is explicitly `false`.
+   */
+  copyAssertable?: boolean;
+  /** Clickable URL to the underlying observable event (post, job ad, profile). */
+  evidenceUrl?: string;
+  /** Date the underlying event occurred (distinct from `timestamp`, the ingestion time). */
+  evidenceDate?: Date;
 };
 
 /**
