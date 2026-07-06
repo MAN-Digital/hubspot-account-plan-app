@@ -14,6 +14,7 @@ import { createLifecycleBootstrapRoute } from "./routes/admin/lifecycle-bootstra
 import { lifecycleWebhookRoutes } from "./routes/lifecycle.js";
 import { createOAuthRoutes } from "./routes/oauth.js";
 import { settingsRoutes } from "./routes/settings.js";
+import { createSettingsTrigifyRoute } from "./routes/settings-trigify.js";
 import { snapshotRoutes } from "./routes/snapshot.js";
 
 type AppVars = TenantVariables & CorrelationVariables & { portalId?: string; rawBody?: string };
@@ -210,6 +211,7 @@ app.use("/api/*", async (c, next) => {
 app.use("/api/*", nonceMiddleware());
 
 app.route("/api/settings", settingsRoutes);
+app.route("/api/settings/trigify", createSettingsTrigifyRoute());
 app.route("/api/snapshot", snapshotRoutes);
 
 export default app;

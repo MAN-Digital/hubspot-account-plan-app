@@ -7,4 +7,6 @@
 
 export * from "./settings.js";
 export * from "./snapshot.js";
+export * from "./trigify-monitor-config.js";
+export * from "./trigify-monitor-request.js";
 export * from "./trigify-ranking.js";
