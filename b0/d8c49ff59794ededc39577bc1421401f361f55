@@ -1,0 +1,30 @@
+apps/api/src/services/trigify/__tests__/poller.test.ts
+  s_c2b65b25fb8214::t_a68d5e99b153d4 14,16,44-48,61-64
+  s_c2b65b25fb8214::t_3fe733ba8f06f2 1-13,15,17-43,49-60,65-144
+apps/api/src/routes/admin/trigify-poll.ts
+  s_c2b65b25fb8214::t_d4fc9e1df36bf1 1-107
+apps/api/src/services/trigify/poller.ts
+  s_c2b65b25fb8214::t_a68d5e99b153d4 33,102-106,123-125
+  s_c2b65b25fb8214::t_fd3468db75c281 1-32,34-101,107-122,126-249
+apps/api/src/routes/admin/__tests__/trigify-poll.test.ts
+  s_c2b65b25fb8214::t_9baedd6128a276 1-21,28-39,46-55,62-122
+  s_c2b65b25fb8214::t_487244bbbf15e5 22-27,40-45,56-61
+apps/api/vercel.json
+  s_c2b65b25fb8214::t_7ea7f3af5f7c07 8-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b0d8c49ff59794ededc39577bc1421401f361f55",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
