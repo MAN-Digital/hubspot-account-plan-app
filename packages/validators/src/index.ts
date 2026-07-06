@@ -7,3 +7,4 @@
 
 export * from "./settings.js";
 export * from "./snapshot.js";
+export * from "./trigify-ranking.js";
