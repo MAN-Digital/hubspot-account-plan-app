@@ -1,0 +1,53 @@
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c2b65b25fb8214::t_a84773f0c88c32 729
+  s_c2b65b25fb8214::t_28295766298d31 659-662
+  s_c2b65b25fb8214::t_1ce88821e8c7b4 620-631
+  s_c2b65b25fb8214::t_e1845285665929 784
+  s_c2b65b25fb8214::t_773c487a5e42aa 783
+  s_c2b65b25fb8214::t_368cec30a30670 664-678
+  s_c2b65b25fb8214::t_f4cffd4c3de584 663
+  s_c2b65b25fb8214::t_d50a471b9a75ea 614-617,689-692,717
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c2b65b25fb8214::t_5aa15b133ad917 23-26
+  s_c2b65b25fb8214::t_84e0e80042cf3e 256-300
+  s_c2b65b25fb8214::t_4cb6c700c27285 301-340
+planning/chatprd/PRICING_AND_PACKAGING.md
+  s_c2b65b25fb8214::t_c23f67c000f0b4 44-54
+  s_c2b65b25fb8214::t_35e5b10172786f 41-43
+  s_c2b65b25fb8214::t_01c93c3a55fec6 7,15-20,23-40,57,59-60,65,70,77,89
+planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md
+  s_c2b65b25fb8214::t_4dbbafddd9d98e 1-98
+  s_c2b65b25fb8214::t_2da090fa73d58c 99-101
+  s_1ddc817e851441::t_cf42420db79fb0 102-103
+docs/HANDOFF.md
+  s_c2b65b25fb8214::t_85dd6a7e846f4c 106-116
+  s_c2b65b25fb8214::t_25552a436120f0 119-128,130-136
+  s_c2b65b25fb8214::t_05d93f173e469b 105
+  s_c2b65b25fb8214::t_076d413c695d2f 144-148
+  s_c2b65b25fb8214::t_d174ec8a6cefa4 117-118
+  s_c2b65b25fb8214::t_119e53b3d2bf38 137-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b9cd4c02774a4cd0681309a8986115889ee6f543",
+  "prompts": {},
+  "sessions": {
+    "s_1ddc817e851441": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a23b7166542c75559",
+        "model": "unknown"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    },
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
