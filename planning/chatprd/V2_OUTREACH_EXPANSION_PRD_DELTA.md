@@ -172,7 +172,7 @@ Link + template id above. Screen-by-screen (v2 components):
   server-side (role check on angle-write endpoints; app-level per-tenant role,
   installer = superadmin by default).
 - **Warm intro / connecting-the-dots (2026-07-07, round 3):** per buying-group target,
-  rep manually enters LinkedIn mutual connections (min 3 enforced, 5 ideal) →
+  rep manually enters LinkedIn mutual connections (min 3 enforced, 5 ideal; **each entry requires name + LinkedIn profile URL**, validated — the URL powers enrichment, scoring, and the open-compose deep link) →
   enrich/qualify (Find in HubSpot / research) → score + rank connectors → pre-made
   editable intro-request DM → one-click opens LinkedIn compose to the connector
   (verified deep link: /messaging/compose/?recipient=… + profileUrn/interop form; BODY

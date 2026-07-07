@@ -708,7 +708,7 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Agent Type**: backend-engineer
 - **Parallel**: true
 - Requested by Romeo 2026-07-07. Warm up a buying-group person BEFORE outreach using the rep's own relationship graph:
-  1. Rep checks the target on LinkedIn/Sales Navigator manually and enters the **mutual connections** into the app (per target person). UI ENFORCES a minimum of 3 mutual connections (5 recommended) before scoring runs.
+  1. Rep checks the target on LinkedIn/Sales Navigator manually and enters the **mutual connections** into the app (per target person). **Each connection entry REQUIRES the LinkedIn profile URL** (name + LinkedIn URL, URL validated as a linkedin.com/in/... profile) — without it, enrichment, scoring, and the open-compose deep link cannot work. UI ENFORCES a minimum of 3 mutual connections (5 recommended) before scoring runs.
   2. **Enrich/qualify** each mutual connection via buttons: "Find in HubSpot" (are they in our CRM? relationship strength from deals/activities), "Find with research" (Exa/Harvest: role, relevance, overlap with target).
   3. **Score & rank**: intro-likelihood ranking (our relationship strength × their closeness/relevance to the target × seniority) → "ask THIS person first" priority list.
   4. **Pre-made intro-request DM** per ranked connector (LinkedIn-style, short: working this account / saw you know <target> / can you put us in touch) — editable.
