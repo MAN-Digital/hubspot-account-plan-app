@@ -94,10 +94,15 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
   time). UUID registry in the plan's Notes. MCP: `chatprd` (HTTP, OAuth, flaps across
   restarts — retry once, then ask user to re-auth).
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, artifact
-  `b9bdba8b-9ee3-47e6-bdfc-ac3a9c15c50b`, `v2/*` files. Published through rounds 3+4 +
-  header redesign (round-5 governance/rebuild-lockout UI + round-6 billing UI may still
-  be in flight — check the artifact file list). In-CRM tab TRANSLATES this to
-  `@hubspot/ui-extensions`; hosted settings app may reuse Tailwind directly.
+  `b9bdba8b-9ee3-47e6-bdfc-ac3a9c15c50b`, `v2/*` files. **COMPLETE — published through
+  round 7b (2026-07-07):** all 7 workspace tabs, TrackSignalsModal, OutreachTab (angles
+  picker read-only for reps, warm intro w/ required LinkedIn URLs, rebuild lockout,
+  three-way export, thread badges, signal chips), org-chart BuyingGroupTab w/ contact
+  picker, and the app-settings page inside accurate Connected-Apps chrome
+  (AppSettingsChromeV2) with internal tabs Plan & Billing | Providers & integrations |
+  Outreach angles | Notifications. In-CRM surfaces TRANSLATE to
+  `@hubspot/ui-extensions`; the settings page is a native app settings component
+  (src/app/settings/), NOT a hosted web app (that's fallback only).
 - **OpenClaw sources** (read-only reference, OrbStack VM): user says
   `/home/romeoman/openclaw-infra/...` = macOS
   `/Users/romeoman/OrbStack/openclaw-vm/home/romeoman/openclaw-infra/...`.
