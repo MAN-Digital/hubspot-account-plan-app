@@ -1,0 +1,27 @@
+packages/db/src/schema/__tests__/tenants-rls.test.ts
+  s_c2b65b25fb8214::t_3e34897ee7df63 40,42,44-47
+apps/api/src/lib/__tests__/rls-write-paths.test.ts
+  s_c2b65b25fb8214::t_4a68346e7a0979 87-91
+packages/db/src/schema/__tests__/slice3-phase3-migrations.test.ts
+  s_c2b65b25fb8214::t_3e34897ee7df63 78,88-92
+vitest.config.ts
+  s_c2b65b25fb8214::t_f2a882f07365fc 18,32
+packages/db/drizzle/0012_tenants_rls_and_rest_revoke.sql
+  s_c2b65b25fb8214::t_3e34897ee7df63 14-20,31-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9ca8395d7e3ce51cd241240a0e8bbb213161a3d5",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
