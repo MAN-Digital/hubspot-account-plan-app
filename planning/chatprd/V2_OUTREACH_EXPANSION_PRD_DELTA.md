@@ -116,6 +116,20 @@ Link + template id above. Screen-by-screen (v2 components):
   tracked topics, competitor + our-advantage, data-sources footer. This is where the
   generated **account research** renders.
 
+- **Buying Group tab (added 2026-07-07):** AI-generated buying group per company/deal
+  (roles: Economic Buyer / Decision Maker / Champion / Technical Evaluator / Blocker),
+  grounded in signals + CRM activity with per-person evidence + confidence, coverage
+  gaps, fully editable, persisted (`buying_groups` table). Explicit "Sync roles to
+  HubSpot" writes association-v4 labels + buying-role property (opt-in action, logged,
+  reversible; works on Pro+). Native HubSpot Buying Groups = Enterprise-only, manual,
+  no public API — ours is the cross-tier, evidence-backed alternative.
+- **Trust requirements (2026-07-07):** Trigify appears as a first-class source (badges,
+  filters, data-sources footer) beside Exa/HubSpot; EVERY displayed fact/signal carries
+  a clickable verify-source link (evidence URL); Plan tab is AI-generated but
+  rep-editable (edit/reorder/add steps, persisted); outreach sequence UI shows
+  per-step Email/LinkedIn channels with export to HubSpot Sequences or Woodpecker
+  (email + LinkedIn).
+
 **Constraint (must be stated in the spec):** the in-CRM tab is a HubSpot UI extension —
 it renders **HubSpot `@hubspot/ui-extensions` components only** (no Tailwind, no lucide,
 no arbitrary HTML). The Magic Patterns code is the visual/IA reference to TRANSLATE
@@ -178,6 +192,9 @@ Magic Patterns styling (Tailwind, HubSpot-like palette) directly.
 - `outreach_config` — id, tenant_id, positioning (jsonb), vocabulary (jsonb), frameworks
   (jsonb), export_provider (nullable), settings (jsonb). **DECIDED 2026-07-06 (Romeo):
   own explicit table** — not `provider_config` rows.
+- `buying_groups` — id, tenant_id, company_id, deal_id?, roles (jsonb: person→role,
+  evidence, confidence, source: ai|rep), edits (jsonb, rep-edit history), synced_at?,
+  created_at, updated_at. (Added 2026-07-07.)
 - `notification_settings` — tenant_id, enabled (bool), property_writes_enabled (bool),
   min_tier (A/B/C), updated_at. (May fold into tenant settings jsonb.)
 
