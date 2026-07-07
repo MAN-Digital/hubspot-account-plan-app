@@ -1,0 +1,52 @@
+packages/db/src/schema/__tests__/v2-stage-b-rls.test.ts
+  s_c47fd3cb9ef010::t_2b6c1e25c59780 1-116
+packages/db/src/schema/outreach-config.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-31
+  s_c47fd3cb9ef010::t_eac13a15a56979 32-34
+packages/db/src/schema/tenant-users.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-40
+  s_c47fd3cb9ef010::t_49f89bd0da815d 41-43
+packages/db/drizzle/0013_v2_stage_b_schema.sql
+  s_c47fd3cb9ef010::t_c3f4933302f525 1-349
+packages/db/src/schema/account-research.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-25
+  s_c47fd3cb9ef010::t_caf1427da400cb 26-28
+packages/db/src/schema/credit-ledger.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-27
+  s_c47fd3cb9ef010::t_976dc4f581cdbb 28-30
+packages/db/src/schema/__tests__/v2-stage-b-schema.test.ts
+  s_c47fd3cb9ef010::t_2b6c1e25c59780 1-229
+  s_c47fd3cb9ef010::t_34bdae5cfcc5c6 230-242
+packages/db/src/schema/notification-settings.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-15
+packages/db/src/schema/outreach-drafts.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-30
+  s_c47fd3cb9ef010::t_454d31aec6a15a 31-33
+packages/db/src/schema/usage-events.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-26
+  s_c47fd3cb9ef010::t_012a2e82f2a590 27-29
+packages/db/src/schema/warm-intros.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-27
+packages/db/src/schema/buying-groups.ts
+  s_c47fd3cb9ef010::t_ad8d371568007e 1-24
+packages/db/src/schema/index.ts
+  s_c47fd3cb9ef010::t_0e0869719e8578 2-3,5,8-10,17,20-21,24-25,27,30-32,40,42-43,58-66,80-88
+packages/db/drizzle/meta/_journal.json
+  s_c47fd3cb9ef010::t_b4628082c96801 95-101,104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c9b56385b7c7afb389ad28fa52f3f269b4f754aa",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
