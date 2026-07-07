@@ -669,6 +669,39 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   - **Woodpecker adapter** — campaign push with tenant key; `email` or `email+linkedin` variant per settings.
   All behind the provider-adapter pattern + explicit confirm per export; nothing ever auto-sends from our app (a sequence enrollment IS a send-authorizing action in HubSpot — the confirm dialog must say so explicitly).
 
+### 17b. Outreach Angles (campaign-level)
+
+- **Task ID**: `v2-outreach-angles`
+- **Depends On**: `v2-outreach-pipeline`
+- **Assigned To**: `monitor-and-settings` (backend) + `tab-frontend` (UI)
+- **Agent Type**: backend-engineer
+- **Parallel**: true
+- Requested by Romeo 2026-07-07. A campaign-level **Angle** is chosen when creating an outreach campaign and shapes the ENTIRE sequence: goal, tone, frameworks, per-touch templates, and QA criteria. Today's default ("sell our services") becomes just one angle.
+- **Preset angles:**
+  1. **Interview** — thought-leadership interview series aimed at a persona (e.g. CEOs only). NO product pitch anywhere in the sequence — the ask is the interview. Assets referenced: each interview publishes on the blog + a series landing page hosts them all (client reference: https://tsh.io/blog/managing-software-architecture + https://tsh.io/cto-vs-status-quo). Interviewees become warm relationships for later campaigns.
+  2. **Product / service feedback** — ask people (ideally interview alumni or existing relationships) for feedback on a new service/framework/HubSpot app. Combinable with Interview follow-up.
+  3. **Event** — three sub-variants: (a) webinar invite, (b) physical event invite, (c) meet-at-shared-event ("we're both attending X — coffee?"), driven by an event they attend/attended.
+  4. **Direct** — the current signal-led sell motion (existing behavior, now an explicit angle).
+- **Custom angles (prompt-to-angle):** the user prompts a new angle → the pipeline runs RESEARCH on the tenant's LLM+Exa (what email/LinkedIn frameworks & best practices fit this angle) → generates a structured angle definition (goal, tone, allowed claims, frameworks, per-touch template skeletons, QA additions) → user reviews → saved to tenant config, reusable like presets.
+- **Architecture:** angle definitions live in `outreach_config.angles[]` (jsonb); the campaign envelope carries `campaign.angle`; cadence-strategist + copywriter + copy-QA all consume it; **QA enforces angle fidelity as a hard failure** (e.g. any pitch inside an Interview-angle sequence blocks). Maps onto the engine's config-driven `messaging_vocabulary` (frameworks {id,label,era}, angle families) — the campaign angle filters/extends the vocabulary. Author preset templates/frameworks at build time (research round per preset).
+- **Engine re-audit (2026-07-07):** OpenClaw engine landed 177929a — 'The Breakup' retired in favor of a signal-led final touch, LinkedIn frameworks/steps added — and campaign-angle work is in progress there; port against the engine's CURRENT state and mirror its angle model where it exists.
+
+### 17c. Warm intro / connecting-the-dots
+
+- **Task ID**: `v2-warm-intro`
+- **Depends On**: `v2-buying-group`, `v2-outreach-pipeline`
+- **Assigned To**: `signal-backend` (enrich/score) + `tab-frontend` (UI)
+- **Agent Type**: backend-engineer
+- **Parallel**: true
+- Requested by Romeo 2026-07-07. Warm up a buying-group person BEFORE outreach using the rep's own relationship graph:
+  1. Rep checks the target on LinkedIn/Sales Navigator manually and enters the **mutual connections** into the app (per target person). UI ENFORCES a minimum of 3 mutual connections (5 recommended) before scoring runs.
+  2. **Enrich/qualify** each mutual connection via buttons: "Find in HubSpot" (are they in our CRM? relationship strength from deals/activities), "Find with research" (Exa/Harvest: role, relevance, overlap with target).
+  3. **Score & rank**: intro-likelihood ranking (our relationship strength × their closeness/relevance to the target × seniority) → "ask THIS person first" priority list.
+  4. **Pre-made intro-request DM** per ranked connector (LinkedIn-style, short: working this account / saw you know <target> / can you put us in touch) — editable.
+  5. **One-click open (feasibility VERIFIED 2026-07-07):** LinkedIn compose-to-person deep link WORKS: `https://www.linkedin.com/messaging/compose/?recipient=<publicId|URN>` (robust form adds `profileUrn=urn:li:fsd_profile:<URN>&screenContext=NON_SELF_PROFILE_VIEW&interop=msgOverlay`, which opens the real composer even for new connections). **Message-body prefill via URL is NOT possible** (no such parameter exists) → UX: the button opens LinkedIn compose to the connector AND auto-copies the message to the clipboard; the rep pastes + sends manually. Nothing is ever auto-sent.
+  6. Warm-up state reflects into the Plan (coordination) and the Outreach tab (per-person pre-cadence stage, e.g. "Warming up via M. Kowalski").
+- **Storage:** `warm_intros` per (tenant, company, target person): mutual_connections[] {name, linkedinUrl, source: manual, enrichment jsonb, score}, intro_requests[] {connector, message, status}.
+
 ### 18. Notifications + plan-aware monitoring
 
 - **Task ID**: `v2-notifications`
