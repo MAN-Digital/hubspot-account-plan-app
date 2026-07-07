@@ -223,6 +223,19 @@ underlying API sources on managed tier (recommendation: yes, trust principle). B
 rails: HubSpot marketplace billing vs Stripe — decide from research. Final numbers gate
 on the pricing-research brief.
 
+## 2c. Settings IA (round 7, 2026-07-07)
+
+Settings move to HubSpot's NATIVE app settings page (new-platform React settings
+component, `src/app/settings/`, Connected Apps → app → Settings — verified in HubSpot
+docs); the standalone hosted settings web app is deprioritized to a fallback. Settings
+are superadmin/admin only (rep sees empty state; gear hidden; server-side role checks).
+Provider taxonomy by capability: Signals (Trigify) / Account research (Exa) / People
+research-prospecting (Apollo AND Harvest — both; Exa-people as a toggle) / Outreach
+delivery (Woodpecker, always tenant's key) / AI model. Plan-gated key fields: BYO
+inputs only on Enterprise/BYO plans; Trial+Pro render "Managed by app" chips, no key
+fields (Woodpecker excepted). Manual "Add monitor by LinkedIn URL" form REMOVED —
+monitor creation is card-contextual only; settings keeps the admin list.
+
 ## 3. Technical Design Document
 
 **Apply — new subsystems (all tenant-isolated, config-driven, BYO keys):**

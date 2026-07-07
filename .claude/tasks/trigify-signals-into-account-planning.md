@@ -631,7 +631,21 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - Build OUR buying-group surface (works on all tiers, differentiator vs native): new "Buying Group" tab — AI-suggested role assignment (Economic Buyer / Decision Maker / Champion / Technical Evaluator / Blocker) grounded in signals + CRM activity with per-person evidence + AI-confidence, role-coverage bar with explicit gaps, EDITABLE from day one (add person, change role, regenerate; drag-between-roles may ship later), persisted per (tenant, company) — add `buying_groups` table (jsonb) to v2-schema.
 - **Sync roles to HubSpot** = explicit user action (never automatic): writes association labels + buying-role property; logged, reversible, documented — same opt-in discipline as hap_* writes.
 
-### 15. Hosted settings app
+### 15. Settings surface (REVISED round 7, 2026-07-07 — placement, roles, plan-gating)
+
+- **Placement (verified against HubSpot docs):** the admin settings live in HubSpot's native **app settings page** — a React settings component on the new developer platform (`src/app/settings/` + `*-hsmeta.json`, platform 2025.2/2026.03), surfaced at Marketplace → Connected Apps → our app → Settings tab; built with the same `@hubspot/ui-extensions` SDK + `hubspot.fetch`. The previously planned standalone hosted settings web app is DEPRIORITIZED to a fallback (build only if a concrete settings-page limitation blocks us — document which).
+- **Role visibility:** settings are superadmin/admin ONLY. Reps: the in-tab gear entry is hidden and the settings page renders a "Settings are managed by your admin" empty state; ALL settings routes enforce the role server-side (same app-role ladder as angle governance: superadmin > admin > rep).
+- **Provider taxonomy (reorganized by capability — replaces the flat "signal providers" list):**
+  1. **Signals** — Trigify (monitors, credit budget, default topic keywords).
+  2. **Account research** — Exa.
+  3. **People research / prospecting** — Apollo AND Harvest (BOTH offered — revises round 6's "Apollo replaces Harvest"); note Exa also does people research (exposed as a capability toggle, not a separate key).
+  4. **Outreach delivery** — Woodpecker (ALWAYS the tenant's own key, every plan).
+  5. **AI model** — managed default GPT-5-mini-class; provider choice on BYO plans.
+- **Plan-gating of key fields (config-driven):** BYO API-key inputs (Exa/Apollo/Harvest/Trigify/LLM) are visible ONLY on Enterprise/BYO plans; Trial + Pro show "Managed by app" chips with usage info and NO key fields (Woodpecker key field always visible). The plan determines the whole settings shape — one settings page, plan-aware rendering, server-side plan checks on key-write endpoints.
+- **REMOVED:** the manual "Add monitor by LinkedIn URL" form/footnote — monitor creation is exclusively contextual (Track signals / Track company on cards); settings keeps only the monitor admin LIST (pause/delete/usage).
+- Retained scope: outreach config (positioning/vocabulary/frameworks), angle governance section (task 17b), Plan & Billing (task 17d), notification toggles, plan/usage.
+
+### 15-old. (superseded) Hosted settings app
 
 - **Task ID**: `v2-settings-app`
 - **Depends On**: `v2-schema`, `monitor-management`
