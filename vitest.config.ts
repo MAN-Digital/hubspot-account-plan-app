@@ -15,6 +15,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.test.ts", "**/*.test.tsx"],
     exclude: [
+      "**/.worktrees/**",
       "**/node_modules/**",
       "**/dist/**",
       "**/build/**",
@@ -28,7 +29,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["apps/*/src/**", "packages/*/src/**"],
-      exclude: ["node_modules", "dist", "docs", "planning", ".taskmaster"],
+      exclude: ["node_modules", "dist", "docs", "planning", ".taskmaster", ".worktrees"],
     },
   },
 });

@@ -84,6 +84,11 @@ beforeAll(async () => {
   await superuserDb.execute(
     drizzleSql.raw(`GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ${RLS_ROLE};`),
   );
+  // Migration 0012 gates tenants WRITES to hap_app. A production login role
+  // gets that ability via membership (GRANT hap_app TO <login role>), so the
+  // test role models the same posture — without it, deactivateTenant's UPDATE
+  // on tenants would match zero rows under this role.
+  await superuserDb.execute(drizzleSql.raw(`GRANT hap_app TO ${RLS_ROLE};`));
 });
 
 afterAll(async () => {
