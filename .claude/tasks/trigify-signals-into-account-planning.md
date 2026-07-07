@@ -611,12 +611,24 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **UI feedback round 2 (Romeo, 2026-07-07, from OrgChartHub screenshots + design review):**
   (e) **Buying Group = ORG CHART layout** (OrgChartHub pattern — HubSpot acquired them): hierarchical tree of person cards with reporting lines, colored role badges ON the cards (Decision Maker / Budget Holder / Champion / Blocker / Influencer / Super User), optional dotted relationship lines between people, and **placeholder contacts** for known-but-unidentified roles (e.g. a "? Procurement" card = explicit coverage gap). AI auto-generates hierarchy + role suggestions from signals/CRM activity; everything editable; roles list view as a secondary sub-view. Keep it simple — no activity heatmap.
   (f) **IA restructure — Plan vs Outreach split** (validated vs best practice: plan = stakeholders + value hypothesis + outreach coordination; execution is a separate connected surface):
-    • **Plan tab** = pure editable account plan: why-now/value hypothesis, current focus, blockers, validate-next, and outreach COORDINATION (who covers whom) — REMOVE "Recommended Next Moves" and the outreach sequence card from Plan.
-    • **People tab** = prospecting/info only — REMOVE the "Draft outreach" button.
-    • **NEW Outreach tab**: AI-recommended outreach targets, ranked by relevance (grounded in buying group + signals + plan alignment), user selects who; per-person outreach detail (like People's master-detail pattern): per-person cadence, per-step copy, channel badges. **Status machine per person: Building → Draft → In review → Approved → Exported** — copy is editable during review; ONLY an approved outreach can be exported; while the engine generates, show an explicit "building outreach plan…" state.
-    • **Plan↔Outreach dependency**: editing the account plan invalidates/regenerates affected outreach copy + priorities (visible "rebuilding" state, never silent).
+  • **Plan tab** = pure editable account plan: why-now/value hypothesis, current focus, blockers, validate-next, and outreach COORDINATION (who covers whom) — REMOVE "Recommended Next Moves" and the outreach sequence card from Plan.
+  • **People tab** = prospecting/info only — REMOVE the "Draft outreach" button.
+  • **NEW Outreach tab**: AI-recommended outreach targets, ranked by relevance (grounded in buying group + signals + plan alignment), user selects who; per-person outreach detail (like People's master-detail pattern): per-person cadence, per-step copy, channel badges. **Status machine per person: Building → Draft → In review → Approved → Exported** — copy is editable during review; ONLY an approved outreach can be exported; while the engine generates, show an explicit "building outreach plan…" state.
+  • **Plan↔Outreach dependency**: editing the account plan invalidates/regenerates affected outreach copy + priorities (visible "rebuilding" state, never silent).
   (g) **Export channel logic**: HubSpot Sequence = enroll-into-existing (unchanged). Woodpecker button opens a **channel-choice step: Email only / LinkedIn only / Email + LinkedIn**. Woodpecker LinkedIn step types verified from the official API docs (developers.woodpecker.co): PROFILE_VISIT, CONNECTION_REQUEST (optional message), DIRECT_MESSAGE, INMAIL_MESSAGE — mixable with EMAIL steps in one campaign; campaign statuses DRAFT/EDITED; step versions updatable via PATCH (so our edited copy pushes cleanly).
   (h) Design must be INTERACTIVE in Magic Patterns: Edit plan actually toggles editing, Review copy opens a copy editor, exports open their modals — no dead buttons.
+- **UI feedback round 8 (Romeo, 2026-07-07):**
+  (i) **Overview tab = summary hub** — beyond the why-now hero it must summarize: active
+  Tracking (monitors: people + company, source, last poll), Top signals RANKED
+  hottest-first with source chips covering ALL sources (Trigify/Apollo/Exa/HubSpot/
+  LinkedIn — Apollo was missing), Buying-group coverage + gaps, Outreach & warm-paths
+  status counts, and a one-line Plan summary; each mini-summary deep-links to its tab.
+  (j) **Signals ranked + richer Trigify variety**: signals list sorts hottest-first with
+  a visible heat/tier indicator (A/B/C ranking model; derived-alone = 0 unchanged); mock
+  and docs must show the breadth of Trigify signal types (job changes, promotions,
+  hiring spikes, funding, competitor-post engagement, tooling-migration posts…).
+  (k) **Buying Group**: REMOVE the "HubSpot's native Buying Groups requires Sales Hub
+  Enterprise…" UI note (capability stays; the note goes).
 - TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (stat strip, Why-Now, Top Signals, Next Move + Draft Outreach button, Key People), Signals (filters, search, provenance, detail), People (person cards). Plan/Context tabs render explicit empty states until 15/16 land. All 8 V1 states must keep rendering.
 
 ### 14b. Buying Group tab (AI-generated, editable)
@@ -644,6 +656,26 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Plan-gating of key fields (config-driven):** BYO API-key inputs (Exa/Apollo/Harvest/Trigify/LLM) are visible ONLY on Enterprise/BYO plans; Trial + Pro show "Managed by app" chips with usage info and NO key fields (Woodpecker key field always visible). The plan determines the whole settings shape — one settings page, plan-aware rendering, server-side plan checks on key-write endpoints.
 - **REMOVED:** the manual "Add monitor by LinkedIn URL" form/footnote — monitor creation is exclusively contextual (Track signals / Track company on cards); settings keeps only the monitor admin LIST (pause/delete/usage).
 - Retained scope: outreach config (positioning/vocabulary/frameworks), angle governance section (task 17b), Plan & Billing (task 17d), notification toggles, plan/usage.
+- **Round 8 settings fixes (Romeo, 2026-07-07):**
+  (a) **Toggle component bug** — every toggle in the design renders its knob OUTSIDE the pill when ON/green; fix the geometry once in a single shared Toggle component and reuse it everywhere (includes the Exa people-research toggle, which currently looks broken).
+  (b) **Notifications tab plain English** — NO `hap_*`/underscore/asterisk property jargon in UI copy. The property-writes opt-in reads: label "Add signal updates to the company record", description "When a strong new signal qualifies, the app writes a short summary into a few app-managed fields on the company so lists and workflows can use it. Off by default." Tier threshold worded plainly ("Notify for: Hot signals only / Hot + warm / All qualifying").
+  (c) **REMOVE from Notifications:** the "View workflow recipes" element and other technical/production items — recipes live in the docs site, not settings.
+
+### 15c. Team & access RBAC + per-rep budgets + Usage & logs (round 9, 2026-07-07)
+
+- **Task ID**: `v2-team-rbac-usage`
+- **Depends On**: `v2-settings-surface` (task 15), `v2-credits-tiers` (17d), `v2-schema` (13)
+- **Assigned To**: backend + settings UI
+- **Agent Type**: backend-engineer (+ frontend-specialist for the two settings tabs)
+- **Parallel**: false (needs the credit ledger from 17d and settings shell from 15)
+- Requested by Romeo round 9. Goal: superadmins control WHO uses the app and HOW MUCH each rep can spend, and everyone's usage is auditable per rep.
+- **Roster from HubSpot (never invented):** fetch the portal's users via HubSpot's user endpoints — DOCS-CHECK FIRST against developers.hubspot.com (round-9 research task pins the exact endpoint + scope): Owners API `GET /crm/v3/owners` (lighter, `crm.objects.owners.read`) and/or User Provisioning API `GET /settings/v3/users` + `/settings/v3/users/roles` (`settings.users.read`; exposes the `superAdmin` flag). Confirm public-app scope availability and any paid-hub gating; degrade gracefully (clear "grant the users-read scope to manage team" empty state) if the scope isn't granted. Correlate the current UI-extension user (`context.user.id`) to a roster row so per-rep attribution works.
+- **App roles (on top of HubSpot perms):** superadmin > admin > rep. superadmin = billing + provider keys + angle governance + roles/budgets + logs; admin = settings + logs (no billing/roles); rep = workspace use only, sees own usage. EVERY role/budget/log route enforces the role SERVER-SIDE, tenant-scoped by RLS. This is the same governance ladder already used for angle governance (17b) — unify it.
+- **Per-rep credit budgets:** each user row carries an optional monthly `credit_cap`. Enforce at DEBIT TIME in the credit-ledger path (17d): proceed only if tenant-has-credits AND rep-under-cap; else fail-closed with "budget exceeded" (logged as a blocked event). Admins/superadmin may be uncapped. Caps are config/per-tenant, never hardcoded.
+- **Usage & logs (new settings tab, admin/superadmin only):** (a) per-rep rollup (used/cap/remaining/last-active); (b) tenant total vs allowance; (c) activity log — timestamp, user, action, target, credits, result — filterable by rep/action/date. Feeds the credit-sizing decision (see `CREDIT_ECONOMICS_AND_SIZING.md`).
+- **Data model (extend task 13 Stage B schema):** `tenant_users` (tenant_id, hubspot_user_id, email, app_role, app_access_enabled, credit_cap, period_start) and `usage_events` (tenant_id, hubspot_user_id, action_type, entity_ref, credits, result, metadata jsonb, created_at) — both tenant-scoped RLS + FORCE, hap_app write policy. `usage_events` is the human-readable audit view over the same debits the `credit_ledger` records (or unify them — one append-only table with actor + action_type + credits + result). NEVER expose another tenant's users or logs (cross-tenant leakage test mandatory).
+- **Magic Patterns:** two new internal settings tabs — "Team & access" (users table: role select, app-access toggle, per-rep budget field, used-bar) and "Usage & logs" (per-rep summary + tenant total + filterable activity log). Round-9 design pass (artifact after v9). Reuse the round-8 shared Toggle (no knob-escapes-pill bug).
+- **Security/permissions doc:** capture the role matrix + HubSpot-scope caveat in `docs/security/` and the handoff (round 9 permissions model).
 
 ### 15-old. (superseded) Hosted settings app
 
@@ -654,10 +686,10 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Parallel**: true
 - Stand up `apps/settings-web` (React + Tailwind, Magic Patterns styling, own Vercel project) against existing settings routes + new outreach/notification routes: provider keys, Trigify monitors (spend-gated flows with explicit "this spends credits" confirm), outreach config (positioning/vocabulary/frameworks), notification toggles, plan/usage. Auth: reuse the app's OAuth/session model for the install-time flow.
 - **Outreach export channel picker (decided 2026-07-06):** a per-tenant setting choosing how approved drafts export — `hubspot_sequences` | `woodpecker_email` | `woodpecker_email_linkedin` (clipboard always available regardless). Each option gets a **tooltip**:
-  - *HubSpot Sequences* — "Enrolls the selected contacts into one of your existing HubSpot sequences. Requires a Sales Hub or Service Hub Professional/Enterprise seat for the sending user. Note: HubSpot's API cannot create sequences, so your drafted copy is saved as draft email engagements — the sequence itself must already exist in HubSpot."
-  - *Woodpecker (email)* — "Pushes the approved cadence and copy into a Woodpecker campaign (email steps only) using your own Woodpecker API key."
-  - *Woodpecker (email + LinkedIn)* — "Same as email, plus LinkedIn touches as Woodpecker manual/LinkedIn tasks."
-  Stored in `outreach_config.export_provider` (+ variant in `settings` jsonb). Selection is config only — every actual export still requires explicit per-draft confirm.
+  - _HubSpot Sequences_ — "Enrolls the selected contacts into one of your existing HubSpot sequences. Requires a Sales Hub or Service Hub Professional/Enterprise seat for the sending user. Note: HubSpot's API cannot create sequences, so your drafted copy is saved as draft email engagements — the sequence itself must already exist in HubSpot."
+  - _Woodpecker (email)_ — "Pushes the approved cadence and copy into a Woodpecker campaign (email steps only) using your own Woodpecker API key."
+  - _Woodpecker (email + LinkedIn)_ — "Same as email, plus LinkedIn touches as Woodpecker manual/LinkedIn tasks."
+    Stored in `outreach_config.export_provider` (+ variant in `settings` jsonb). Selection is config only — every actual export still requires explicit per-draft confirm.
 
 ### 16. Account research generator
 
@@ -682,7 +714,7 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - Wire the Draft Outreach button (Next Move card) end to end. Export adapters (REVISED 2026-07-06 after Sequences API verification): clipboard always; plus the tenant's configured channel from settings (task 15):
   - **HubSpot Sequences adapter** — docs-check FIRST against https://developers.hubspot.com/docs/api-reference/latest/automation/sequences/guide. Verified facts (2026-07-06): API base `/automation/sequences/2026-03/`; supports LIST sequences, FETCH sequence, ENROLL contact, and enrollment status — it CANNOT create or edit sequences. Export = user picks an existing sequence (list endpoint) + we enroll the draft's contacts (`userId` of a seat-holding sender required; Sales/Service Hub Pro or Enterprise seat). Drafted copy is additionally saved as HubSpot DRAFT email engagements (never sent) since the API can't inject our copy into a sequence.
   - **Woodpecker adapter** — campaign push with tenant key; `email` or `email+linkedin` variant per settings.
-  All behind the provider-adapter pattern + explicit confirm per export; nothing ever auto-sends from our app (a sequence enrollment IS a send-authorizing action in HubSpot — the confirm dialog must say so explicitly).
+    All behind the provider-adapter pattern + explicit confirm per export; nothing ever auto-sends from our app (a sequence enrollment IS a send-authorizing action in HubSpot — the confirm dialog must say so explicitly).
 
 ### 17a. HubSpot execution model + threading (round 4, 2026-07-07)
 
@@ -694,6 +726,7 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   2. **Sequence enrollment (template motions only, explicit disclaimer):** enroll into an EXISTING sequence whose templates were prepared beforehand (angle-level templates can be authored into HubSpot as sequence templates); UI must state "the sequence's own template copy sends — NOT the per-person copy generated here; per-contact edits only in HubSpot's UI" + optional deep-link to the contact's enrollment for manual edits.
   3. **Woodpecker: the full-custom-copy channel** — label it as such ("your generated per-person emails export ONLY here as-is"), with thread-reply follow-ups + typed LinkedIn steps.
 - **Signals↔outreach visibility:** every cadence step displays a signal chip naming the signal that grounds it (click → evidence); envelope already carries the linkage — surface it per step.
+- **Multi-stakeholder cross-referencing (round 8, Romeo 2026-07-07 — hard rule):** when a campaign outreaches MULTIPLE stakeholders at the same account, the copy must acknowledge the parallel/prior outreach to colleagues ("I also reached out to Amanda on your platform team last week…"). Requirements: (a) the cadence engine coordinates across all persons in the campaign — cross-references are generated deliberately, tracked per step (which step references whom), and sequenced correctly (a touch can only reference outreach scheduled/exported BEFORE it); (b) UI shows a "Cross-ref" chip on steps whose copy references another stakeholder; (c) copy-QA HARD-FAILS: a multi-stakeholder cadence with zero cross-references, a reference to outreach that was never exported, or out-of-order references (mentioning a touch that hasn't happened yet). The envelope must carry the account-level campaign roster + per-person export status so QA can verify this deterministically before the LLM judge.
 
 ### 17b. Outreach Angles (campaign-level)
 
@@ -747,6 +780,8 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Admin settings page (extends v2-settings-app):** Plan & Billing section — current tier card, credits balance + monthly allowance, usage breakdown by action category, top-up/upgrade CTA, per-provider key mode indicator ("Managed by app" vs "Your key"), roles management (superadmin grants), invoice history placeholder. Roles: superadmin (billing + angles + keys + roles) > admin (settings) > rep (use).
 - **Open decision (flag in ChatPRD):** transparency of underlying API sources on managed tier — recommendation: SHOW sources always (consistent with the verify-everything trust principle; provenance chains already name Exa/Trigify), white-labeling deferred unless a strong sales reason emerges.
 - **Billing rails:** research HubSpot marketplace billing vs own Stripe (pricing PRD decides).
+- **Round 8 confirmations (Romeo, 2026-07-07):** Pro = **500 credits/mo + top-up purchases** (top-ups never expire) — approved. **Per-contact pricing logic** is part of the model (not UI guesswork): enrichment charges per contact (`contacts × 4` credits), cadence generation charges per person, buying-group generation covers a config-capped candidate pool; UI always shows projected credit cost BEFORE contact-based runs and confirms above a config threshold. Full math in `planning/chatprd/PRICING_AND_PACKAGING.md` ("Per-contact pricing logic").
+- **Round 9 credit sizing (Romeo, 2026-07-07):** 500/mo is PROVISIONAL — validate against real usage from the round-9 Usage & logs before GA lock. Analysis in `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md`: margin is safe (80–93% GM at full burn); the binding constraint is RECURRING Trigify monitor credits (they accumulate and crowd out research/outreach). OPEN DECISION for pricing sign-off: decouple "tracked accounts" (monitors) into a separate per-tier allowance vs keep monitors in-pool at a lower per-monitor credit cost. Per-rep budgets (task 15c) cap individual spend. Credit debit path must attribute every debit to a `hubspot_user_id` + `action_type` so the logs can right-size the number.
 
 ### 18. Notifications + plan-aware monitoring
 
