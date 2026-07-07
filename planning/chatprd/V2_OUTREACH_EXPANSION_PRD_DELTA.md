@@ -30,6 +30,8 @@ The round 12 Data Gaps property discipline was synced with marker
 Round 13 configurable generation, output-based credits, buying-group flexibility, signal
 filters, and HubSpot-defined signal rules were synced with marker
 `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`.
+The round 13 HubSpot intent correction was synced with marker
+`ChatPRD sync correction — round 13 HubSpot recent intent property — 2026-07-07`.
 
 ---
 
@@ -47,7 +49,7 @@ engine**, porting proven logic from the OpenClaw outreach-engine
    `.claude/tasks/trigify-signals-into-account-planning.md`, tasks 1–12).
 2. **Account workspace UI** — the Magic Patterns design
    (https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35, editor id
-   `xmdzva7bxdn4ubmtrbvs35`, active artifact `aa9fee3c-3aa4-437f-9c06-8d7df6824b2a`,
+   `xmdzva7bxdn4ubmtrbvs35`, active artifact `5b159270-7872-46a2-ac4d-9c8cff78ec13`,
    use the **v2/** components)
    becomes the canonical screen-by-screen UI reference: 8 tabs — Overview, People,
    Buying Group, Signals, Outreach, Data Gaps, Plan, Context.
@@ -150,6 +152,12 @@ Link + template id above. Screen-by-screen (v2 components):
   Signals owns observed evidence only; CRM/data gaps move out of this tab into **Data
   Gaps**. Apollo enrichment events such as "two verified contacts returned" are
   system/data events unless paired with a separate observable buying-intent signal.
+  HubSpot's built-in company property **Recent Intent Signals**
+  (`hs_recent_intent_signals`) is a default zero-credit HubSpot signal source when the
+  company is tracked in HubSpot intent. It is a rolling list of unique intent-signal
+  types detected for the company in the past 30 days, with each type appearing once based
+  on its most recent occurrence. If HubSpot is not tracking intent for that company, show
+  a clear tracking-required state instead of treating the empty property as "no intent".
 - **Data Gaps** (`v2/DataGapsTabV2.tsx`): a new first-class tab between Outreach and
   Plan/Context. It lists missing or stale CRM/research **properties** and coverage inputs
   that would improve the account plan, context, buying group, or outreach. Valid Data Gaps
@@ -615,7 +623,20 @@ with marker
     contacts, and deals; Custom Events can target CONTACT, COMPANY, DEAL, TICKET, or
     custom objects; workflows can run custom code or call our webhook to emit an app
     signal.
-12. **Pricing hierarchy must match provider cost shape.** People prospecting/enrichment
+12. **HubSpot recent intent is a default read path, not only a custom-rule path.** The
+    signal tracker should read the company property **Recent Intent Signals**
+    (`hs_recent_intent_signals`) by default and render it as HubSpot-source company-level
+    signal evidence at 0 credits. This does not require the customer to create a custom
+    signal rule. It does require HubSpot intent tracking to be enabled/tracking the
+    company; otherwise HubSpot will not populate the property and the UI should explain
+    "HubSpot intent tracking is not active for this company" with an admin/user action to
+    start tracking in HubSpot where permitted. Keep the custom signal-rule builder as an
+    advanced admin extension for properties, lists, object changes, workflows/webhooks,
+    and custom events that are not covered by this built-in property.
+    Reference: HubSpot KB "Use intent signals" confirms Recent intent signals is
+    automatically updated for tracked companies and only considers signals from the last
+    30 days: https://knowledge.hubspot.com/reports/use-intent-signals.
+13. **Pricing hierarchy must match provider cost shape.** People prospecting/enrichment
     is the primary spend driver. Buying-group mapping/regenerate is very low cost (1
     credit by default, or 0.5 if fractional credits are supported). Account research is
     low cost. Trigify monitor/fetch economics remain separate from account research
@@ -677,11 +698,17 @@ with marker
    workflow steps. actionUrl endpoint verifies HubSpot signature; async completion
    supported for long research runs.
 7. **HubSpot-defined signal rules** — settings/admin subsystem for superadmins to define
-   CRM-native signals from HubSpot properties, lists, object changes, workflow webhooks or
-   custom-code calls, and custom event occurrences. Rules are tenant-scoped and include
-   object type, trigger source, condition, mapped signal type, level (company/contact),
-   strength, expiration/lookback, enabled state, and audit metadata. Ingestion writes
-   timestamped HubSpot-source signal rows with provenance and zero credit debit.
+   CRM-native signals from HubSpot data. Baseline ingestion should first read HubSpot's
+   built-in company property **Recent Intent Signals** (`hs_recent_intent_signals`) for
+   tracked companies and normalize its 30-day rolling unique intent-signal types into
+   HubSpot-source company-level signal rows with provenance and zero credit debit. Empty
+   values are ambiguous until the app knows whether HubSpot is tracking that company; show
+   a tracking-required/setup state when tracking is off. The advanced rule builder then
+   covers additional properties, lists, object changes, workflow webhooks or custom-code
+   calls, and custom event occurrences. Rules are tenant-scoped and include object type,
+   trigger source, condition, mapped signal type, level (company/contact), strength,
+   expiration/lookback, enabled state, and audit metadata. Ingestion writes timestamped
+   HubSpot-source signal rows with provenance and zero credit debit.
 8. **Two UI surfaces** — (a) `crm.record.tab` extension (HubSpot components);
    (b) hosted settings web app (our stack) for install-time and ongoing configuration:
    providers/keys, Trigify monitors (spend-gated), outreach config (positioning,
@@ -739,9 +766,16 @@ with marker
   trigger_type (property_change/list_membership/object_change/custom_event/workflow),
   trigger_ref, condition (jsonb), signal_type, signal_level, strength, expires_after_days,
   enabled, created_by_hubspot_user_id, created_at, updated_at.
+- `hubspot_recent_intent_state` (or equivalent account-signal metadata) — tenant_id,
+  company_id, hubspot_property_key (`hs_recent_intent_signals`), tracking_status
+  (tracked/not_tracked/unknown/no_scope), last_read_at, raw_property_value, normalized_types
+  (jsonb), source_updated_at?, error. This separates "HubSpot is not tracking this company"
+  from "tracked but no recent intent types returned".
 - `hubspot_signal_events` — id, tenant_id, rule_id, object_type, object_id, occurred_at,
-  expires_at, title, summary, provenance (jsonb), status, created_at. Feeds `signals` as
-  HubSpot-source, zero-credit observed/internal signals.
+  expires_at, title, summary, provenance (jsonb), status, created_at. For
+  `hs_recent_intent_signals`, `rule_id` may be null and provenance should identify the
+  HubSpot property read. Feeds `signals` as HubSpot-source, zero-credit observed/internal
+  signals.
 - `notification_settings` — tenant_id, enabled (bool), property_writes_enabled (bool),
   min_tier (A/B/C), updated_at. (May fold into tenant settings jsonb.)
 
@@ -836,6 +870,11 @@ troubleshooting. Every claim must match shipped behavior.
   modules, set people prospecting max contacts/roles, and see output-based projected
   ranges before running. Clicking generate does not debit by itself; final debit matches
   saved outputs/usable returned contacts. HubSpot-source reads/fixes debit 0 credits.
+- HubSpot recent intent: fixture a company with `hs_recent_intent_signals` populated and
+  assert the Signals tab renders HubSpot-source company-level signal types at 0 credits.
+  Fixture a tracked company with an empty value and a not-tracked company with an empty
+  value; only the latter may show the tracking-required state. Do not require a custom
+  signal rule for the built-in property path.
   Runs block cleanly when tenant credits, rep monthly cap, or provider setup are
   insufficient; writes usage/audit events for success and blocked attempts.
 - HubSpot signal rules: superadmin can create a property/list/custom-event/workflow rule;

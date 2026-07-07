@@ -68,8 +68,9 @@ fully specified, build not started except Stage A).
 ### V2: fully specified, not built
 
 Plan: `.claude/tasks/trigify-signals-into-account-planning.md` — Stage B tasks 13–19c
-(+17a-d, 14b, 14c, 15d). Feedback through round 13 (2026-07-07) is recorded in the plan + delta +
-ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta):
+(+17a-d, 14b, 14c, 15d). Feedback through round 13 plus the HubSpot recent-intent
+correction (2026-07-07) is recorded in the plan + delta + ChatPRD + Magic Patterns, all
+in lockstep. Key decisions (details in plan/delta):
 
 1. 8-tab UI: Overview / People / Buying Group / Signals / Outreach / Data Gaps / Plan /
    Context.
@@ -181,9 +182,12 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    People cards show required contact fields. Signals filter by company/contact level and
    type, show timestamps/provenance/CRM engagement summaries, remove Copy Link, and treat
    Apollo enrichment as a data event unless paired with observable buying intent.
-   Settings adds superadmin HubSpot signal rules from properties, lists, object changes,
-   workflows/webhooks, and custom events; these render as HubSpot-source 0-credit
-   signals with expiration/lookback.
+   HubSpot's built-in company property **Recent Intent Signals** (`hs_recent_intent_signals`)
+   is the default zero-credit HubSpot intent read path for companies that HubSpot is
+   tracking; if HubSpot is not tracking the company, show a tracking-required state instead
+   of interpreting the empty property as no intent. Settings still adds superadmin custom
+   HubSpot signal rules from properties, lists, object changes, workflows/webhooks, and
+   custom events; these render as HubSpot-source 0-credit signals with expiration/lookback.
 12. Mintlify docs task 19b (repo `romeoman/mintlify-docs`, `mint` CLI, deploy on push).
 
 **App roles & permissions (round 9):** three app roles layered on HubSpot's own perms —
@@ -205,8 +209,9 @@ identity, constant-time Woodpecker webhook compare).
   Codex `mcp login chatprd` flow. Existing docs were updated with round markers including
   `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
   `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`,
-  `ChatPRD sync addendum — round 12 data-gap property discipline — 2026-07-07`, and
-  `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`;
+  `ChatPRD sync addendum — round 12 data-gap property discipline — 2026-07-07`,
+  `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`,
+  and `ChatPRD sync correction — round 13 HubSpot recent intent property — 2026-07-07`;
   Pricing was refreshed from
   `planning/chatprd/PRICING_AND_PACKAGING.md`; the NEW "Credit Economics & Sizing"
   doc was created as `faa0a41d-407b-4fe9-83b9-e7a6845a2a86`. The earlier 2026-07-06
@@ -255,9 +260,9 @@ duplicate QA docs (`f704414e`, `7aed1d8b`) should be archived/deleted. These are
 actions in ChatPRD, not MCP calls.
 
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, active
-  artifact `aa9fee3c-3aa4-437f-9c06-8d7df6824b2a` (round 13 configurable generation,
+  artifact `5b159270-7872-46a2-ac4d-9c8cff78ec13` (round 13 configurable generation,
   output-based credits, flexible buying-group roles, real signal filters, and HubSpot
-  signal-rule settings; built on v17 round-12 property-only Data Gaps, v16 round-11
+  recent-intent/default signal-rule settings; built on v17 round-12 property-only Data Gaps, v16 round-11
   Overview layout fix, v15 blocked-budget toggle, v14
   Data Gaps/no-data empty state, v13 Woodpecker reuse-first modal, v11 round-9 Team
   & access + Usage & logs settings tabs, and v9/v10 round-8 Overview hub/ranked

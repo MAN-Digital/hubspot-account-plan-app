@@ -79,6 +79,11 @@ useful output is returned/saved:
 
 - HubSpot-source reads, existing HubSpot contacts, and direct HubSpot property fixes: **0
   credits**.
+- HubSpot Recent Intent Signals (`hs_recent_intent_signals`) reads: **0 credits** when
+  HubSpot is already tracking the company; if tracking is off, the UI shows a
+  tracking-required state rather than spending app credits.
+- Custom HubSpot signal rules from properties, lists, object changes, workflows/webhooks,
+  or custom events also remain **0 credits** because they use CRM-owned data.
 - Account research: low-cost Context output (1-2 credits by default) when saved.
 - Buying-group mapping/regenerate: low cost (1 credit by default; 0.5 only if fractional
   credits are later supported).

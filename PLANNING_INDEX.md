@@ -30,7 +30,9 @@ Currently present under `planning/`:
   re-sync. Round 12 locks Data Gaps to missing/stale CRM properties, enrichment/research
   outputs, and coverage inputs only; round 13 adds configurable first-run generation,
   output-based credits, flexible buying-group roles, real signal filters, and
-  superadmin-defined HubSpot signal rules.
+  HubSpot Recent Intent Signals (`hs_recent_intent_signals`) as the default zero-credit
+  company-intent read path for tracked companies, plus superadmin-defined HubSpot signal
+  rules as an advanced extension.
 - `planning/chatprd/PRICING_AND_PACKAGING.md` — Pricing & Packaging ChatPRD mirror
   refreshed into ChatPRD on 2026-07-07.
 - `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md` — Credit Economics & Sizing ChatPRD

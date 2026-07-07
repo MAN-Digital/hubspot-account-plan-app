@@ -191,7 +191,7 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 > Canonical UI for the V2 workspace: Magic Patterns design
 > https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35 (editor id
 > `xmdzva7bxdn4ubmtrbvs35`; active artifact
-> `aa9fee3c-3aa4-437f-9c06-8d7df6824b2a`; use the **`v2/*` components** — v1 files are an earlier
+> `5b159270-7872-46a2-ac4d-9c8cff78ec13`; use the **`v2/*` components** — v1 files are an earlier
 > iteration). Read via the Magic Patterns MCP (`get_artifact` → `read_artifact_files`).
 
 ### Layout Patterns
@@ -701,6 +701,13 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   custom events. Rule fields: object, trigger, condition, signal label/type, level,
   strength, expiration/lookback, enabled state. Render matches as HubSpot-source signals
   with 0-credit usage.
+  (w) **HubSpot Recent Intent Signals default path (round 13 correction, Romeo 2026-07-07):**
+  read the built-in company property **Recent Intent Signals** (`hs_recent_intent_signals`)
+  by default and add it to signal tracking without requiring a custom signal rule. It is a
+  rolling list of unique intent-signal types detected for the company in the past 30 days;
+  each type appears once with the most recent occurrence. It only works for companies that
+  HubSpot is tracking for intent. Empty property + not tracked = tracking-required state,
+  not "no intent." Custom signal rules remain as the advanced admin extension.
 - TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components
   (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (state
   KPI strip, one top Executive Summary, separate Why-Now, Top Signals, This Outreach,
@@ -797,9 +804,14 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Agent Type**: backend-engineer + frontend-specialist
 - **Parallel**: true after schema slice starts
 - Superadmin/admin settings surface for defining internal HubSpot signals from CRM data
-  the tenant already owns. Supported sources: company/contact/deal properties, HubSpot
-  lists/segments and memberships, object-change/property-change webhooks, workflow
-  custom-code or webhook calls, and custom event occurrences.
+  the tenant already owns. Baseline HubSpot signal ingestion does **not** require a
+  custom rule for HubSpot's built-in **Recent Intent Signals** company property
+  (`hs_recent_intent_signals`): read that property by default for tracked companies,
+  normalize the returned 30-day rolling unique intent-signal types into company-level
+  HubSpot-source signals, and show 0-credit usage. Supported custom-rule sources:
+  company/contact/deal properties, HubSpot lists/segments and memberships,
+  object-change/property-change webhooks, workflow custom-code or webhook calls, and
+  custom event occurrences.
 - Rule builder fields: object type (company/contact/deal), trigger source
   (property/list/object change/custom event/workflow), source reference, condition,
   signal type/label, signal level (company/contact), strength (hot/warm/qualifying),
@@ -808,6 +820,10 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   id, object id, expiration, and 0-credit usage/audit event. Disabled or expired rules do
   not render active signals. The feature must be tenant-scoped and server-authorized; reps
   cannot create or edit rules.
+- Tracking prerequisite: `hs_recent_intent_signals` is only useful when HubSpot is tracking
+  intent for that company. The app must distinguish tracked-empty from not-tracked/unknown.
+  If not tracked, Signals shows a tracking-required state/action; do not interpret the
+  empty property as proof there is no buyer intent.
 - Feasibility docs-check required before implementation: HubSpot Properties API, Lists
   API, Webhooks property-change subscriptions, Custom Events definitions/occurrences, and
   Workflow custom-code/webhook behavior. If a portal lacks a property/list/event, show a

@@ -127,7 +127,11 @@ workspace builder is configurable and the debit is output-based:
 - buying-group mapping/regenerate is low cost (default 1 credit; 0.5 only if fractional
   credits are supported later);
 - HubSpot-source reads, existing HubSpot contacts, HubSpot property fixes, and
-  superadmin-defined HubSpot signal rules cost 0 credits;
+  HubSpot intent property reads cost 0 credits. This includes the built-in company
+  property **Recent Intent Signals** (`hs_recent_intent_signals`) for companies that
+  HubSpot is tracking; if HubSpot is not tracking the company, the UI must show a
+  tracking-required state rather than treating an empty property as no intent. This also
+  includes superadmin-defined HubSpot signal rules;
 - people prospecting/enrichment is the main spend driver and debits per usable returned
   contact, not per click;
 - outreach draft generation remains per stakeholder/cadence;
