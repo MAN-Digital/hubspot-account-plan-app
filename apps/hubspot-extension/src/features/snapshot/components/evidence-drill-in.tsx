@@ -3,6 +3,7 @@ import {
   DescriptionList,
   DescriptionListItem,
   Flex,
+  Link,
   Modal,
   ModalBody,
   Text,
@@ -19,6 +20,19 @@ import {
  *    the absolute ISO timestamp.
  * 3. **Trust breakdown** — confidence score as a percentage.
  * 4. **Raw payload preview** — the evidence `content` string.
+ *
+ * ### Trigify observable-signal fields (Stage A Task 10)
+ *
+ * When the evidence carries the optional Trigify signal metadata
+ * (`signalType`, `evidenceUrl`, `evidenceDate`), three extra rows render:
+ * the Trigify **signal type** (trigger code, so the reason is attributable),
+ * a clickable **evidence link** (`Link` → `evidenceUrl`, the citable source of
+ * the observable event), and the **event date** (`evidenceDate`, the date the
+ * event occurred — distinct from `timestamp`, which is ingestion time).
+ * Legacy Exa/News evidence sets none of these, so those rows are omitted and
+ * that evidence renders exactly as before. Only `evidenceUrl` is promoted to a
+ * clickable `Link`; the provider-recovered URL from `evidence.id` still
+ * renders as plain `Text`.
  *
  * ### Zero-leak invariant
  *
@@ -109,6 +123,7 @@ export function EvidenceDrillIn({ evidence, isRestricted, onClose }: EvidenceDri
   const age = humanAge(evidence.timestamp);
   const confidencePct = formatConfidence(evidence.confidence);
   const absoluteTs = formatTimestamp(evidence.timestamp);
+  const eventDate = evidence.evidenceDate ? formatTimestamp(evidence.evidenceDate) : null;
 
   return (
     <Modal
@@ -126,6 +141,21 @@ export function EvidenceDrillIn({ evidence, isRestricted, onClose }: EvidenceDri
             <DescriptionListItem label="Provider">
               <Text>{provider}</Text>
             </DescriptionListItem>
+            {evidence.signalType ? (
+              <DescriptionListItem label="Signal type">
+                <Text>{evidence.signalType}</Text>
+              </DescriptionListItem>
+            ) : null}
+            {evidence.evidenceUrl ? (
+              <DescriptionListItem label="Evidence link">
+                <Link href={evidence.evidenceUrl}>{evidence.evidenceUrl}</Link>
+              </DescriptionListItem>
+            ) : null}
+            {eventDate ? (
+              <DescriptionListItem label="Event date">
+                <Text>{eventDate}</Text>
+              </DescriptionListItem>
+            ) : null}
             {url ? (
               <DescriptionListItem label="URL">
                 <Text>{url}</Text>

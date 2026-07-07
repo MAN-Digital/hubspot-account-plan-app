@@ -22,6 +22,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { SettingsConnectionTester, SettingsFetcher, SettingsUpdater } from "./api-fetcher";
 import { ConnectionTestStatus, type ConnectionTestStatusState } from "./connection-test-status";
 import { decimalToPercent, percentToDecimal } from "./percent-format";
+import { TrigifySettings, type TrigifySettingsProps } from "./trigify-settings";
 import { useSettings } from "./use-settings";
 
 const FRESHNESS_TOOLTIP =
@@ -40,6 +41,9 @@ type DraftState = {
     hubspotEnrichmentEnabled: boolean;
     exaApiKey: string;
     exaClearKey: boolean;
+    trigifyEnabled: boolean;
+    trigifyApiKey: string;
+    trigifyClearKey: boolean;
   };
   llm: {
     provider: ProviderSelection;
@@ -60,6 +64,15 @@ export type HubSpotSettingsPageProps = {
   fetchSettings?: SettingsFetcher;
   updateSettings?: SettingsUpdater;
   testConnection?: SettingsConnectionTester;
+  /**
+   * Trigify monitor-management deps (Stage A Task 10). When provided, the
+   * Trigify signals section renders (monitor list + spend-gated subscribe +
+   * pause/delete). When omitted, the section is hidden — this keeps every
+   * existing settings-page test (which doesn't wire Trigify) from firing an
+   * extra `hubspot.fetch`. The live entry point (`settings-entry.tsx`) always
+   * provides them.
+   */
+  trigify?: TrigifySettingsProps;
 };
 
 const LLM_PROVIDER_OPTIONS: { label: string; value: ProviderSelection }[] = [
@@ -120,6 +133,9 @@ function buildDraft(settings: SettingsResponse): DraftState {
       hubspotEnrichmentEnabled: settings.signalProviders.hubspotEnrichment.enabled,
       exaApiKey: "",
       exaClearKey: false,
+      trigifyEnabled: settings.signalProviders.trigify.enabled,
+      trigifyApiKey: "",
+      trigifyClearKey: false,
     },
     llm: {
       provider,
@@ -146,6 +162,7 @@ export function HubSpotSettingsPage({
   fetchSettings,
   updateSettings,
   testConnection,
+  trigify,
 }: HubSpotSettingsPageProps) {
   const state = useSettings({ fetchSettings, updateSettings, testConnection });
   const [draft, setDraft] = useState<DraftState | null>(null);
@@ -246,12 +263,27 @@ export function HubSpotSettingsPage({
           : {}),
     };
 
+    // Trigify follows the exact same key-entry semantics as Exa: enabled flag
+    // + replace-only key (blank preserves existing) + explicit clear. The
+    // backend rejects apiKey+clearApiKey together (400), so we send at most one.
+    const trigifyLeaf: SettingsUpdate["signalProviders"] extends infer _T
+      ? NonNullable<SettingsUpdate["signalProviders"]>["trigify"]
+      : never = {
+      enabled: current.signalProviders.trigifyEnabled,
+      ...(current.signalProviders.trigifyClearKey
+        ? { clearApiKey: true }
+        : current.signalProviders.trigifyApiKey.trim().length > 0
+          ? { apiKey: current.signalProviders.trigifyApiKey.trim() }
+          : {}),
+    };
+
     const update: SettingsUpdate = {
       signalProviders: {
         exa: exaLeaf,
         hubspotEnrichment: {
           enabled: current.signalProviders.hubspotEnrichmentEnabled,
         },
+        trigify: trigifyLeaf,
       },
       llm:
         current.llm.provider === "none"
@@ -285,6 +317,7 @@ export function HubSpotSettingsPage({
     draft.llm.provider !== "none" && draft.llm.modelSelection === OTHER_MODEL_VALUE;
   const exaHasStoredKey = state.settings.signalProviders.exa.hasApiKey;
   const llmHasStoredKey = state.settings.llm.hasApiKey;
+  const trigifyHasStoredKey = state.settings.signalProviders.trigify.hasApiKey;
 
   const exaDraftHasKey = draft.signalProviders.exaApiKey.trim().length > 0;
   const exaTestDisabled = !exaDraftHasKey && !exaHasStoredKey;
@@ -401,6 +434,77 @@ export function HubSpotSettingsPage({
         }
       />
       <Text>{HUBSPOT_ENRICHMENT_EXPLAINER}</Text>
+
+      {/* Trigify (real API key, same entry pattern as Exa) */}
+      <Heading>Trigify signals</Heading>
+      <Toggle
+        name="trigifyEnabled"
+        label="Enable Trigify"
+        checked={draft.signalProviders.trigifyEnabled}
+        onChange={(checked) =>
+          setDraft((current) =>
+            current
+              ? {
+                  ...current,
+                  signalProviders: {
+                    ...current.signalProviders,
+                    trigifyEnabled: checked,
+                  },
+                }
+              : current,
+          )
+        }
+      />
+      {trigifyHasStoredKey ? <Text>Stored key on file</Text> : null}
+      <Flex direction="row" gap="sm" align="end">
+        <Input
+          name="trigifyApiKey"
+          label="Trigify API key"
+          type="password"
+          value={draft.signalProviders.trigifyApiKey}
+          onChange={(value) =>
+            setDraft((current) =>
+              current
+                ? {
+                    ...current,
+                    signalProviders: {
+                      ...current.signalProviders,
+                      trigifyApiKey: value,
+                      // Typing a new key cancels a pending clear intent
+                      trigifyClearKey:
+                        value.trim().length > 0 ? false : current.signalProviders.trigifyClearKey,
+                    },
+                  }
+                : current,
+            )
+          }
+        />
+        {trigifyHasStoredKey ? (
+          <Button
+            testId="clearTrigifyApiKey"
+            variant="destructive"
+            onClick={() =>
+              setDraft((current) =>
+                current
+                  ? {
+                      ...current,
+                      signalProviders: {
+                        ...current.signalProviders,
+                        trigifyClearKey: true,
+                        trigifyApiKey: "",
+                      },
+                    }
+                  : current,
+              )
+            }
+          >
+            Clear key
+          </Button>
+        ) : null}
+      </Flex>
+      <Text variant="microcopy">
+        Trigify powers social buying-intent signals. Manage monitors below after saving a key.
+      </Text>
 
       <Divider />
       <Heading>LLM Settings</Heading>
@@ -582,6 +686,13 @@ export function HubSpotSettingsPage({
       <LoadingButton loading={state.saving} onClick={() => void saveSettings()}>
         Save settings
       </LoadingButton>
+
+      {trigify ? (
+        <>
+          <Divider />
+          <TrigifySettings {...trigify} />
+        </>
+      ) : null}
     </Flex>
   );
 }

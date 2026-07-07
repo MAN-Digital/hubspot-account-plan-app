@@ -312,6 +312,7 @@ describe("HubSpotSettingsPage", () => {
       signalProviders: {
         exa: { enabled: true, apiKey: "exa-rotated" },
         hubspotEnrichment: { enabled: true },
+        trigify: { enabled: false },
       },
       llm: {
         provider: "custom",
@@ -415,6 +416,7 @@ describe("HubSpotSettingsPage", () => {
       signalProviders: {
         exa: { enabled: true },
         hubspotEnrichment: { enabled: true },
+        trigify: { enabled: false },
       },
       llm: {
         provider: null,
