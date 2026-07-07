@@ -236,6 +236,19 @@ inputs only on Enterprise/BYO plans; Trial+Pro render "Managed by app" chips, no
 fields (Woodpecker excepted). Manual "Add monitor by LinkedIn URL" form REMOVED —
 monitor creation is card-contextual only; settings keeps the admin list.
 
+### §2c addendum — app-settings wireframe fidelity (round 7b, 2026-07-07)
+
+Verified mechanics from HubSpot docs (create-a-settings-page): navigation = Marketplace
+→ Connected apps → My apps → app → Overview page → **Settings tab**; the page is a
+React UI-extension (`src/app/settings/*-hsmeta.json` + component, `hubspot.extend`,
+`@hubspot/ui-extensions` components ONLY, persistence via `hubspot.fetch`); HubSpot's
+own best practice organizes settings content with the SDK's Tabs/Accordion/Panel/Modal.
+Wireframe therefore: (a) settings render inside accurate Connected-Apps chrome (global
+bar, breadcrumb, app header w/ Installed chip, HubSpot's Overview|Settings tabs);
+(b) our settings content is organized in INTERNAL TABS (Plan & Billing | Providers &
+integrations | Outreach angles | Notifications) mapping 1:1 to the SDK Tabs component;
+(c) the in-record gear deep-links to this Connected-Apps settings page.
+
 ## 3. Technical Design Document
 
 **Apply — new subsystems (all tenant-isolated, config-driven, BYO keys):**
