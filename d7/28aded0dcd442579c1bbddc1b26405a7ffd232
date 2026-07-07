@@ -1,0 +1,21 @@
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c2b65b25fb8214::t_b2786c3972921a 672-704
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c2b65b25fb8214::t_9946b2b10f15f9 139-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "d728aded0dcd442579c1bbddc1b26405a7ffd232",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
