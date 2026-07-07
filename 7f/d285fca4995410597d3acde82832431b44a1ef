@@ -1,0 +1,83 @@
+apps/hubspot-extension/src/settings/settings-page.tsx
+  s_c2b65b25fb8214::t_72560df129b11a 475,506
+  s_c2b65b25fb8214::t_9ea72235323247 320
+  s_c2b65b25fb8214::t_328da70b2d16a6 266-279,286
+  s_c2b65b25fb8214::t_2b7e3899f05ade 136-138
+  s_c2b65b25fb8214::t_0403192d27ed8e 67-75
+  s_c2b65b25fb8214::t_cb15a71829c014 44-46
+  s_c2b65b25fb8214::t_190f1c63ab0c8b 165
+  s_c2b65b25fb8214::t_54ba76c0e551c3 689-695
+  s_c2b65b25fb8214::t_c166be00b3479e 438-474,476-505,507-508
+  s_c2b65b25fb8214::t_1f75a9c5bc318c 25
+apps/hubspot-extension/src/settings/__tests__/settings-page.test.tsx
+  s_c2b65b25fb8214::t_fe44b944138415 419
+  s_c2b65b25fb8214::t_37b310b7599245 315
+apps/hubspot-extension/src/features/snapshot/components/evidence-drill-in.tsx
+  s_c2b65b25fb8214::t_c3225cb4bf8ff5 6
+  s_c2b65b25fb8214::t_72560df129b11a 126
+  s_c2b65b25fb8214::t_abfe1c4e01666b 144-158
+  s_c2b65b25fb8214::t_9027b44852ee16 24-36
+apps/hubspot-extension/src/settings/__tests__/settings-page-trigify-key.test.tsx
+  s_c2b65b25fb8214::t_40b08513ccf5c8 34,36,76-80,108-112,138-146
+  s_c2b65b25fb8214::t_e6803b02f74bf8 2-6,8-33,37-45,47-67,69-75,81-107,113-137,147-154
+  s_c2b65b25fb8214::t_72560df129b11a 7,35,46,68
+  s_c2b65b25fb8214::t_69f01b58756565 1
+apps/hubspot-extension/src/features/snapshot/components/__tests__/evidence-drill-in-trigify.test.tsx
+  s_c2b65b25fb8214::t_6758b75edc9f1e 1-25,27-42,44-52,54-69,71-75
+  s_c2b65b25fb8214::t_72560df129b11a 26,43,53,70
+apps/hubspot-extension/src/features/snapshot/components/__tests__/trigify-state-verification.test.tsx
+  s_c2b65b25fb8214::t_72560df129b11a 17,40,63,100,109
+  s_c2b65b25fb8214::t_3bf93eb0f84a4f 1-16,18-39,41-62,64-99,101-108,110-150
+apps/hubspot-extension/src/settings/trigify-api-fetcher.ts
+  s_c2b65b25fb8214::t_40b08513ccf5c8 43-45
+  s_c2b65b25fb8214::t_3932dac0786a3a 1-25,27-42,46-56,58,63-74,76,81-91,93-106
+  s_c2b65b25fb8214::t_72560df129b11a 26,57,59-62,75,77-80,92
+apps/hubspot-extension/src/settings/__tests__/settings-page-trigify.test.tsx
+  s_c2b65b25fb8214::t_088f1fe1e7d986 61-63
+  s_c2b65b25fb8214::t_3a2f1b35689a83 1-4,6-11,13-38,40-46,48-60,64-65
+  s_c2b65b25fb8214::t_72560df129b11a 5,39
+  s_c2b65b25fb8214::t_d23226a626d847 12
+  s_c2b65b25fb8214::t_62459e3f5f6d5a 47
+apps/hubspot-extension/src/settings/trigify-types.ts
+  s_c2b65b25fb8214::t_af08513c1b6161 1-88
+apps/hubspot-extension/src/features/snapshot/components/__tests__/trigify-fixtures.ts
+  s_c2b65b25fb8214::t_1aa9da39c73f84 1-52,54-95
+  s_c2b65b25fb8214::t_72560df129b11a 53
+apps/hubspot-extension/src/settings/__tests__/trigify-api-fetcher.test.ts
+  s_c2b65b25fb8214::t_72560df129b11a 60,66-70,72,78,85-90,92,101-103,111-113
+  s_c2b65b25fb8214::t_fee736ad705c96 1-29,35-37,41-45,52-59,61,65,73-77,79-84,91,93-100,104-110,114-127
+  s_c2b65b25fb8214::t_40b08513ccf5c8 30-34,38-40,46-51,62-64,71
+apps/hubspot-extension/src/settings/__tests__/trigify-settings.test.tsx
+  s_c2b65b25fb8214::t_b10ae197d930a9 20-25,27-41
+  s_c2b65b25fb8214::t_446c965cbfeb70 197-199
+  s_c2b65b25fb8214::t_e779307078d25a 1-4,6
+  s_c2b65b25fb8214::t_404d73fdd08590 155-157
+  s_c2b65b25fb8214::t_1a67b83335b2a6 7-16,18-19,26,42-85,87-99,102-127,130-141,143-154,158-163,165-178,180-196,200-208,210-213,215-224,226-229,231-261,263-303
+  s_c2b65b25fb8214::t_72560df129b11a 17,100-101,142,164,179,214,225,230,262
+  s_c2b65b25fb8214::t_40b08513ccf5c8 5,86,128-129,209
+apps/hubspot-extension/src/settings/trigify-settings.tsx
+  s_c2b65b25fb8214::t_cf8fd75238e6f3 1-61,65-104,106-125,127-214,216-229,231-255,257-288,290-295,297-301,303-309,314-340,343-350,353-376,379-394
+  s_c2b65b25fb8214::t_4c3729811afaae 215
+  s_c2b65b25fb8214::t_40b08513ccf5c8 62-64,310-313
+  s_c2b65b25fb8214::t_72560df129b11a 105,126,230,256,289,296,302,341-342,351-352,377-378
+apps/hubspot-extension/src/settings/settings-entry.tsx
+  s_c2b65b25fb8214::t_1e99ed100a555e 5-10,20-21,26-32
+.gitignore
+  s_c2b65b25fb8214::t_ddb5b64bf71cdf 17-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7fd285fca4995410597d3acde82832431b44a1ef",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
