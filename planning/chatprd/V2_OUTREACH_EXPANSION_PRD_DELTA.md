@@ -100,7 +100,11 @@ Link + template id above. Screen-by-screen (v2 components):
   - "Key People" list with role badges (Decision Maker / Champion) — maps to `people`.
 - **People** (`v2/PeopleTabV2.tsx`): expanded person cards — name, title, location,
   CRM status (In CRM / External), role badge, reason-to-talk, bio, evidence line,
-  per-person signals, LinkedIn link.
+  per-person signals, LinkedIn link. **Track signals (decided 2026-07-07):** each person
+  card carries a "Track signals" action creating a person-profile Trigify monitor from
+  the contact's LinkedIn URL (two-step spend confirm); the header/Overview carries
+  "Track company" for a company-level monitor. Monitor creation is contextual on the
+  card — settings only holds key/budget/defaults/monitor-list admin.
 - **Signals** (`v2/SignalsTabV2.tsx`): filterable list (All / External Only / CRM Only;
   type filter; search), each signal row: source badge, headline, category, relative time,
   linked people + roles, **provenance chain** ("Exa.ai → Datadog Q3 2026 Earnings
