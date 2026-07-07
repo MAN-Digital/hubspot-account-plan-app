@@ -136,6 +136,22 @@ Link + template id above. Screen-by-screen (v2 components):
   both); LinkedIn steps per official API: PROFILE_VISIT, CONNECTION_REQUEST,
   DIRECT_MESSAGE, INMAIL_MESSAGE; campaign DRAFT/EDITED statuses; step versions
   PATCHable with our edited copy.
+- **HubSpot execution model + threading (2026-07-07, round 4 — SUPERSEDES the
+  "enroll via sequence" primary flow):** follow-up emails are ALWAYS same-thread
+  replies (Woodpecker: subject null on steps 2+, verified; QA hard-fails new subjects
+  mid-cadence; UI shows "↳ Re: <first subject>"). Sequences API verified: enrollment =
+  {contactId, senderEmail, sequenceId} ONLY — templates send as-is, per-enrollee copy
+  injection impossible via API (per-contact edits exist only inside HubSpot's UI).
+  Corrected exports: (1) DEFAULT HubSpot path = one HubSpot TASK per touch carrying the
+  approved thread-aware copy + due date (rep sends manually); (2) sequence enrollment
+  kept for TEMPLATE motions only, with explicit "template copy sends, not your
+  generated copy" disclaimer + optional deep-link to edit-in-HubSpot; (3) Woodpecker
+  labeled THE full-custom-copy channel. Every cadence step shows a signal chip linking
+  the grounding signal → evidence.
+- **Buying-group editing (2026-07-07, round 4):** replace-person on any card via a
+  picker synced to real CRM associated contacts; edit in BOTH org chart and roles
+  list; placeholders fillable; manual edits survive Regenerate (AI never clobbers
+  rep edits without confirm).
 - **Outreach Angles (2026-07-07, round 3):** campaign-level angle chosen at creation,
   shaping the whole sequence (goal/tone/frameworks/templates/QA). Presets: Interview
   (no-pitch thought-leadership series w/ blog + landing page assets; reference
