@@ -161,6 +161,16 @@ Link + template id above. Screen-by-screen (v2 components):
   outreach_config.angles[]. Envelope carries campaign.angle; QA enforces angle fidelity
   (pitch inside Interview angle = hard fail). Engine parity: port against OpenClaw
   177929a (breakup retired, signal-led final touch, LinkedIn frameworks/steps).
+- **Angle governance + rebuild lockout (2026-07-07, round 5):** (1) on angle change or
+  plan-edit regeneration, cadence/copy/export surfaces gray out behind a "Rebuilding
+  sequences…" state until done — no review/approve/export of stale sequences; statuses
+  revert to Building. (2) Angle creation/editing (incl. presets — adding tenant info,
+  adjusting goal/tone/frameworks/QA) moves to SETTINGS behind a **superadmin
+  permission**; superadmin enables/disables angles per tenant and controls their
+  definitions; reps get a read-only picker of enabled angles only ("managed by your
+  admin"); prompt-to-angle lives in the settings angle manager; enforcement is
+  server-side (role check on angle-write endpoints; app-level per-tenant role,
+  installer = superadmin by default).
 - **Warm intro / connecting-the-dots (2026-07-07, round 3):** per buying-group target,
   rep manually enters LinkedIn mutual connections (min 3 enforced, 5 ideal) →
   enrich/qualify (Find in HubSpot / research) → score + rank connectors → pre-made
