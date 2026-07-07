@@ -603,7 +603,23 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Parallel**: true (with 15–17)
 - Docs-check FIRST: verify current `@hubspot/ui-extensions` component set (tabs pattern availability; fallback ToggleGroup sections).
 - **Track-signals-from-card (Romeo, 2026-07-07):** monitor subscription is a CONTEXTUAL action on the company card, not a settings chore. On the People tab, each associated contact (LinkedIn URL from CRM) gets a **"Track signals"** action (creates a person-profile monitor for that contact — the "I chose to outreach this person" moment); the header/Overview gets **"Track company"** (company-level monitor). Both reuse the existing two-step plan→"This spends 1 Trigify credit" confirm flow and the same spend-gated backend routes. The Settings surface keeps: API key, credit budget, default topic keywords, and the full monitor list (pause/delete) — Stage A's manual URL subscribe form remains as the admin fallback. ALSO: expose `creditBudget` entry in settings UI — budget is fail-closed, so card-based tracking is dead until a budget is settable without SQL.
+- **UI feedback round (Romeo, 2026-07-07 — reflected in the published Magic Patterns v2 design):**
+  (a) **Trigify is a first-class signal source** everywhere Exa appears: source badges, a source filter (All/Trigify/Exa/HubSpot) on the Signals tab, and Trigify entries in the Context data-sources footer.
+  (b) **Every signal/fact carries a clickable "Verify source" link** (evidence URL) — signals people can't verify aren't trusted; this applies to Signals rows, per-person Recent Activity rows, person evidence lines, and Context initiative rows. Backend already stores evidenceUrl; the UI must surface it everywhere.
+  (c) **Plan tab is rep-editable**: AI generates the plan, reps can edit/reorder steps and add their own ("Add your own step"); edits persist per (tenant, company) — plan storage needs a rep-edits layer (extend snapshots or a plan_edits jsonb).
+  (d) Track-signals modal copy: the 30-day lookback BACKFILLS history on the next poll (not "wait days"); company monitors capture the real taxonomy (initiative posts tier A, hiring tier B + derived boosts prioritization-only).
 - TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (stat strip, Why-Now, Top Signals, Next Move + Draft Outreach button, Key People), Signals (filters, search, provenance, detail), People (person cards). Plan/Context tabs render explicit empty states until 15/16 land. All 8 V1 states must keep rendering.
+
+### 14b. Buying Group tab (AI-generated, editable)
+
+- **Task ID**: `v2-buying-group`
+- **Depends On**: `v2-workspace-ui`, `v2-schema`
+- **Assigned To**: `tab-frontend` (+ `signal-backend` for generation/sync API)
+- **Agent Type**: frontend-specialist
+- **Parallel**: true
+- Requested by Romeo 2026-07-07 (see https://knowledge.hubspot.com/prospecting/review-stakeholders-with-buying-groups). Verified facts: HubSpot's native Buying Groups is **Sales Hub Enterprise only**, list-based, manual, with NO public dedicated API. The underlying primitives ARE public: **associations v4 custom labels** (contact↔deal/company, `POST /crm/associations/2026-03/{from}/{to}/labels`, Pro+ tiers, 10 labels/pairing) + the `hs_buying_role` contact property.
+- Build OUR buying-group surface (works on all tiers, differentiator vs native): new "Buying Group" tab — AI-suggested role assignment (Economic Buyer / Decision Maker / Champion / Technical Evaluator / Blocker) grounded in signals + CRM activity with per-person evidence + AI-confidence, role-coverage bar with explicit gaps, EDITABLE from day one (add person, change role, regenerate; drag-between-roles may ship later), persisted per (tenant, company) — add `buying_groups` table (jsonb) to v2-schema.
+- **Sync roles to HubSpot** = explicit user action (never automatic): writes association labels + buying-role property; logged, reversible, documented — same opt-in discipline as hap_* writes.
 
 ### 15. Hosted settings app
 
@@ -635,6 +651,8 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Assigned To**: `monitor-and-settings`
 - **Agent Type**: backend-engineer
 - **Parallel**: true
+- **Re-audit the CURRENT engine first (2026-07-07):** OpenClaw outreach-engine received F-series changes after this plan was written — 15-key slot contract (campaign_reuse, F5/schema), contact identity populated in signal_json (F4), MC-server-augmented trigify fields in the parity test (F5b), constant-time Woodpecker webhook token compare (F13), PII evidence-log permissions (F6). Port against the engine's CURRENT state, not this plan's earlier snapshot; the golden-envelope test must match the live contract.
+- **Entry points:** Draft Outreach from the Next Move card AND a per-person "Draft outreach" action on People-tab cards (reps outreach individuals outside the plan). Output UI = the Outreach Sequence card (see Magic Patterns `v2/OutreachSequenceCard.tsx`): day-by-day cadence with per-step channel badges (Email / LinkedIn), "Review copy" per step, QA-gated DRAFT banner, and export actions — "Enroll via HubSpot Sequence" (enroll-into-existing, Pro+ seat, email steps; copy saved as drafts) and "Push to Woodpecker (email + LinkedIn)" (LinkedIn touches ride as Woodpecker LinkedIn/manual tasks).
 - TDD, porting the OpenClaw contracts (C2/C3/C4) and the golden-envelope test (`test_envelope_contract.py`): `services/outreach/{envelope,cadence,copywriter,copy-qa,pipeline}.ts`, each step an LLM prompt-chain on the tenant's configured LLM receiving the WHOLE envelope; deterministic linter before the LLM judge in QA; any hard failure blocks.
 - `outreach_drafts` status machine (`draft → qa_passed → approved → exported`); routes for run/approve/reject/export; **DRAFT-only invariant enforced by tests** (no code path transmits copy without approved status + explicit user action); derived signals and restricted evidence can never appear in envelopes or copy (zero-leak test).
 - Wire the Draft Outreach button (Next Move card) end to end. Export adapters (REVISED 2026-07-06 after Sequences API verification): clipboard always; plus the tenant's configured channel from settings (task 15):
