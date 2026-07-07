@@ -892,7 +892,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   - Implementation Plan — `7321e14b-ada3-4265-a4e9-d1cda84dfe55`
   - Repo Draft & Execution Checklist — `d1591ae5-b3cd-4595-8238-a6005502d785`
   - Security / Permission Gate — `ed0efb92-7e4e-4716-8674-f9013e8f01e8`
-  - QA & Verification Plan — `041bbd8a-57bb-4e87-85bd-4c490dead022` (canonical; two older
+  - QA & Verification Plan — `041bbd8a-57bb-4e87-85bd-4c490dead022`
+  - Pricing & Packaging (Credits Model) — `0b2aae63-a4de-4ebe-bf13-41124843cf2b` (NEW
+    2026-07-07; created in drive ROOT — API rejected project targeting; Romeo moves it
+    into the project via the ChatPRD UI)
+  - Engineering Handoff — `b018a084-a75c-4d27-89ae-91db4f4be454` (NEW 2026-07-07; also
+    in drive root, same move needed; mirrors docs/HANDOFF.md) (canonical; two older
     duplicates `f704414e-...` and `7aed1d8b-...` exist in ChatPRD — ignore/delete them)
 
   MCP quirk: `list_projects` returns no project IDs — locate docs via `search_documents`
