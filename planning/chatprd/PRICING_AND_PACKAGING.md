@@ -5,6 +5,7 @@
 **ChatPRD sync markers:**
 - `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
 - `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`
+- `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`
 
 **Researched 2026-07-07** (official vendor pages; re-verify quarterly — LLM/vendor
 rates move fast). Full research brief in session history; key numbers below.
@@ -21,7 +22,7 @@ rates move fast). Full research brief in session history; key numbers below.
 
 | Tier       | Price           | Credits            | Keys                      | Notes                                                                                                                    |
 | ---------- | --------------- | ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Free trial | $0              | **30 credits**     | managed                   | ≈ 1 full account cycle (research 12 + buying group 3 + cadence 8 + 2 enrichments 8); COGS ~$0.40 — cheap conversion cost |
+| Free trial | $0              | **30 credits**     | managed                   | Enough for 1-2 light account workspaces when the rep selects only needed modules; output-based debit prevents wasting credits on empty results |
 | Pro        | **from $99/mo** | **500 credits/mo** | managed except Woodpecker | Launch allowance is provisional: ~4–6 actively worked new accounts/mo plus light monitoring if monitors stay in-pool; usage logs set the GA number |
 | Enterprise | custom          | custom             | BYO everything            | + custom cards/views + optional full-service (we run signals+outreach, train team) — retainer                            |
 
@@ -29,10 +30,10 @@ rates move fast). Full research brief in session history; key numbers below.
 
 | Action                                                                                 | COGS est.                | Credits |
 | -------------------------------------------------------------------------------------- | ------------------------ | ------- |
-| Account research run (Exa + LLM synthesis)                                             | ~$0.17                   | 12      |
-| Buying-group generation                                                                | ~$0.03                   | 3       |
+| Account research run (Exa + LLM synthesis)                                             | low; Exa search/content + small LLM | 1-2     |
+| Buying-group generation/regenerate                                                     | ~$0.03                   | 1       |
 | Outreach cadence gen (5 touches + QA)                                                  | ~$0.09                   | 8       |
-| Apollo enrichment / contact                                                            | $0.02–0.16 (PROVISIONAL) | 4       |
+| Apollo prospecting/enrichment / returned usable contact                                | $0.02-0.16 (PROVISIONAL) | 4       |
 | Trigify monitor (recurring, per account/mo)                                            | ~$0.20–0.40/mo           | 18/mo   |
 | Standalone deep-research dossier                                                       | ~$0.15                   | 10      |
 | Overage: top-ups at ~30% premium (Clay pattern); rollover: generous (up to 2x monthly) |
@@ -59,30 +60,45 @@ COGS scales per contact (Apollo 1–8 credits/contact; Trigify person-enrich 4):
   All multipliers/caps/thresholds live in the config-driven credit table (per-tenant
   overridable on Enterprise), never hardcoded in UI.
 
-## Rep-initiated account generation (round 11)
+## Rep-initiated account generation (round 11, revised round 13)
 
 The primary usage journey is now **ad hoc from a company record**, not only a superadmin
-preselecting target accounts in settings or workflows. A rep with app access can click
-**Generate full account plan** when tenant credits and that rep's monthly cap allow it.
+preselecting target accounts in settings or workflows. A rep with app access opens
+**Build this account workspace**, chooses exactly which modules to run, and proceeds only
+when tenant credits and that rep's monthly cap allow it.
 
-Every credit-metered CTA must show, before debit:
+Every credit-metered CTA must show, before the run:
 
-- projected action cost;
+- projected action cost or range;
 - current rep's used / cap / remaining monthly credits;
 - tenant pool remaining;
 - whether any provider/setup blocker prevents the run.
 
-The first-run account-plan estimate is displayed as an itemized preview. Default example:
+**Round 13 credit rule:** clicking generate never debits by itself. Debits occur only when
+useful output is returned/saved:
+
+- HubSpot-source reads, existing HubSpot contacts, and direct HubSpot property fixes: **0
+  credits**.
+- Account research: low-cost Context output (1-2 credits by default) when saved.
+- Buying-group mapping/regenerate: low cost (1 credit by default; 0.5 only if fractional
+  credits are later supported).
+- Apollo prospecting/enrichment: per returned usable contact, not per search click.
+- Outreach: per generated stakeholder draft/cadence.
+- Trigify signal monitoring/fetching: separate from account research because it is the
+  recurring spend driver.
+
+The first-run account-workspace estimate is displayed as an itemized, selectable preview.
+Default example:
 
 | Component                              | Credits |
 | -------------------------------------- | ------- |
-| Account research run                   | 12      |
-| Buying-group generation                | 3       |
-| Apollo/people enrichment (5 contacts)  | 20      |
+| Account research run                   | 1-2     |
+| Buying-group mapping/regenerate        | 1       |
+| Apollo/people enrichment (up to 5 contacts) | 0-20 |
 | Outreach draft for 3 stakeholders      | 24      |
 | Optional company + 2 person monitors   | 54/mo   |
-| **One-time subtotal without monitors** | **59**  |
-| **First-month total with monitors**    | **113** |
+| **One-time subtotal without monitors** | **2-47** |
+| **First-month total with monitors**    | **56-101** |
 
 The app records every debit and blocked attempt with the acting HubSpot user, company or
 contact target, action type, projected credits, debited credits, and result. Superadmins

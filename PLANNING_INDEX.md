@@ -26,10 +26,11 @@ Currently present under `planning/`:
 - `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` — the V2 expansion authorization
   (Trigify signals, 8-tab workspace UI including Data Gaps, account research, outreach
   engine, no-deal/no-data generation journeys, notifications, workflow action). Synced
-  into the ChatPRD cloud docs through round 12 on 2026-07-07; local mirror kept for
+  into the ChatPRD cloud docs through round 13 on 2026-07-07; local mirror kept for
   re-sync. Round 12 locks Data Gaps to missing/stale CRM properties, enrichment/research
-  outputs, and coverage inputs only; account states, settings, and credit blockers are not
-  Data Gaps.
+  outputs, and coverage inputs only; round 13 adds configurable first-run generation,
+  output-based credits, flexible buying-group roles, real signal filters, and
+  superadmin-defined HubSpot signal rules.
 - `planning/chatprd/PRICING_AND_PACKAGING.md` — Pricing & Packaging ChatPRD mirror
   refreshed into ChatPRD on 2026-07-07.
 - `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md` — Credit Economics & Sizing ChatPRD
@@ -75,7 +76,7 @@ Important:
 - `.claude/tasks/2026-04-19-slice-11-dev-operationalization.md`
 - `.claude/tasks/trigify-signals-into-account-planning.md` — ACTIVE plan: Stage A
   (Trigify signal substrate, tasks 1–11) + Stage B (V2 expansion, tasks 13–19, gated on
-  the ChatPRD sync — satisfied through round 12 on 2026-07-07). Contains the ChatPRD
+  the ChatPRD sync — satisfied through round 13 on 2026-07-07). Contains the ChatPRD
   doc-UUID registry in its Notes section.
 - `docs/runbooks/slice-11-dev-quickstart.md`
 - `docs/superpowers/plans/2026-04-14-slice-1-core-domain.md`
@@ -167,7 +168,7 @@ https://app.chatprd.ai/chat?doc=faa0a41d-407b-4fe9-83b9-e7a6845a2a86
 
 https://app.chatprd.ai/chat/643c3e89-701c-405e-b859-6ad5545dfa99?doc=b018a084-a75c-4d27-89ae-91db4f4be454
 
-All ChatPRD documents above carry the V2 expansion delta through round 12 as of
+All ChatPRD documents above carry the V2 expansion delta through round 13 as of
 2026-07-07 (source: `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`). Programmatic
 access: the `chatprd` MCP (`get_document` with the `doc=` UUID from each link).
 

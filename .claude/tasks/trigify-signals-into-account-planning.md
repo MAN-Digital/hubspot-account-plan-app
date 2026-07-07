@@ -191,7 +191,7 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 > Canonical UI for the V2 workspace: Magic Patterns design
 > https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35 (editor id
 > `xmdzva7bxdn4ubmtrbvs35`; active artifact
-> `04cac785-44e0-4265-b9a2-5cf7df2ddf93`; use the **`v2/*` components** — v1 files are an earlier
+> `aa9fee3c-3aa4-437f-9c06-8d7df6824b2a`; use the **`v2/*` components** — v1 files are an earlier
 > iteration). Read via the Magic Patterns MCP (`get_artifact` → `read_artifact_files`).
 
 ### Layout Patterns
@@ -663,11 +663,11 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   When no active deal exists, show account-development highlights: fit/ICP, last
   meaningful CRM activity, strongest signal, buying-group coverage, warm paths, and
   setup actions. Generating a plan must work without a deal.
-  (o) **No-data / first-run wireframe:** a blank company record shows what a full account
-  plan will generate, projected credits, current rep's remaining monthly credits, tenant
-  credits, and setup blockers. Primary CTA = "Generate full account plan"; confirmation
-  itemizes research, buying-group, enrichment, outreach draft, and optional monitor
-  costs before debit.
+  (o) **No-data / first-run wireframe (superseded by round 13 item r/s):** a blank
+  company record must show what can be generated, projected credits, current rep's
+  remaining monthly credits, tenant credits, and setup blockers. The current behavior is
+  the configurable **Build this account workspace** module picker; do not implement this
+  as one mandatory bundled full-plan CTA.
   (p) **New Data Gaps tab:** add a tab between Outreach and Plan/Context. Move CRM Gap /
   Data Quality out of Signals. Data Gaps is a working task list with gap type, impact,
   source, owner, suggested fix, projected credits, status, and actions (Research, Enrich
@@ -677,6 +677,30 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   missing/stale CRM properties, missing enrichment/research outputs, and missing coverage
   inputs that improve the plan context. Woodpecker/provider connection and credit pool
   issues are settings/billing blockers, not Data Gaps.
+  (r) **Configurable no-data generation (round 13, Romeo 2026-07-07):** replace the
+  bundled "Generate full account plan" behavior with a **Build this account workspace**
+  module picker. Reps choose account research, buying-group mapping/regenerate, people
+  prospecting/enrichment, outreach drafts, and/or signal fetching. People prospecting
+  requires target roles/personas plus max contacts.
+  (s) **Output-based credits:** clicking Generate never debits credits by itself. Debit
+  only for saved outputs or usable returned data. HubSpot-source reads/fixes and internal
+  HubSpot signal rules cost 0 credits. People prospecting/enrichment is the main spend
+  driver and debits per returned usable contact. Account research and buying-group
+  regenerate are low-cost.
+  (t) **Buying-group flexibility:** empty/no-people states show available HubSpot contacts,
+  manual role-slot creation, and a prospecting request form. Reps can add multiple
+  champions, blockers, influencers, budget holders, or decision makers, but named role
+  occupants must still come from real People-tab/prospected/HubSpot contacts.
+  (u) **Signals filter/provenance cleanup:** Signals filters must actually change the
+  list. Filter by company/contact signal level and signal type; do not make source the
+  main filter. Every signal needs timestamp and visible provenance; CRM engagement
+  summaries must be prominent; remove the signal Copy Link action. Apollo enrichment
+  results are data/system events unless backed by a separate observable buying signal.
+  (v) **Admin-defined HubSpot signals:** Settings needs a superadmin HubSpot signal-rule
+  builder for properties, lists, object changes, workflow webhooks/custom-code calls, and
+  custom events. Rule fields: object, trigger, condition, signal label/type, level,
+  strength, expiration/lookback, enabled state. Render matches as HubSpot-source signals
+  with 0-credit usage.
 - TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components
   (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (state
   KPI strip, one top Executive Summary, separate Why-Now, Top Signals, This Outreach,
@@ -716,8 +740,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   "Hubspot Company Enrichment Taxonomy" spreadsheet as the taxonomy for annual revenue
   ranges, employee ranges, industries, company keywords, and web technologies.
 - UI: rows/cards show severity, impact, source, suggested fix, owner, projected credits,
-  status, and action buttons. Actions may launch research/enrichment, create HubSpot
-  tasks, or open explicit CRM update flows. "Mark not needed" requires a reason.
+  status, and action buttons. Owner is an actual HubSpot owner/user display name, not a
+  generic queue such as "RevOps Admin". HubSpot-source gaps and direct HubSpot property
+  fixes show 0 credits. External enrichment/research gaps show an output-based estimate
+  and debit only when useful returned data is saved. Actions may launch research/
+  enrichment, create HubSpot tasks, or open explicit CRM update flows. "Mark not needed"
+  requires a reason.
 - QA: no data gap should appear as a signal; Signals remains observed evidence only.
   Overview must link each blocker to Data Gaps or the exact resolving tab/action. Add
   negative tests proving no-open-deal, Woodpecker-not-connected, provider setup, credit
@@ -733,7 +761,15 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - Requested by Romeo 2026-07-07; layout REVISED same day to the OrgChartHub-style ORG CHART (see task 14 feedback round 2, item e).
 - **Editing requirements (round 4):** manual editing is first-class alongside AI regenerate: (a) **Replace person** on any card — picker synced with the REAL CRM contact list (company-associated contacts, same source as the People tab); (b) role + person editable in BOTH the org chart AND the roles-list view; (c) placeholder/gap cards are fillable by assigning a contact from the picker; (d) manual edits survive Regenerate (AI proposes, never clobbers rep edits without confirm). Verified facts: HubSpot's native Buying Groups is **Sales Hub Enterprise only**, list-based, manual, with NO public dedicated API. The underlying primitives ARE public: **associations v4 custom labels** (contact↔deal/company, `POST /crm/associations/2026-03/{from}/{to}/labels`, Pro+ tiers, 10 labels/pairing) + the `hs_buying_role` contact property.
 - Build OUR buying-group surface (works on all tiers, differentiator vs native): new "Buying Group" tab — AI-suggested role assignment (Economic Buyer / Decision Maker / Champion / Technical Evaluator / Blocker) grounded in signals + CRM activity with per-person evidence + AI-confidence, role-coverage bar with explicit gaps, EDITABLE from day one (add person, change role, regenerate; drag-between-roles may ship later), persisted per (tenant, company) — add `buying_groups` table (jsonb) to v2-schema. The role list/org chart must be generated from the same real associated/prospected people shown in the People tab; counts must stay synchronized. If People shows 3 people, Buying Group cannot show 7 named people. Show unfilled role slots or a Data Gap like "not enough prospects for the buying group" instead of fabricating role occupants.
-- **Sync roles to HubSpot** = explicit user action (never automatic): writes association labels + buying-role property; logged, reversible, documented — same opt-in discipline as hap_* writes.
+- **Round 13 flexibility/no-data updates:** if no buying group exists or no people are
+  prospected, render an empty state with available HubSpot contacts, manual role-slot
+  creation, and a prospecting request form for missing roles with max contacts. Reps can
+  add multiple slots for the same role family (champions, blockers, influencers, budget
+  holders, decision makers, etc.); unfilled slots are allowed, named fake people are not.
+- **Sync selected roles to HubSpot** = explicit user action (never automatic): writes
+  selected association labels + buying-role property; logged, reversible, documented —
+  same opt-in discipline as hap_* writes. Use a sync/write-style icon and copy, not an
+  arrow that looks like navigation.
 
 ### 15. Settings surface (REVISED round 7, 2026-07-07 — placement, roles, plan-gating)
 
@@ -752,6 +788,30 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   (a) **Toggle component bug** — every toggle in the design renders its knob OUTSIDE the pill when ON/green; fix the geometry once in a single shared Toggle component and reuse it everywhere (includes the Exa people-research toggle, which currently looks broken).
   (b) **Notifications tab plain English** — NO `hap_*`/underscore/asterisk property jargon in UI copy. The property-writes opt-in reads: label "Add signal updates to the company record", description "When a strong new signal qualifies, the app writes a short summary into a few app-managed fields on the company so lists and workflows can use it. Off by default." Tier threshold worded plainly ("Notify for: Hot signals only / Hot + warm / All qualifying").
   (c) **REMOVE from Notifications:** the "View workflow recipes" element and other technical/production items — recipes live in the docs site, not settings.
+
+### 15d. HubSpot signal-rule settings (round 13, 2026-07-07)
+
+- **Task ID**: `v2-hubspot-signal-rules`
+- **Depends On**: `v2-settings-surface`, `v2-schema`, `v2-signal-substrate`
+- **Assigned To**: backend + settings UI
+- **Agent Type**: backend-engineer + frontend-specialist
+- **Parallel**: true after schema slice starts
+- Superadmin/admin settings surface for defining internal HubSpot signals from CRM data
+  the tenant already owns. Supported sources: company/contact/deal properties, HubSpot
+  lists/segments and memberships, object-change/property-change webhooks, workflow
+  custom-code or webhook calls, and custom event occurrences.
+- Rule builder fields: object type (company/contact/deal), trigger source
+  (property/list/object change/custom event/workflow), source reference, condition,
+  signal type/label, signal level (company/contact), strength (hot/warm/qualifying),
+  expiration/lookback (e.g. 14 or 30 days), enabled state, and owner/audit metadata.
+- Backend ingests matches as HubSpot-source signal events with timestamp, provenance, rule
+  id, object id, expiration, and 0-credit usage/audit event. Disabled or expired rules do
+  not render active signals. The feature must be tenant-scoped and server-authorized; reps
+  cannot create or edit rules.
+- Feasibility docs-check required before implementation: HubSpot Properties API, Lists
+  API, Webhooks property-change subscriptions, Custom Events definitions/occurrences, and
+  Workflow custom-code/webhook behavior. If a portal lacks a property/list/event, show a
+  settings validation error rather than creating a dead rule.
 
 ### 15c. Team & access RBAC + per-rep budgets + Usage & logs (round 9, 2026-07-07)
 
@@ -797,12 +857,15 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Agent Type**: backend-engineer
 - **Parallel**: true
 - TDD. `services/research/` + `POST /api/research/:companyId`: gather CRM context + signal store + tenant-Exa retrieval → tenant-LLM synthesis into structured sections with per-section source provenance → persist to `account_research` (history kept). Degraded providers → explicit degraded/empty sections, never fabricated content. Rate-limited per tenant. Render in the Context tab (with `tab-frontend`).
-- Round 11 extension: the same endpoint powers the **Generate full account plan** first-run
-  CTA from a blank/no-data company record. Before debit, return a projected-cost preview
-  and blocker list (tenant credits, rep monthly cap, provider setup). When confirmed,
-  create an `account_generation_runs` audit row, generate research/context, seed the
-  editable account plan, generate/refresh `account_data_gaps`, and support no-open-deal
-  records without treating them as errors.
+- Round 11 extension, revised round 13: account research is one selectable module inside
+  **Build this account workspace**, not the whole first-run bundle. Before running, return
+  projected-cost ranges and blockers (tenant credits, rep monthly cap, provider setup).
+  Clicking generate does not debit; debit only when research output is saved. When the
+  research module is selected, create `account_generation_runs` + line-item audit rows,
+  generate research/context, seed the editable account plan if selected, refresh
+  `account_data_gaps`, and support no-open-deal records without treating them as errors.
+  Account research should be low-cost (default 1-2 credits, config-driven) and lives in
+  the Context tab. People prospecting/outreach are separate modules.
 
 ### 17. Outreach engine port
 
@@ -899,12 +962,20 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Billing rails:** research HubSpot marketplace billing vs own Stripe (pricing PRD decides).
 - **Round 8 confirmations (Romeo, 2026-07-07):** Pro = **500 credits/mo + top-up purchases** (top-ups never expire) — approved. **Per-contact pricing logic** is part of the model (not UI guesswork): enrichment charges per contact (`contacts × 4` credits), cadence generation charges per person, buying-group generation covers a config-capped candidate pool; UI always shows projected credit cost BEFORE contact-based runs and confirms above a config threshold. Full math in `planning/chatprd/PRICING_AND_PACKAGING.md` ("Per-contact pricing logic").
 - **Round 9 credit sizing (Romeo, 2026-07-07):** 500/mo is PROVISIONAL — validate against real usage from the round-9 Usage & logs before GA lock. Analysis in `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md`: margin is safe (80–93% GM at full burn); the binding constraint is RECURRING Trigify monitor credits (they accumulate and crowd out research/outreach). OPEN DECISION for pricing sign-off: decouple "tracked accounts" (monitors) into a separate per-tier allowance vs keep monitors in-pool at a lower per-monitor credit cost. Per-rep budgets (task 15c) cap individual spend. Credit debit path must attribute every debit to a `hubspot_user_id` + `action_type` so the logs can right-size the number.
-- **Round 11 credit journey (Romeo, 2026-07-07):** generation is rep-initiated and
-  ad hoc from the company record, not only preselected target-account automation. A rep
-  with app access can run **Generate full account plan** if tenant credits and their
-  monthly `credit_cap` allow it. Every credit-metered CTA must show projected cost,
-  remaining personal credits, and remaining tenant credits before debit; blocked attempts
-  write usage/audit events with result `blocked_budget` or `blocked_provider_setup`.
+- **Round 11 credit journey (Romeo, 2026-07-07, revised by round 13):** generation is
+  rep-initiated and ad hoc from the company record, not only preselected target-account
+  automation. A rep with app access can run **Build this account workspace** selected
+  modules if tenant credits and their monthly `credit_cap` allow it. Every credit-metered
+  CTA must show projected range, remaining personal credits, and remaining tenant credits
+  before running; blocked attempts write usage/audit events with result `blocked_budget`
+  or `blocked_provider_setup`.
+- **Round 13 output-based builder (Romeo, 2026-07-07):** replace the one bundled full-plan
+  debit with selectable modules and output-based charging. Account research = low-cost
+  Context output (default 1-2 credits). Buying-group map/regenerate = low-cost (default
+  1 credit, or 0.5 only if fractional credits are supported). HubSpot-source reads/fixes
+  and HubSpot signal-rule events = 0 credits. Apollo/prospecting/enrichment debits only
+  per returned usable contact. Outreach debits per generated stakeholder draft/cadence.
+  Trigify monitor/fetch costs remain separate because monitors are the recurring risk.
 
 ### 18. Notifications + plan-aware monitoring
 

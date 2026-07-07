@@ -68,7 +68,7 @@ fully specified, build not started except Stage A).
 ### V2: fully specified, not built
 
 Plan: `.claude/tasks/trigify-signals-into-account-planning.md` — Stage B tasks 13–19c
-(+17a-d, 14b, 14c). Feedback through round 12 (2026-07-07) is recorded in the plan + delta +
+(+17a-d, 14b, 14c, 15d). Feedback through round 13 (2026-07-07) is recorded in the plan + delta +
 ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta):
 
 1. 8-tab UI: Overview / People / Buying Group / Signals / Outreach / Data Gaps / Plan /
@@ -82,8 +82,8 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    Outreach** + Key People + **Blockers & Risks**. Top Signals stays above This Outreach;
    blockers complement the outreach summary instead of replacing it. No-open-deal records
    show account-development metrics instead of blank deal cards. No-data records show a
-   first-run **Generate full account plan** state with projected credits and remaining
-   rep budget.
+   configurable **Build this account workspace** state where the rep selects modules and
+   sees output-based credit ranges before running.
 4. Data Gaps tab = working queue for missing/stale CRM properties, enrichment/research
    outputs, and coverage inputs only. It replaces CRM Gap/Data Quality callouts in
    Signals. Do **not** show account/business states ("no open deal"), Woodpecker/provider
@@ -115,8 +115,10 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    one credit-metering system (`credit_ledger`); Free trial ~30 credits / Pro from
    $99/mo (we manage keys EXCEPT Woodpecker) / Enterprise (BYO + custom + full-service).
    Apollo PROMOTED to the prospecting/enrichment provider. Reps can generate full account
-   plans ad hoc from a company record if tenant credits and their personal monthly cap
-   allow it; every credit CTA shows projected cost + rep remaining + tenant remaining.
+   workspace outputs ad hoc from a company record if tenant credits and their personal
+   monthly cap allow it; every credit CTA shows projected range + rep remaining + tenant
+   remaining. Clicking generate does not debit; debits happen only for saved outputs or
+   usable returned data. HubSpot-source reads/fixes cost 0 credits.
    Open decision: show underlying API sources on managed tier (recommend yes).
    9b. Settings IA (round 7): native HubSpot app settings page (new-platform settings
    component) replaces the hosted settings app (now fallback); superadmin/admin-only
@@ -170,6 +172,18 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    Address, Web Technologies, Website URL, Year founded. Optional company fields: Total
    Money Raised, X account handle. Use the "Hubspot Company Enrichment Taxonomy" Google
    Sheet for revenue ranges, employee ranges, industries, keywords, and web technologies.
+   9h. Round 13 (2026-07-07): **Configurable generation + HubSpot signals** — no-data
+   first run is a module picker, not one full-plan bundle. Account research lives in
+   Context and is low-cost; buying-group regenerate is low-cost; people
+   prospecting/enrichment is the main output-based spend. Buying Group supports empty/
+   manual build states and multiple flexible role slots while preserving the real-people
+   count invariant. Sync to HubSpot is explicit only and uses sync/write copy/icons.
+   People cards show required contact fields. Signals filter by company/contact level and
+   type, show timestamps/provenance/CRM engagement summaries, remove Copy Link, and treat
+   Apollo enrichment as a data event unless paired with observable buying intent.
+   Settings adds superadmin HubSpot signal rules from properties, lists, object changes,
+   workflows/webhooks, and custom events; these render as HubSpot-source 0-credit
+   signals with expiration/lookback.
 12. Mintlify docs task 19b (repo `romeoman/mintlify-docs`, `mint` CLI, deploy on push).
 
 **App roles & permissions (round 9):** three app roles layered on HubSpot's own perms —
@@ -187,11 +201,12 @@ identity, constant-time Woodpecker webhook compare).
 
 - **ChatPRD** (source-of-truth PRDs, project "Account Planning in HubSpot"):
   https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot —
-  **ROUNDS 8-12 SYNCED 2026-07-07** via direct authenticated ChatPRD MCP after the
+  **ROUNDS 8-13 SYNCED 2026-07-07** via direct authenticated ChatPRD MCP after the
   Codex `mcp login chatprd` flow. Existing docs were updated with round markers including
   `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
   `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`,
-  and `ChatPRD sync addendum — round 12 data-gap property discipline — 2026-07-07`;
+  `ChatPRD sync addendum — round 12 data-gap property discipline — 2026-07-07`, and
+  `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`;
   Pricing was refreshed from
   `planning/chatprd/PRICING_AND_PACKAGING.md`; the NEW "Credit Economics & Sizing"
   doc was created as `faa0a41d-407b-4fe9-83b9-e7a6845a2a86`. The earlier 2026-07-06
@@ -202,12 +217,12 @@ identity, constant-time Woodpecker webhook compare).
   OAuth, can flap across restarts — retry once, then re-auth with `codex mcp login
   chatprd` if needed).
 
-### ChatPRD sync — RESOLVED (rounds 8-12)
+### ChatPRD sync — RESOLVED (rounds 8-13)
 
-**Status:** rounds 8-12 are now in the ChatPRD cloud docs. Verification readbacks on
+**Status:** rounds 8-13 are now in the ChatPRD cloud docs. Verification readbacks on
 2026-07-07 found the sync markers in each changed document, plus Pricing-specific checks
-for "Rep-initiated account generation" and "One-time subtotal without monitors", and
-Credit Economics checks for "Round 11 update — workspace-visible rep budgets".
+for output-based account generation, and Credit Economics checks for the round 13
+output-based workspace builder update.
 
 **ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
 
@@ -220,16 +235,17 @@ Credit Economics checks for "Round 11 update — workspace-visible rep budgets".
 | `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2f           | 10    | Prototype/feature/technical/database/QA/handoff docs            |
 | `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2g           | 11    | Prototype/product/feature/technical/database/pricing/QA/handoff |
 | `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2h           | 12    | Prototype/product/feature/technical/database/QA/handoff         |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2i           | 13    | Prototype/product/feature/technical/database/pricing/credit/QA/handoff |
 | `planning/chatprd/PRICING_AND_PACKAGING.md` (per-contact + top-ups) | 8/9   | "Pricing & Packaging" (`0b2aae63-a4de-4ebe-bf13-41124843cf2b`) |
 | `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md` (NEW doc)         | 9     | "Credit Economics & Sizing" (`faa0a41d-407b-4fe9-83b9-e7a6845a2a86`) |
 | `tenant_users` + `usage_events` schema (delta §2e / plan task 15c)  | 9     | "Database Schema Design" (`8554b95a-...`)                      |
 | `account_data_gaps` + `account_generation_runs` schema (delta §2g/§2h) | 11-12 | "Database Schema Design" (`8554b95a-...`)                      |
-| `docs/HANDOFF.md` (this file)                                       | 8-12  | "Engineering Handoff" (`b018a084-a75c-4d27-89ae-91db4f4be454`) |
+| `docs/HANDOFF.md` (this file)                                       | 8-13  | "Engineering Handoff" (`b018a084-a75c-4d27-89ae-91db4f4be454`) |
 
 **Other repo paths a syncing agent needs:**
 
 - Execution plan (all rounds, tasks 13–19c incl. 15c RBAC): `.claude/tasks/trigify-signals-into-account-planning.md`
-- Round-by-round delta (§2a–§2h, all synced through round 12): `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`
+- Round-by-round delta (§2a–§2i, all synced through round 13): `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`
 - Planning index (resolves any moved paths): `PLANNING_INDEX.md`
 
 **Remaining ChatPRD UI-only cleanup:** root-level docs — "Pricing & Packaging"
@@ -239,15 +255,17 @@ duplicate QA docs (`f704414e`, `7aed1d8b`) should be archived/deleted. These are
 actions in ChatPRD, not MCP calls.
 
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, active
-  artifact `04cac785-44e0-4265-b9a2-5cf7df2ddf93` (round 12 property-only Data
-  Gaps; built on v16 round-11 Overview layout fix, v15 blocked-budget toggle, v14
+  artifact `aa9fee3c-3aa4-437f-9c06-8d7df6824b2a` (round 13 configurable generation,
+  output-based credits, flexible buying-group roles, real signal filters, and HubSpot
+  signal-rule settings; built on v17 round-12 property-only Data Gaps, v16 round-11
+  Overview layout fix, v15 blocked-budget toggle, v14
   Data Gaps/no-data empty state, v13 Woodpecker reuse-first modal, v11 round-9 Team
   & access + Usage & logs settings tabs, and v9/v10 round-8 Overview hub/ranked
   signals/cross-ref outreach/toggle/plain-English notifications) —
   the editor is collaborative, so always call `get_artifact` for the CURRENT active
   artifact instead of trusting a cached ID. `v2/*` files; `v2/AppV2.tsx` switches
   between the workspace view (8 tabs) and the settings view (header settings button →
-  `AppSettingsChromeV2`, back link returns). **COMPLETE — published through round 12
+  `AppSettingsChromeV2`, back link returns). **COMPLETE — published through round 13
   (2026-07-07):** all 8 workspace tabs incl. Data Gaps; Overview has one top Executive
   Summary, separate Why Now, Top Signals above This Outreach, Blockers & Risks,
   no-deal/no-data/full-account-plan credit preview states, and account/settings/budget

@@ -5,6 +5,7 @@
 **ChatPRD sync markers:**
 - `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
 - `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`
+- `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`
 
 **Written 2026-07-07 (round 9, Romeo asked: "think about this 500 credits… is it enough
 to use that or not, and how do we do it").** This doc answers three questions: (1) does
@@ -20,33 +21,33 @@ we decide the number. Companion to `PRICING_AND_PACKAGING.md` (tiers + credit ta
   who tracks 20 accounts + their people burns most of the 500 just _maintaining
   monitoring_, leaving little for research/outreach. That is the binding constraint, not
   one-time research.
-- **500 is enough for ~4–6 actively-worked NEW accounts/mo plus light monitoring — NOT
-  for a rep running 15–20 accounts with full monitoring.** The earlier "20–25 cycles"
-  estimate assumed a much lighter cycle (no per-person cadences, few enrichments, no
-  recurring monitors) and is optimistic once round-8 multi-stakeholder outreach + tracking
-  are in play.
+- **500 is enough for many light research/map runs, but prospecting and recurring
+  monitors decide the real limit.** The earlier "20–25 cycles" estimate assumed a much
+  lighter cycle; the latest model is configurable and output-based, so cost depends on
+  returned contacts, outreach stakeholders, and monitor choices.
 - **Recommendation:** (a) DECOUPLE "tracked accounts" (monitors) from the research/
   outreach credit pool — meter monitoring as a separate "active monitors" count per tier,
   or charge it far lower; (b) ship per-rep budgets + the Usage & logs tab and INSTRUMENT
   real usage before hard-committing 500; (c) keep the number config-driven so we can move
   it without a code change.
 
-## The unit: a "full account cycle" (round-8 realistic, multi-stakeholder)
+## The unit: selectable account workspace modules (round-13 realistic)
 
-| Action                                | Credits      | Notes                                 |
-| ------------------------------------- | ------------ | ------------------------------------- |
-| Account research run                  | 12           | one-time per account                  |
-| Buying-group generation               | 3            | one-time                              |
-| Apollo enrichment                     | ~20          | ~5 contacts × 4                       |
-| Outreach cadence (per person)         | 24           | 3 stakeholders × 8                    |
-| **One-time subtotal**                 | **~59**      | first touch of an account             |
-| Trigify monitors (company + 2 people) | **54 / mo**  | 3 × 18 — **RECURRING**                |
-| **First-month total**                 | **~113**     |                                       |
-| **Ongoing (monitors only)**           | **~54 / mo** | persists until the monitor is removed |
+| Action                                | Credits       | Notes                                      |
+| ------------------------------------- | ------------- | ------------------------------------------ |
+| Account research run                  | 1-2           | low-cost Context output                    |
+| Buying-group mapping/regenerate       | 1             | low-cost, editable                         |
+| Apollo enrichment / prospecting       | 0-40+         | max contacts × 4; debit only returned data |
+| Outreach cadence (per person)         | 24            | 3 stakeholders × 8                         |
+| **One-time subtotal, no monitors**    | **~2-67+**    | depends on selected modules and returns    |
+| Trigify monitors (company + 2 people) | **54 / mo**   | 3 × 18 — **RECURRING**                     |
+| **First-month total with monitors**   | **~56-121+**  | if monitors are selected                   |
+| **Ongoing (monitors only)**           | **~54 / mo**  | persists until the monitor is removed      |
 
 So 500 credits/mo buys roughly:
 
-- **First month:** ~4 brand-new full cycles (4 × 113 = 452), or
+- **First month:** many light account-research/map runs, or ~4 prospecting-heavy,
+  monitored multi-stakeholder runs.
 - **Steady state:** the recurring monitor load of ~9 fully-tracked accounts (9 × 54 = 486)
   leaves ~14 credits for anything else — i.e. monitoring saturates the allowance fast.
 
@@ -55,7 +56,8 @@ So 500 credits/mo buys roughly:
 Worst-case COGS if a customer burns all 500 in the most expensive way:
 
 - All Apollo enrichment: 500/4 = 125 contacts × up to $0.16 = **~$20/mo**
-- All research: 500/12 = 41 runs × $0.17 = **~$7/mo**
+- All research: 500/2 = 250 light research runs; provider COGS stays low, but rate limits
+  and useful output quality matter more than margin.
 - All monitors: 500/18 = 27 monitors × up to $0.40 = **~$11/mo recurring**
 
 Against $99 revenue that is **80–93% gross margin**. Even a heavy month is safe. Margin
@@ -106,14 +108,38 @@ Romeo clarified that generation should be **rep-initiated ad hoc from the compan
 not primarily a superadmin-curated target-account batch. Pricing/credits UX therefore must
 show the rep's personal monthly cap and remaining credits at the point of action:
 
-- blank/no-data account → **Generate full account plan** shows the itemized projected
-  credit cost before debit;
+- blank/no-data account → **Build this account workspace** shows selectable modules and
+  itemized projected credit ranges before running;
 - no-open-deal account → generation still works, with no-deal treated as a planning state,
   not an error;
 - blocked runs (rep cap, tenant pool, missing provider setup) are explicit states and are
   logged like successful debits;
 - Usage & logs remains the admin/superadmin reporting surface, but reps see their own
   remaining budget in the workspace.
+
+## Round 13 update — output-based workspace builder
+
+Romeo clarified that the no-data state must not force a bundled full-plan run. The
+workspace builder is configurable and the debit is output-based:
+
+- account research is a low-cost Context output (default 1-2 credits) because normal Exa
+  search/content plus a short LLM synthesis is cheap relative to prospecting;
+- buying-group mapping/regenerate is low cost (default 1 credit; 0.5 only if fractional
+  credits are supported later);
+- HubSpot-source reads, existing HubSpot contacts, HubSpot property fixes, and
+  superadmin-defined HubSpot signal rules cost 0 credits;
+- people prospecting/enrichment is the main spend driver and debits per usable returned
+  contact, not per click;
+- outreach draft generation remains per stakeholder/cadence;
+- Trigify monitor/fetch economics remain separate from account research because monitors
+  can recur and crowd out the pool.
+
+The sizing model therefore shifts from one fixed "full account cycle" to a menu of
+selected modules. A light no-data account with only account research + buying-group
+mapping can cost ~2-3 credits; a prospecting-heavy run with 10 returned contacts can cost
+40+ credits before outreach. This reinforces the original conclusion: 500 credits is not
+primarily a COGS risk, but we need Usage & logs to learn real per-rep behavior and tune
+default caps.
 
 ## Open questions to resolve before GA pricing lock
 
