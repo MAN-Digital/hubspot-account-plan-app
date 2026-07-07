@@ -153,6 +153,17 @@ Link + template id above. Screen-by-screen (v2 components):
   PREFILL IMPOSSIBLE via URL → auto-copy message to clipboard, rep pastes + sends).
   Warm-up state surfaces in Plan coordination + Outreach per-person stage. New
   `warm_intros` storage (mutual_connections + intro_requests jsonb, tenant-scoped).
+- **Warm-paths presentation (2026-07-07, CTD.ai reference — screenshot from Romeo):**
+  adopt their language + summary metrics in our UI: a per-account "warm paths" summary
+  chip on Overview/header (e.g. "12 warm paths · 3 strong · 2 to the buying group"), an
+  account-level relationship-strength score chip ("67 · Strong"), and per-target paths
+  graded strong/medium rather than a flat connector list. V2 stays MANUAL-first (rep
+  enters mutual connections per Romeo's flow); CTD.ai itself exposes an API
+  (`GET /v1/paths?company=…`) + MCP — flag **CTD.ai as an optional future warm-path
+  PROVIDER behind the existing provider-adapter pattern (V2.5 candidate)**: a tenant
+  connecting CTD.ai would auto-populate warm paths instead of manual entry; manual entry
+  remains the fallback. Job-change alerts in their design overlap with our Trigify
+  role-change signals — no new work needed there.
 - **Trust requirements (2026-07-07):** Trigify appears as a first-class source (badges,
   filters, data-sources footer) beside Exa/HubSpot; EVERY displayed fact/signal carries
   a clickable verify-source link (evidence URL); Plan tab is AI-generated but
