@@ -1,6 +1,6 @@
 # V2 Expansion PRD Delta — Account Workspace UI + Outreach Engine + Monitoring
 
-**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 11 on
+**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 12 on
 2026-07-07 via the authenticated `chatprd` MCP.
 **ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
 **Sync record (2026-07-06):** every section below has been applied to its target ChatPRD
@@ -25,6 +25,8 @@ Round 11 §2g was synced to the mapped docs with marker
 `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`.
 The round 11 Overview correction was synced with marker
 `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`.
+The round 12 Data Gaps property discipline was synced with marker
+`ChatPRD sync addendum — round 12 data-gap property discipline — 2026-07-07`.
 
 ---
 
@@ -42,7 +44,8 @@ engine**, porting proven logic from the OpenClaw outreach-engine
    `.claude/tasks/trigify-signals-into-account-planning.md`, tasks 1–12).
 2. **Account workspace UI** — the Magic Patterns design
    (https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35, editor id
-   `xmdzva7bxdn4ubmtrbvs35`, active artifact `b9bdba8b-...`, use the **v2/** components)
+   `xmdzva7bxdn4ubmtrbvs35`, active artifact `04cac785-44e0-4265-b9a2-5cf7df2ddf93`,
+   use the **v2/** components)
    becomes the canonical screen-by-screen UI reference: 8 tabs — Overview, People,
    Buying Group, Signals, Outreach, Data Gaps, Plan, Context.
 3. **On-demand account research** — a "Generate account research" button per company,
@@ -66,7 +69,8 @@ engine**, porting proven logic from the OpenClaw outreach-engine
 > the empty state; the app shows projected credit cost and my remaining monthly rep
 > budget before it runs. If there is no open deal, the Overview switches to an
 > account-development view instead of showing blank deal metrics. The **Data Gaps** tab
-> lists missing CRM/research inputs and lets me solve them by researching, enriching,
+> lists missing CRM/research properties and prospect/signal coverage inputs only, so I can
+> solve them by researching, enriching,
 > creating a task, or explicitly
 > marking a gap not needed. If Trigify is connected, the **Signals** tab shows past
 > signals within my plan's lookback window (30d vs 14d) and monitoring is on; when a new
@@ -134,13 +138,19 @@ Link + template id above. Screen-by-screen (v2 components):
   Transcript"), detail panel with snippet. Signals owns observed evidence only; CRM/data
   gaps move out of this tab into **Data Gaps**.
 - **Data Gaps** (`v2/DataGapsTabV2.tsx`): a new first-class tab between Outreach and
-  Plan/Context. It lists missing or stale inputs that would improve the account plan,
-  context, buying group, or outreach: no open deal, missing amount/stage/close date,
-  missing ICP/industry/domain, stale last activity, missing LinkedIn URLs, unknown
-  buying roles, weak signal coverage, missing warm paths, missing Woodpecker/provider
-  setup, and low-confidence research. Each gap shows impact, suggested resolution,
-  owner, projected credits if enrichment/research is needed, and actions: Research,
-  Enrich people, Create HubSpot task, Update CRM, Mark not needed. No silent CRM writes.
+  Plan/Context. It lists missing or stale CRM/research **properties** and coverage inputs
+  that would improve the account plan, context, buying group, or outreach. Valid Data Gaps
+  include missing company firmographics, missing company LinkedIn/website/domain fields,
+  missing or stale contact title/location/seniority/LinkedIn fields, too few prospected
+  people to form the buying group, missing relevant buying roles such as procurement or
+  legal when the motion needs them, too few observed signals to ground the plan, and
+  account research not yet run or stale. Invalid Data Gaps: business states such as "no
+  open deal for Seattle expansion", settings/integration states such as Woodpecker not
+  connected, and budget/credit-pool blockers. Those may appear in Overview Blockers &
+  Risks or Settings, but not as Data Gaps. Each gap shows the missing property/coverage
+  input, impact, suggested resolution, owner, projected credits if enrichment/research is
+  needed, and actions: Research, Enrich people, Create HubSpot task, Update CRM, Mark not
+  needed. No silent CRM writes.
 - **Plan** (`v2/PlanTabV2.tsx`): timeline of account events (deal stage moves, signal
   milestones, resolved data-gap events), "This week" actions, messaging guidance (Lead
   With / Anchor On / Avoid).
@@ -151,7 +161,12 @@ Link + template id above. Screen-by-screen (v2 components):
 - **Buying Group tab (added 2026-07-07):** AI-generated buying group per company/deal
   (roles: Economic Buyer / Decision Maker / Champion / Technical Evaluator / Blocker),
   grounded in signals + CRM activity with per-person evidence + confidence, coverage
-  gaps, fully editable, persisted (`buying_groups` table). Explicit "Sync roles to
+  gaps, fully editable, persisted (`buying_groups` table). The role list and org chart
+  must be generated from the same real prospected people shown on the People tab; counts
+  must stay synchronized. If People has 3 contacts/prospects, Buying Group cannot display
+  7 named role people. Missing role coverage is shown as explicit unfilled roles or as a
+  Data Gap such as "not enough prospects for the buying group", not as fabricated people.
+  Explicit "Sync roles to
   HubSpot" writes association-v4 labels + buying-role property (opt-in action, logged,
   reversible; works on Pro+). Native HubSpot Buying Groups = Enterprise-only, manual,
   no public API — ours is the cross-tier, evidence-backed alternative.
@@ -458,6 +473,51 @@ Correction synced with marker
    is an account state, not an error state. Budget/provider blockers are explicit states
    with a resolution path.
 
+## 2h. Round 12 feedback (2026-07-07 — Data Gaps are missing properties, not business/settings states)
+
+**ChatPRD sync:** sync this section to Specs for the AI prototype, Product Brief, Feature
+Implementation Spec, Technical Design Document, Database Schema, QA & Verification Plan,
+and Engineering Handoff with marker
+`ChatPRD sync addendum — round 12 data-gap property discipline — 2026-07-07`.
+
+1. **Data Gaps must be smart property gaps.** Never suggest a gap like "No open deal for
+   Seattle expansion." No-open-deal is an account journey state and may appear in Overview
+   Blockers & Risks or account-development CTAs, but it is not missing data. Data Gaps only
+   covers missing/stale CRM properties, missing enrichment/research outputs, and missing
+   coverage inputs that improve the plan context.
+2. **Do not mix settings or budget into Data Gaps.** Woodpecker not connected, provider not
+   configured, and credit pool/rep budget issues are Settings/Billing blockers. They must
+   not be shown as Data Gaps.
+3. **Required contact context fields.** For every person used in People, Buying Group, or
+   Outreach, evaluate whether these fields exist or are stale: City, Country, Country Code,
+   Employment Role, Employment Seniority, Employment Sub Role, First Name, Job Title, Last
+   Name, LinkedIn URL, State/Region, State/Region Code. Missing LinkedIn URL and outdated
+   title are high-priority gaps because they block signal monitoring, enrichment, buying-role
+   confidence, and outreach accuracy.
+4. **Required company context fields.** For every account, evaluate whether these fields
+   exist or are stale: Annual revenue, City, Company domain name, Company keywords, Company
+   name, Country/Region, Country/Region Code, Description, Employee range, Industry,
+   LinkedIn company page, Number of employees, Phone number, Revenue range, State/Region,
+   State/Region Code, Street Address, Web Technologies, Website URL, Year founded. Optional
+   company enrichment fields: Total Money Raised, X account handle. The user-provided
+   Google Sheet "Hubspot Company Enrichment Taxonomy" is the taxonomy source for revenue
+   ranges, employee ranges, industries, company keywords, and web technologies.
+5. **Buying Group and People counts must stay in sync.** The Buying Group role list/org
+   chart is derived from the real people in the People tab. If the People tab has three
+   prospects, the Buying Group cannot show seven named people. Show unfilled role slots or
+   explicit coverage gaps instead. Examples: "Not enough prospects for the buying group" or
+   "Missing procurement/legal contact" when relevant to the motion.
+6. **Signal coverage is a data/research gap, not a fake signal.** If there are not enough
+   observed signals to build the plan context, Data Gaps should ask to fetch/add signals or
+   run account research. Signals remains observed evidence only.
+7. **HubSpot property source of truth.** The evaluator must retrieve the portal's available
+   contact and company properties through HubSpot's Properties API, because HubSpot includes
+   default properties and each tenant may have custom or renamed labels. Internally the app
+   should use a configurable property manifest that maps display labels to portal property
+   names. HubSpot docs confirm contact/company records are property-based, companies can be
+   deduped by domain, and contact-company relationships are associations; the app must read
+   those primitives rather than inventing plan context.
+
 ## 3. Technical Design Document
 
 **Apply — new subsystems (all tenant-isolated, config-driven, BYO keys):**
@@ -470,11 +530,14 @@ Correction synced with marker
    (sections match the Context tab) plus a first account-plan draft and data-gap
    assessment. Persisted per (tenant, company) with regenerate semantics + staleness
    display. It supports no-open-deal and no-data records explicitly.
-3. **Data-gap engine** — evaluates company/deal/contact/research completeness and writes
-   tenant-scoped `account_data_gaps`: gap type, severity, impact, suggested fix, owner,
-   status, source, projected credits, and resolution audit. It feeds Overview blockers,
-   Data Gaps tab, Plan context, and QA/no-data states. It never writes CRM fields
-   silently; Update CRM and task creation are explicit actions.
+3. **Data-gap engine** — evaluates company/contact/research/signal completeness against a
+   configurable required-property manifest and writes tenant-scoped `account_data_gaps`:
+   object type, property key/label or coverage category, gap type, severity, impact,
+   suggested fix, owner, status, source, projected credits, and resolution audit. It feeds
+   Overview blockers, Data Gaps tab, Plan context, and QA/no-data states. It never writes
+   CRM fields silently; Update CRM and task creation are explicit actions. Deal absence,
+   provider setup, Woodpecker connection state, and credit blockers are account/settings
+   blockers, not Data Gaps.
 4. **Outreach pipeline** — TS port of the OpenClaw envelope model:
    `outreach_envelope` (company + people + signals + positioning + vocabulary) →
    `cadence` step (strategist prompt: fit-grade contacts, one funnel stage, 5+ signal-led
@@ -517,10 +580,13 @@ Correction synced with marker
 - `account_research` — id, tenant_id, company_id, status, sections (jsonb), sources
   (jsonb, provenance), generated_by (llm provider/model), created_at; latest-per-company
   view; regenerate keeps history.
-- `account_data_gaps` — id, tenant_id, company_id, deal_id?, contact_id?, gap_type,
-  severity, impact, suggested_fix, owner_hubspot_user_id?, source, projected_credits,
-  status (open/in_progress/resolved/ignored), resolution_ref, created_at, updated_at.
-  Feeds Overview blockers and the Data Gaps tab; no silent CRM writes.
+- `account_data_gaps` — id, tenant_id, company_id, contact_id?, object_type
+  (company/contact/research/signal_coverage/buying_group_coverage), property_key?,
+  property_label?, gap_type, severity, impact, suggested_fix, owner_hubspot_user_id?,
+  source, projected_credits, status (open/in_progress/resolved/ignored), resolution_ref,
+  created_at, updated_at. Feeds Overview blockers and the Data Gaps tab; no silent CRM
+  writes. Do not store account business states such as no-open-deal, settings states such
+  as Woodpecker not connected, or budget blockers as data-gap rows.
 - `account_generation_runs` — id, tenant_id, company_id, requested_by_hubspot_user_id,
   trigger (workspace/workflow), requested_scope (research/buying_group/outreach/monitor),
   projected_credits, debited_credits, status, blockers (jsonb), created_at, completed_at.

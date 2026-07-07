@@ -190,7 +190,8 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 
 > Canonical UI for the V2 workspace: Magic Patterns design
 > https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35 (editor id
-> `xmdzva7bxdn4ubmtrbvs35`; use the **`v2/*` components** — v1 files are an earlier
+> `xmdzva7bxdn4ubmtrbvs35`; active artifact
+> `04cac785-44e0-4265-b9a2-5cf7df2ddf93`; use the **`v2/*` components** — v1 files are an earlier
 > iteration). Read via the Magic Patterns MCP (`get_artifact` → `read_artifact_files`).
 
 ### Layout Patterns
@@ -652,11 +653,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   (m) **Overview is top summary + outreach + blockers, not a weak next-move card.** Keep
   exactly one Executive Summary at the top; keep "Why now" as a separate evidence callout;
   keep Top Signals above the restored **This Outreach** mini-summary; and replace the
-  standalone Recommended Next Move card with Blockers & Risks. Blockers include no open
-  deal, missing amount/stage/close date, stale CRM, missing buying roles, missing
-  LinkedIn URLs, missing warm path, no verified signal, provider setup, and rep/tenant
-  credit limits. Each blocker deep-links to the resolving action and must not delete or
-  replace the Outreach overview section.
+  standalone Recommended Next Move card with Blockers & Risks. Blockers may include no
+  open deal, setup/provider issues, and rep/tenant credit limits, but those are account or
+  settings blockers, not Data Gaps. Data-gap blockers are limited to missing/stale CRM
+  properties, missing enrichment/research outputs, and missing coverage inputs. Each
+  blocker deep-links to the resolving action and must not delete or replace the Outreach
+  overview section.
   (n) **No-open-deal variant:** the Overview must not render blank deal metric cards.
   When no active deal exists, show account-development highlights: fit/ICP, last
   meaningful CRM activity, strongest signal, buying-group coverage, warm paths, and
@@ -670,6 +672,11 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   Data Quality out of Signals. Data Gaps is a working task list with gap type, impact,
   source, owner, suggested fix, projected credits, status, and actions (Research, Enrich
   people, Create HubSpot task, Update CRM, Mark not needed). No silent CRM writes.
+  (q) **Data Gaps property discipline (round 12, Romeo 2026-07-07):** never suggest
+  business-state gaps like "No open deal for Seattle expansion." Data Gaps only covers
+  missing/stale CRM properties, missing enrichment/research outputs, and missing coverage
+  inputs that improve the plan context. Woodpecker/provider connection and credit pool
+  issues are settings/billing blockers, not Data Gaps.
 - TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components
   (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (state
   KPI strip, one top Executive Summary, separate Why-Now, Top Signals, This Outreach,
@@ -684,21 +691,37 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Assigned To**: `tab-frontend` + `signal-backend`
 - **Agent Type**: frontend-specialist + backend-engineer
 - **Parallel**: true after schema slice starts
-- Requested by Romeo round 11. Build a first-class **Data Gaps** tab and feed its highest
-  severity items into Overview Blockers & Risks. The tab is a work queue for missing or
-  stale account data: no open deal, missing CRM deal fields, weak/no verified signal,
-  missing company domain/industry/ICP fields, stale activity, unknown buying roles,
-  missing LinkedIn URLs, missing warm paths, missing provider setup, low research
-  confidence, and credit/budget blockers.
-- Backend: create a data-gap evaluator that reads HubSpot company/deal/contact data,
-  signal store, research status, provider setup, and credit state; writes
-  `account_data_gaps`; resolves/ignores gaps with audit metadata. It must not write CRM
-  fields automatically.
+- Requested by Romeo round 11 and corrected round 12. Build a first-class **Data Gaps**
+  tab and feed its highest severity data-quality items into Overview Blockers & Risks. The
+  tab is a work queue for missing/stale CRM properties, enrichment/research outputs, and
+  coverage inputs only. Valid examples: missing company domain/industry/website/LinkedIn,
+  incomplete firmographics, missing contact LinkedIn URL, outdated title, not enough
+  prospected people to form the buying group, missing procurement/legal contact when
+  relevant, too few observed signals, or account research not yet run/stale. Invalid
+  examples: no open deal, Woodpecker not connected, provider setup, credit pool, or rep
+  budget blockers.
+- Backend: create a data-gap evaluator that reads HubSpot company/contact properties,
+  associated contacts, signal store, and research status; retrieves the portal's property
+  definitions through HubSpot's Properties API; maps them through a configurable required
+  property manifest; writes `account_data_gaps`; resolves/ignores gaps with audit metadata.
+  It must not write CRM fields automatically.
+- Required contact fields: City, Country, Country Code, Employment Role, Employment
+  Seniority, Employment Sub Role, First Name, Job Title, Last Name, LinkedIn URL,
+  State/Region, State/Region Code.
+- Required company fields: Annual revenue, City, Company domain name, Company keywords,
+  Company name, Country/Region, Country/Region Code, Description, Employee range,
+  Industry, LinkedIn company page, Number of employees, Phone number, Revenue range,
+  State/Region, State/Region Code, Street Address, Web Technologies, Website URL, Year
+  founded. Optional: Total Money Raised, X account handle. Use the user-provided
+  "Hubspot Company Enrichment Taxonomy" spreadsheet as the taxonomy for annual revenue
+  ranges, employee ranges, industries, company keywords, and web technologies.
 - UI: rows/cards show severity, impact, source, suggested fix, owner, projected credits,
   status, and action buttons. Actions may launch research/enrichment, create HubSpot
   tasks, or open explicit CRM update flows. "Mark not needed" requires a reason.
 - QA: no data gap should appear as a signal; Signals remains observed evidence only.
-  Overview must link each blocker to Data Gaps or the exact resolving tab/action.
+  Overview must link each blocker to Data Gaps or the exact resolving tab/action. Add
+  negative tests proving no-open-deal, Woodpecker-not-connected, provider setup, credit
+  pool, and rep-budget issues do not create `account_data_gaps` rows.
 
 ### 14b. Buying Group tab (AI-generated, editable)
 
@@ -709,7 +732,7 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Parallel**: true
 - Requested by Romeo 2026-07-07; layout REVISED same day to the OrgChartHub-style ORG CHART (see task 14 feedback round 2, item e).
 - **Editing requirements (round 4):** manual editing is first-class alongside AI regenerate: (a) **Replace person** on any card — picker synced with the REAL CRM contact list (company-associated contacts, same source as the People tab); (b) role + person editable in BOTH the org chart AND the roles-list view; (c) placeholder/gap cards are fillable by assigning a contact from the picker; (d) manual edits survive Regenerate (AI proposes, never clobbers rep edits without confirm). Verified facts: HubSpot's native Buying Groups is **Sales Hub Enterprise only**, list-based, manual, with NO public dedicated API. The underlying primitives ARE public: **associations v4 custom labels** (contact↔deal/company, `POST /crm/associations/2026-03/{from}/{to}/labels`, Pro+ tiers, 10 labels/pairing) + the `hs_buying_role` contact property.
-- Build OUR buying-group surface (works on all tiers, differentiator vs native): new "Buying Group" tab — AI-suggested role assignment (Economic Buyer / Decision Maker / Champion / Technical Evaluator / Blocker) grounded in signals + CRM activity with per-person evidence + AI-confidence, role-coverage bar with explicit gaps, EDITABLE from day one (add person, change role, regenerate; drag-between-roles may ship later), persisted per (tenant, company) — add `buying_groups` table (jsonb) to v2-schema.
+- Build OUR buying-group surface (works on all tiers, differentiator vs native): new "Buying Group" tab — AI-suggested role assignment (Economic Buyer / Decision Maker / Champion / Technical Evaluator / Blocker) grounded in signals + CRM activity with per-person evidence + AI-confidence, role-coverage bar with explicit gaps, EDITABLE from day one (add person, change role, regenerate; drag-between-roles may ship later), persisted per (tenant, company) — add `buying_groups` table (jsonb) to v2-schema. The role list/org chart must be generated from the same real associated/prospected people shown in the People tab; counts must stay synchronized. If People shows 3 people, Buying Group cannot show 7 named people. Show unfilled role slots or a Data Gap like "not enough prospects for the buying group" instead of fabricating role occupants.
 - **Sync roles to HubSpot** = explicit user action (never automatic): writes association labels + buying-role property; logged, reversible, documented — same opt-in discipline as hap_* writes.
 
 ### 15. Settings surface (REVISED round 7, 2026-07-07 — placement, roles, plan-gating)
