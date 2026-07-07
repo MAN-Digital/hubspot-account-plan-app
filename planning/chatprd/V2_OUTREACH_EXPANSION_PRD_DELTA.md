@@ -136,6 +136,23 @@ Link + template id above. Screen-by-screen (v2 components):
   both); LinkedIn steps per official API: PROFILE_VISIT, CONNECTION_REQUEST,
   DIRECT_MESSAGE, INMAIL_MESSAGE; campaign DRAFT/EDITED statuses; step versions
   PATCHable with our edited copy.
+- **Outreach Angles (2026-07-07, round 3):** campaign-level angle chosen at creation,
+  shaping the whole sequence (goal/tone/frameworks/templates/QA). Presets: Interview
+  (no-pitch thought-leadership series w/ blog + landing page assets; reference
+  tsh.io/cto-vs-status-quo), Product/service feedback, Event (webinar invite / physical
+  invite / meet-at-shared-event), Direct (current motion). Custom prompt-to-angle: user
+  prompt → LLM+Exa research → structured angle definition → review → saved reusable in
+  outreach_config.angles[]. Envelope carries campaign.angle; QA enforces angle fidelity
+  (pitch inside Interview angle = hard fail). Engine parity: port against OpenClaw
+  177929a (breakup retired, signal-led final touch, LinkedIn frameworks/steps).
+- **Warm intro / connecting-the-dots (2026-07-07, round 3):** per buying-group target,
+  rep manually enters LinkedIn mutual connections (min 3 enforced, 5 ideal) →
+  enrich/qualify (Find in HubSpot / research) → score + rank connectors → pre-made
+  editable intro-request DM → one-click opens LinkedIn compose to the connector
+  (verified deep link: /messaging/compose/?recipient=… + profileUrn/interop form; BODY
+  PREFILL IMPOSSIBLE via URL → auto-copy message to clipboard, rep pastes + sends).
+  Warm-up state surfaces in Plan coordination + Outreach per-person stage. New
+  `warm_intros` storage (mutual_connections + intro_requests jsonb, tenant-scoped).
 - **Trust requirements (2026-07-07):** Trigify appears as a first-class source (badges,
   filters, data-sources footer) beside Exa/HubSpot; EVERY displayed fact/signal carries
   a clickable verify-source link (evidence URL); Plan tab is AI-generated but
