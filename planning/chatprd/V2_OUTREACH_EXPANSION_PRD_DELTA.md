@@ -205,6 +205,24 @@ availability (e.g. tabs pattern) must be verified against current HubSpot docs a
 time. The **hosted settings app** (see §4) is a normal React web app and MAY reuse the
 Magic Patterns styling (Tailwind, HubSpot-like palette) directly.
 
+## 2b. Pricing & Packaging (NEW ChatPRD document, round 6 — 2026-07-07)
+
+Create a NEW ChatPRD doc "Pricing & Packaging". Content: two supply models (managed keys
+w/ credits vs BYO keys) on one credits system; credit-metered actions (research runs,
+buying-group generation, outreach generation per person, Apollo enrichment per contact,
+Trigify monitor creates, Exa-heavy research, warm-intro scoring) with config-driven
+costs + per-tenant credit_ledger; tiers — Free trial ~30 credits (sized to research 1-2
+accounts end to end) / Pro from $99/mo (we manage Exa+Apollo+Trigify+LLM keys, customer
+brings ONLY Woodpecker; monthly allowance + top-ups; margins over researched provider
+costs; cheapest-good LLM default pending GPT-vs-Gemini cost research) / Enterprise
+custom (BYO APIs + custom cards + optional full-service: we run signals+outreach, train
+team, set up connections — retainer). Selling point: enterprise-grade buying groups on
+any HubSpot tier. Apollo PROMOTED from V2.5 to THE prospecting/enrichment provider
+(proven in OpenClaw signals_source.py + apollo-api skill). Open decision: show
+underlying API sources on managed tier (recommendation: yes, trust principle). Billing
+rails: HubSpot marketplace billing vs Stripe — decide from research. Final numbers gate
+on the pricing-research brief.
+
 ## 3. Technical Design Document
 
 **Apply — new subsystems (all tenant-isolated, config-driven, BYO keys):**
