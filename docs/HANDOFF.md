@@ -152,7 +152,9 @@ contact identity, constant-time Woodpecker webhook compare).
   time). UUID registry in the plan's Notes. MCP: `chatprd` (HTTP, OAuth, flaps across
   restarts — retry once, then ask user to re-auth).
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, active
-  artifact `03a453e0-8d7e-4e5d-8d17-7e0886f22536` (v8 "Swap Plan and Outreach tabs") —
+  artifact `495ee577-b08c-458c-bf28-dfe4db5d7e58` (v11, round 9 — Team & access +
+  Usage & logs settings tabs wired; built on v9/v10 round-8 Overview hub, ranked signals,
+  cross-ref outreach, toggle fix, plain-English notifications) —
   the editor is collaborative, so always call `get_artifact` for the CURRENT active
   artifact instead of trusting a cached ID. `v2/*` files; `v2/AppV2.tsx` switches
   between the workspace view (7 tabs) and the settings view (header settings button →
