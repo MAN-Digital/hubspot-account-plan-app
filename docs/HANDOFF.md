@@ -48,7 +48,7 @@ fully specified, build not started except Stage A).
 
 ### V2: fully specified, not built
 Plan: `.claude/tasks/trigify-signals-into-account-planning.md` — Stage B tasks 13–19c
-(+17a-d, 14b). Six feedback rounds (2026-07-07) are recorded in the plan + delta +
+(+17a-d, 14b). Seven feedback rounds (2026-07-07) are recorded in the plan + delta +
 ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta):
 1. 7-tab UI: Overview / People / Buying Group / Signals / Outreach / Plan / Context.
 2. Buying Group = OrgChartHub-style org chart, AI-generated + fully editable (replace-
@@ -76,6 +76,11 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    $99/mo (we manage keys EXCEPT Woodpecker) / Enterprise (BYO + custom + full-service).
    Apollo PROMOTED to the prospecting/enrichment provider. Open decision: show
    underlying API sources on managed tier (recommend yes).
+9b. Settings IA (round 7): native HubSpot app settings page (new-platform settings
+    component) replaces the hosted settings app (now fallback); superadmin/admin-only
+    w/ server-side role checks; provider taxonomy Signals/Research/People(Apollo+
+    Harvest)/Delivery(Woodpecker BYO always)/AI; BYO key fields only on Enterprise
+    plans; no manual monitor form (card-contextual only).
 10. Mintlify docs task 19b (repo `romeoman/mintlify-docs`, `mint` CLI, deploy on push).
 11. OpenClaw engine port must track its CURRENT state — commits `177929a` (breakup
     retired, LinkedIn frameworks/steps) + F-series (15-key slot contract, signal_json
