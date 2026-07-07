@@ -1,0 +1,47 @@
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c47fd3cb9ef010::t_8669565d91a960 3,30-32,50
+  s_c47fd3cb9ef010::t_d977d851d0e429 469-476
+  s_c47fd3cb9ef010::t_fff2734459e730 701-705,707-716,733-744
+  s_c47fd3cb9ef010::t_7af6ab54ddc678 185-193
+  s_c47fd3cb9ef010::t_4ae55255715433 71-80
+  s_c47fd3cb9ef010::t_d783e5e3680ded 544-624
+  s_c47fd3cb9ef010::t_8c1e7f89bd39a8 835-839,841-844
+  s_c47fd3cb9ef010::t_60fe7abb28b4b2 631-640,644-649,679-685
+  s_c47fd3cb9ef010::t_a288d126c39f70 116-121,144-152,164-167,173-175
+planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md
+  s_c47fd3cb9ef010::t_5d38590e033a45 50,59-60
+  s_c47fd3cb9ef010::t_97affe64fc5bbd 111-112
+  s_c47fd3cb9ef010::t_cd7850f66e9796 8,120-142
+  s_c47fd3cb9ef010::t_10ffc104aa71ce 24-27,34,36-45,49
+  s_c47fd3cb9ef010::t_abaacc06606bff 143
+docs/HANDOFF.md
+  s_c47fd3cb9ef010::t_acd910e34f65e5 71,85-86,118-121,175-186,204,208-209,220,222,224-225,238,243,248,258-261,268
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c47fd3cb9ef010::t_8a62ab2ea68e18 860-868
+  s_c47fd3cb9ef010::t_332ebeb7eaa264 972-978
+  s_c47fd3cb9ef010::t_99a94ce316b283 194,666-670,965-971
+  s_c47fd3cb9ef010::t_f73fa0e6433d96 743-748
+  s_c47fd3cb9ef010::t_6ec4c5aaffcada 764-772
+  s_c47fd3cb9ef010::t_dc629525fb19aa 792-815
+  s_c47fd3cb9ef010::t_897461295e8db5 680-703
+planning/chatprd/PRICING_AND_PACKAGING.md
+  s_c47fd3cb9ef010::t_4ed843e79950e5 8,25,33-34,36,63,66-68,70,72,77-91,95-97,100-101
+PLANNING_INDEX.md
+  s_c47fd3cb9ef010::t_388e60ce0a6d30 29,31-33,79,171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a8b69e408eb9652de7ad3b452c84f70c60fed93a",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
