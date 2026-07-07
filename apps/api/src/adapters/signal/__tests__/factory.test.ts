@@ -5,6 +5,7 @@ import { ExaAdapter } from "../exa";
 import { createExaSignalAdapters, createSignalAdapter } from "../factory";
 import { HubSpotEnrichmentAdapter } from "../hubspot-enrichment";
 import { NewsAdapter } from "../news";
+import { TrigifyStoreAdapter } from "../trigify";
 
 function cfg(partial: Partial<ProviderConfig> & Pick<ProviderConfig, "name">): ProviderConfig {
   return {
@@ -85,6 +86,19 @@ describe("createSignalAdapter", () => {
     expect(a).not.toBe(b);
     expect(a.name).toBe("exa");
     expect(b.name).toBe("exa");
+  });
+
+  it("resolves trigify to a real TrigifyStoreAdapter from tenantId + db deps", () => {
+    const adapter = createSignalAdapter(cfg({ name: "trigify" }), {
+      db: stubDb,
+      tenantId: "tenant-1",
+    });
+    expect(adapter).toBeInstanceOf(TrigifyStoreAdapter);
+    expect(adapter.name).toBe("trigify");
+  });
+
+  it("refuses trigify when tenantId/db deps are missing", () => {
+    expect(() => createSignalAdapter(cfg({ name: "trigify" }))).toThrow(/tenantId.*db/i);
   });
 });
 

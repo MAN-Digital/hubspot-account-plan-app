@@ -5,5 +5,8 @@
   "buildCommand": "cd ../.. && pnpm exec tsc -b packages/config packages/db packages/validators apps/api",
   "outputDirectory": "public",
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
-  "crons": [{ "path": "/admin/keep-alive", "schedule": "0 12 * * *" }]
+  "crons": [
+    { "path": "/admin/keep-alive", "schedule": "0 12 * * *" },
+    { "path": "/admin/trigify-poll", "schedule": "0 6 * * *" }
+  ]
 }

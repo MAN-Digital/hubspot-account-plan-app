@@ -129,6 +129,13 @@ function scoreContact(contact: RawContact, signal: Evidence | null): number {
  * no signal). Order among equal scores is implementation-defined but
  * practically stable in modern engines (V8 / SpiderMonkey / JavaScriptCore
  * have all guaranteed Array.prototype.sort stability since ES2019).
+ *
+ * Stage A Task 8: when `dominantSignal.hsContactId` is set (a person-level
+ * signal resolved to a specific HubSpot contact — e.g. a Trigify role-change
+ * tied to that person's LinkedIn profile), that contact is ranked FIRST,
+ * ahead of the keyword/title scoring model — the person who fired the signal
+ * IS the person to talk to. If no fetched contact matches the id (unresolved
+ * or stale association), this has no effect: we never fabricate a match.
  */
 export function rankContacts(
   contacts: RawContact[],
@@ -138,7 +145,22 @@ export function rankContacts(
     ...c,
     score: scoreContact(c, dominantSignal),
   }));
-  return scored.sort((a, b) => b.score - a.score);
+  const sorted = scored.sort((a, b) => b.score - a.score);
+
+  const signalContactId = dominantSignal?.hsContactId;
+  if (!signalContactId) {
+    return sorted;
+  }
+  const signalContactIndex = sorted.findIndex((c) => c.id === signalContactId);
+  if (signalContactIndex <= 0) {
+    // Not found (-1), or already first (0) — nothing to reorder.
+    return sorted;
+  }
+  const [signalContact] = sorted.splice(signalContactIndex, 1);
+  if (signalContact) {
+    sorted.unshift(signalContact);
+  }
+  return sorted;
 }
 
 /**

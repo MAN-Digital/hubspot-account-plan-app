@@ -188,6 +188,69 @@ describe("getProviderConfig", () => {
     expect(second).toBeNull();
   });
 
+  it("returns the settings jsonb column (regression: settings was never selected)", async () => {
+    // Bug: getProviderConfig's SELECT omitted provider_config.settings even
+    // though ProviderConfig.settings is typed as present. Every reader of
+    // config.settings (Exa's newsEnabled gate, the Trigify ranking-config
+    // read path) silently fell back to defaults regardless of what a tenant
+    // actually stored. Settings must round-trip verbatim.
+    const tenant = await seedTenant();
+    await db.insert(providerConfig).values({
+      tenantId: tenant.id,
+      providerName: "trigify",
+      enabled: true,
+      thresholds: { freshnessMaxDays: 30, minConfidence: 0.1 },
+      settings: { sendThreshold: 0.42, newsEnabled: false },
+    });
+
+    const res = await getProviderConfig({ db }, { tenantId: tenant.id, providerName: "trigify" });
+    expect(res?.settings).toEqual({ sendThreshold: 0.42, newsEnabled: false });
+  });
+
+  it("returns settings === {} (not undefined) for a row with empty settings jsonb", async () => {
+    const tenant = await seedTenant();
+    await db.insert(providerConfig).values({
+      tenantId: tenant.id,
+      providerName: "exa",
+      enabled: true,
+      thresholds: {},
+      settings: {},
+    });
+    const res = await getProviderConfig({ db }, { tenantId: tenant.id, providerName: "exa" });
+    expect(res?.settings).toEqual({});
+  });
+
+  it("settings survive the cache round-trip (cached read matches fresh read)", async () => {
+    const tenant = await seedTenant();
+    await db.insert(providerConfig).values({
+      tenantId: tenant.id,
+      providerName: "trigify",
+      enabled: true,
+      thresholds: { freshnessMaxDays: 30, minConfidence: 0.1 },
+      settings: { sendThreshold: 0.75 },
+    });
+
+    const first = await getProviderConfig({ db }, { tenantId: tenant.id, providerName: "trigify" });
+    expect(first?.settings).toEqual({ sendThreshold: 0.75 });
+
+    // Second call must be served from cache (exploding db proxy) and still
+    // carry the same settings — proves settings is part of the cached shape,
+    // not silently dropped by freezeConfig or re-derived on every read.
+    const exploding = new Proxy(
+      {},
+      {
+        get() {
+          throw new Error("cache miss: db should not be touched");
+        },
+      },
+    ) as unknown as typeof db;
+    const second = await getProviderConfig(
+      { db: exploding },
+      { tenantId: tenant.id, providerName: "trigify" },
+    );
+    expect(second?.settings).toEqual({ sendThreshold: 0.75 });
+  });
+
   it("isolates cache per tenant (no cross-tenant leak)", async () => {
     const tenantA = await seedTenant();
     const tenantB = await seedTenant();

@@ -845,4 +845,147 @@ describe("HubSpotClient (Slice 3 — per-tenant OAuth)", () => {
     const contact = await client.findContactByEmail("ghost@nowhere.example.com");
     expect(contact).toBeNull();
   });
+
+  // ---- getAssociatedContacts (Stage A Task 8: real fetchers) ----
+
+  it("getAssociatedContacts reads company-associated contacts via v4 associations + v3 batch read", async () => {
+    const db = makeMockDb();
+    const fakeFetch = makeFakeFetchSequence(
+      {
+        status: 200,
+        body: {
+          results: [
+            {
+              from: { id: "123" },
+              to: [{ toObjectId: "contact-1" }, { toObjectId: "contact-2" }],
+            },
+          ],
+        },
+      },
+      {
+        status: 200,
+        body: {
+          results: [
+            {
+              id: "contact-1",
+              properties: {
+                firstname: "Alex",
+                lastname: "Champion",
+                jobtitle: "VP Engineering",
+                notes_last_updated: "2026-04-10T10:00:00.000Z",
+              },
+            },
+            {
+              id: "contact-2",
+              properties: {
+                firstname: "Jordan",
+                lastname: "Decider",
+                jobtitle: "CTO",
+              },
+            },
+          ],
+        },
+      },
+    );
+
+    const client = new HubSpotClient({
+      tenantId: TEST_TENANT_ID,
+      db,
+      fetch: fakeFetch,
+    });
+
+    const contacts = await client.getAssociatedContacts("123");
+
+    expect(contacts).toEqual([
+      {
+        id: "contact-1",
+        name: "Alex Champion",
+        title: "VP Engineering",
+        lastActivityAt: new Date("2026-04-10T10:00:00.000Z"),
+      },
+      {
+        id: "contact-2",
+        name: "Jordan Decider",
+        title: "CTO",
+        lastActivityAt: undefined,
+      },
+    ]);
+
+    expect(fakeFetch).toHaveBeenCalledTimes(2);
+    const [assocUrl] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(assocUrl).toMatch(/\/crm\/v4\/associations\/companies\/contacts\/batch\/read/);
+    const [batchUrl, batchInit] = (fakeFetch as ReturnType<typeof vi.fn>).mock.calls[1] as [
+      string,
+      RequestInit,
+    ];
+    expect(batchUrl).toMatch(/\/crm\/v3\/objects\/contacts\/batch\/read/);
+    const batchBody = JSON.parse(String(batchInit.body)) as {
+      inputs: Array<{ id: string }>;
+    };
+    expect(batchBody.inputs).toEqual([{ id: "contact-1" }, { id: "contact-2" }]);
+  });
+
+  it("getAssociatedContacts returns [] when the company has no associated contacts", async () => {
+    const db = makeMockDb();
+    const fakeFetch = makeFakeFetch({ results: [] });
+
+    const client = new HubSpotClient({
+      tenantId: TEST_TENANT_ID,
+      db,
+      fetch: fakeFetch,
+    });
+
+    const contacts = await client.getAssociatedContacts("123");
+    expect(contacts).toEqual([]);
+    // No batch-read call when there are no association ids to look up.
+    expect(fakeFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("getAssociatedContacts falls back to id when both name parts are missing", async () => {
+    const db = makeMockDb();
+    const fakeFetch = makeFakeFetchSequence(
+      {
+        status: 200,
+        body: {
+          results: [{ from: { id: "123" }, to: [{ toObjectId: "contact-9" }] }],
+        },
+      },
+      {
+        status: 200,
+        body: { results: [{ id: "contact-9", properties: {} }] },
+      },
+    );
+
+    const client = new HubSpotClient({
+      tenantId: TEST_TENANT_ID,
+      db,
+      fetch: fakeFetch,
+    });
+
+    const contacts = await client.getAssociatedContacts("123");
+    expect(contacts).toEqual([
+      {
+        id: "contact-9",
+        name: "contact-9",
+        title: undefined,
+        lastActivityAt: undefined,
+      },
+    ]);
+  });
+
+  it("getAssociatedContacts propagates transport errors (caller decides fallback)", async () => {
+    const db = makeMockDb();
+    const fakeFetch = makeFakeFetch({}, 500);
+
+    const client = new HubSpotClient({
+      tenantId: TEST_TENANT_ID,
+      db,
+      fetch: fakeFetch,
+    });
+
+    await expect(client.getAssociatedContacts("123")).rejects.toThrow();
+  });
 });

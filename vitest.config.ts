@@ -8,6 +8,10 @@ export default defineConfig({
     // (packages/db schema tests, apps/api tenant middleware tests).
     // Run test files sequentially to prevent cross-file DELETE races.
     fileParallelism: false,
+    // Runs ONCE before the whole suite: fails fast with one actionable error
+    // if the test DB is misconfigured (managed host + test-auth) or
+    // unreachable/un-migrated. See vitest.globalSetup.ts.
+    globalSetup: ["./vitest.globalSetup.ts"],
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.test.ts", "**/*.test.tsx"],
     exclude: [

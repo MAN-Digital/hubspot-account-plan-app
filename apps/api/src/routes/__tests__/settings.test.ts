@@ -122,6 +122,7 @@ describe("GET /api/settings", () => {
       signalProviders: {
         exa: { enabled: false, hasApiKey: false },
         hubspotEnrichment: { enabled: false, hasApiKey: false },
+        trigify: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: null,
@@ -472,6 +473,77 @@ describe("PUT /api/settings", () => {
       body: JSON.stringify({
         signalProviders: {
           hubspotEnrichment: { enabled: true, apiKey: "fake-key" },
+        },
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("enters a Trigify API key end to end: PUT stores it, GET never leaks it, config-resolver decrypts it", async () => {
+    const tenant = await seedTenant();
+    const app = await loadApp();
+
+    const putRes = await app.request("/api/settings", {
+      method: "PUT",
+      headers: {
+        Authorization: "Bearer anything",
+        "x-test-portal-id": tenant.hubspotPortalId,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        signalProviders: {
+          trigify: { enabled: true, apiKey: "trigify-secret-route" },
+        },
+      }),
+    });
+
+    expect(putRes.status).toBe(200);
+    const putBody = (await putRes.json()) as Record<string, unknown>;
+    expect(JSON.stringify(putBody)).not.toContain("trigify-secret-route");
+    expect(putBody).toMatchObject({
+      signalProviders: {
+        trigify: { enabled: true, hasApiKey: true },
+      },
+    });
+
+    const getRes = await app.request("/api/settings", {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer anything",
+        "x-test-portal-id": tenant.hubspotPortalId,
+      },
+    });
+    expect(getRes.status).toBe(200);
+    const getBody = (await getRes.json()) as Record<string, unknown>;
+    expect(JSON.stringify(getBody)).not.toContain("trigify-secret-route");
+    expect(getBody).toMatchObject({
+      signalProviders: { trigify: { enabled: true, hasApiKey: true } },
+    });
+
+    // The decrypted key must actually flow through config-resolver — this is
+    // what createSignalAdapter("trigify") and the poller read at runtime.
+    const resolved = await getProviderConfig(
+      { db },
+      { tenantId: tenant.id, providerName: "trigify" },
+    );
+    expect(resolved?.apiKeyRef).toBe("trigify-secret-route");
+    expect(resolved?.enabled).toBe(true);
+  });
+
+  it("rejects a Trigify update combining apiKey and clearApiKey with 400", async () => {
+    const tenant = await seedTenant();
+    const app = await loadApp();
+
+    const res = await app.request("/api/settings", {
+      method: "PUT",
+      headers: {
+        Authorization: "Bearer anything",
+        "x-test-portal-id": tenant.hubspotPortalId,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        signalProviders: {
+          trigify: { apiKey: "new-key", clearApiKey: true },
         },
       }),
     });

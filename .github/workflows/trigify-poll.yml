@@ -1,0 +1,55 @@
+name: Trigify poll (6-hourly)
+
+# Vercel's Hobby plan caps cron jobs at once per day (see
+# docs/runbooks/vercel-cron-hobby-plan.md), but the Trigify signal feed
+# benefits from a tighter poll cadence. This workflow supplies the real
+# 6-hourly cadence by calling the SAME /admin/trigify-poll endpoint the
+# Vercel cron hits — the endpoint is idempotent (upserts on
+# (tenantId, dedupeKey)) and read-only against Trigify (zero credit spend),
+# so calling it more often than the Vercel cron does is always safe.
+#
+# Requires the repo secret CRON_SECRET (same value as the Vercel project's
+# CRON_SECRET env var) and, optionally, PRODUCTION_URL (defaults to
+# https://hap.mandigital.dev — see docs/runbooks/vercel-deploy.md). If
+# CRON_SECRET is not configured (e.g. a fork, or before the secret is set
+# up), the job skips gracefully instead of failing the workflow — forks and
+# early CI setup should not break on a missing deployment secret. Once the
+# secret IS present, any non-200 response fails the job loudly.
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  poll:
+    name: Poll Trigify feed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CRON_SECRET is configured
+        id: check-secret
+        run: |
+          if [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CRON_SECRET repo secret is not set — skipping the Trigify poll. Set it in Settings > Secrets and variables > Actions to enable the 6-hourly poll."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Call /admin/trigify-poll
+        if: steps.check-secret.outputs.configured == 'true'
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://hap.mandigital.dev' }}
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o /tmp/trigify-poll-response.json -w "%{http_code}" \
+            -X GET \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${PRODUCTION_URL}/admin/trigify-poll")
+          echo "HTTP status: ${status}"
+          cat /tmp/trigify-poll-response.json
+          if [ "${status}" != "200" ]; then
+            echo "::error::Trigify poll returned HTTP ${status} (expected 200)"
+            exit 1
+          fi

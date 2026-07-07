@@ -11,10 +11,14 @@ import { nonceMiddleware } from "./middleware/nonce.js";
 import { type TenantVariables, tenantMiddleware } from "./middleware/tenant.js";
 import { createKeepAliveHandler } from "./routes/admin/keep-alive.js";
 import { createLifecycleBootstrapRoute } from "./routes/admin/lifecycle-bootstrap.js";
+import { createTrigifyPollHandler } from "./routes/admin/trigify-poll.js";
 import { lifecycleWebhookRoutes } from "./routes/lifecycle.js";
 import { createOAuthRoutes } from "./routes/oauth.js";
 import { settingsRoutes } from "./routes/settings.js";
+import { createSettingsTrigifyRoute } from "./routes/settings-trigify.js";
 import { snapshotRoutes } from "./routes/snapshot.js";
+import { createDbPollAllTenantsDeps } from "./services/trigify/poll-deps.js";
+import { pollAllTenants } from "./services/trigify/poller.js";
 
 type AppVars = TenantVariables & CorrelationVariables & { portalId?: string; rawBody?: string };
 
@@ -180,6 +184,29 @@ app.get(
   }),
 );
 
+// Trigify signal-feed poll — Vercel cron (daily, Hobby-plan limit) +
+// GitHub Actions (6-hourly, see .github/workflows/trigify-poll.yml).
+// Mounted OUTSIDE `/api/*` for the same reason as `/admin/keep-alive`: the
+// caller is a scheduler, not an authenticated tenant. Auth is
+// `Authorization: Bearer <CRON_SECRET>` — same convention, same handler
+// shape as keep-alive. Schedule lives in `apps/api/vercel.json` -> `crons[]`.
+//
+// Registered as a direct handler (not a sub-app) for the identical reason
+// documented on `/admin/keep-alive` above: a sub-app + inner `app.get("/")`
+// registers the path WITH a trailing slash in Hono's production router and
+// 404s on the bare path Vercel cron + the GHA workflow hit.
+//
+// Task 16 fix: this route existed (`routes/admin/trigify-poll.ts`) and was
+// scheduled in `vercel.json`, but was NEVER mounted here — every real
+// invocation 404'd. `createDbPollAllTenantsDeps` (services/trigify/poll-deps.ts)
+// is the real-database wiring `poll` calls.
+app.get(
+  "/admin/trigify-poll",
+  createTrigifyPollHandler({
+    poll: () => pollAllTenants(createDbPollAllTenantsDeps(getDb())),
+  }),
+);
+
 // Composed middleware chain for /api/* routes: auth -> tenant -> route.
 app.use("/api/*", authMiddleware());
 app.use("/api/*", async (c, next) => {
@@ -210,6 +237,7 @@ app.use("/api/*", async (c, next) => {
 app.use("/api/*", nonceMiddleware());
 
 app.route("/api/settings", settingsRoutes);
+app.route("/api/settings/trigify", createSettingsTrigifyRoute());
 app.route("/api/snapshot", snapshotRoutes);
 
 export default app;

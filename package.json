@@ -12,6 +12,7 @@
     "build": "pnpm exec tsc -b packages/config packages/db packages/validators apps/api && pnpm --filter @hap/hubspot-extension run build",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:db:up": "node scripts/test-db-setup.mjs",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
@@ -29,6 +30,7 @@
     "dotenv": "^16.4.0",
     "husky": "^9.1.0",
     "lint-staged": "^16.0.0",
+    "postgres": "^3.4.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0",
     "vitest": "^4.0.0"

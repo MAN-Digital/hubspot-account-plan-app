@@ -50,6 +50,19 @@ export interface HubSpotEngagement {
   content: string;
 }
 
+/**
+ * A contact associated with a company, shaped for the people-selector's
+ * {@link ../services/people-selector.RawContact}. `lastActivityAt` is derived
+ * from `notes_last_updated` when present (best-effort recency signal); the
+ * caller treats `undefined` as "no known recent activity", never fabricated.
+ */
+export interface HubSpotAssociatedContact {
+  id: string;
+  name: string;
+  title?: string;
+  lastActivityAt?: Date;
+}
+
 type AssociationReadResponse = {
   results?: Array<{
     from?: { id?: string };
@@ -152,7 +165,10 @@ function isUnrecoverableRefreshFailure(error: unknown): error is OAuthHttpError 
     return false;
   }
 
-  const body = error.body as { error?: unknown; error_description?: unknown } | null;
+  const body = error.body as {
+    error?: unknown;
+    error_description?: unknown;
+  } | null;
   const code = typeof body?.error === "string" ? body.error.toLowerCase() : "";
   const description =
     typeof body?.error_description === "string" ? body.error_description.toLowerCase() : "";
@@ -444,6 +460,73 @@ export class HubSpotClient {
     }
 
     return engagements;
+  }
+
+  /**
+   * Read contacts associated with a company via the v4 associations batch-read
+   * endpoint, then hydrate names/title/recency via the v3 contacts batch-read
+   * endpoint. Returns `[]` when the company has no associated contacts (no
+   * second call is made in that case). Never fabricates contacts — an empty
+   * result means the caller should render the empty-people state, not invent
+   * filler.
+   */
+  async getAssociatedContacts(companyId: string): Promise<HubSpotAssociatedContact[]> {
+    const associationUrl = `${HUBSPOT_API_ROOT}/crm/v4/associations/companies/contacts/batch/read`;
+    const associationRes = await this.authenticatedFetch(associationUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        inputs: [{ id: companyId }],
+      }),
+    });
+
+    if (!associationRes.ok) {
+      throw new Error(`hubspot: ${associationRes.status} ${associationRes.statusText}`);
+    }
+
+    const associationJson = (await associationRes.json()) as AssociationReadResponse;
+    const contactIds = (associationJson.results ?? [])
+      .flatMap((result) => result.to ?? [])
+      .map((item) => (item.toObjectId === undefined ? "" : String(item.toObjectId)))
+      .filter((id) => id.length > 0);
+
+    if (contactIds.length === 0) {
+      return [];
+    }
+
+    const batchUrl = `${HUBSPOT_API_ROOT}/crm/v3/objects/contacts/batch/read`;
+    const batchRes = await this.authenticatedFetch(batchUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        inputs: contactIds.map((id) => ({ id })),
+        properties: ["firstname", "lastname", "jobtitle", "notes_last_updated"],
+      }),
+    });
+
+    if (!batchRes.ok) {
+      throw new Error(`hubspot: ${batchRes.status} ${batchRes.statusText}`);
+    }
+
+    const batchJson = (await batchRes.json()) as BatchReadResponse;
+    return (batchJson.results ?? []).map((row) => {
+      const properties = row.properties ?? {};
+      const name =
+        combineText([properties.firstname, properties.lastname]).replace(/\n\n/g, " ") || row.id;
+      const lastActivityRaw = properties.notes_last_updated;
+      return {
+        id: row.id,
+        name,
+        title: properties.jobtitle || undefined,
+        lastActivityAt: lastActivityRaw ? parseTimestamp(lastActivityRaw) : undefined,
+      };
+    });
   }
 
   async createCompany(

@@ -20,6 +20,11 @@ import { TenantAccessRevokedError } from "../lib/hubspot-client.js";
 import { getProcessRateLimiter } from "../lib/rate-limiter.js";
 import type { CorrelationVariables } from "../middleware/correlation.js";
 import type { TenantVariables } from "../middleware/tenant.js";
+import {
+  createHubSpotCompanyPropertyFetcher,
+  createHubSpotContactFetcher,
+  type HubSpotClientFactory,
+} from "../services/crm-fetchers.js";
 import type { CompanyPropertyFetcher } from "../services/eligibility.js";
 import type { ContactFetcher } from "../services/people-selector.js";
 import { assembleSnapshot } from "../services/snapshot-assembler.js";
@@ -133,16 +138,32 @@ async function resolveLlmAdapter(
 }
 
 /**
- * Signal providers probed from `provider_config` rows in listed order; first
- * enabled match wins.
+ * Signal providers probed from `provider_config` rows.
  *
- * `news` was removed as a top-level provider slot — it now runs as a
- * secondary adapter driven by the Exa row via {@link createExaSignalAdapters}.
+ * Stage A Task 7 changed resolution from FIRST-ENABLED-MATCH-WINS to
+ * COMPOSE ALL ENABLED PROVIDERS: every provider in this list with an
+ * enabled row is built into its own (possibly multi-adapter, e.g. Exa+News)
+ * sub-adapter set, each wrapped individually with {@link wrapSignalWithGuards}
+ * for per-source rate-limiting + observability, then the FULL set is fanned
+ * out via {@link composeSignalAdapters}. A tenant with both Exa and Trigify
+ * enabled gets evidence from both; a tenant with only one enabled is
+ * unaffected (the composite of one provider's sub-adapters behaves exactly
+ * as before).
+ *
+ * Thresholds precedence when multiple rows are enabled: the FIRST enabled
+ * row (in this list's order) with VALID thresholds wins — later rows'
+ * thresholds are ignored even if also valid. This mirrors the pre-Task-7
+ * single-adapter precedence (Exa's thresholds always governed staleness/
+ * confidence gating) so existing Exa-only tenants see byte-identical
+ * eligibility behavior after this change.
+ *
+ * `news` is not a top-level provider slot — it runs as a secondary adapter
+ * driven by the Exa row via {@link createExaSignalAdapters}.
  * `hubspot-enrichment` stays out of this probe list because its factory
  * throws when tenant-scoped deps are missing; the snapshot path treats that
  * the same as "no config row".
  */
-const REAL_SIGNAL_PROVIDERS = ["exa"] as const;
+const REAL_SIGNAL_PROVIDERS = ["exa", "trigify"] as const;
 
 /**
  * Successful signal resolution — contains the adapter plus per-provider
@@ -184,96 +205,135 @@ export function composeSignalAdapters(
 }
 
 /**
- * Resolve the signal adapter for a tenant.
+ * Build the sub-adapter set for ONE enabled provider config row, wrapped
+ * individually with {@link wrapSignalWithGuards} for per-source rate-limiting
+ * + observability.
  *
- * Probes `provider_config` for each of {@link REAL_SIGNAL_PROVIDERS} in order.
- * On the first enabled hit, builds the real adapter and wraps with guards.
  * For the Exa row this fans out to both Exa search and the Exa news vertical
  * (NewsAdapter) via {@link createExaSignalAdapters}, gated by the row's
- * `settings.newsEnabled` flag. Returns `null` when no enabled provider row
- * exists or adapter construction fails. The caller short-circuits to
- * `eligibilityState: "unconfigured"`.
+ * `settings.newsEnabled` flag. Every other provider (currently just Trigify)
+ * resolves to exactly one adapter via {@link createSignalAdapter}. Returns
+ * `[]` when the provider yields no adapters (e.g. Exa disabled mid-resolution)
+ * so the caller can skip it without treating that as a hard failure for the
+ * OTHER enabled providers.
+ */
+function buildWrappedSubAdapters(
+  config: ProviderConfig,
+  db: Database,
+  tenantId: string,
+  correlationId: string | undefined,
+): ProviderAdapter[] {
+  const guardCtx = {
+    tenantId,
+    correlationId,
+    rateLimiter: getProcessRateLimiter(),
+  };
+  if (config.name === "exa") {
+    const subAdapters = createExaSignalAdapters(config, { db, tenantId });
+    return subAdapters.map((sub) => wrapSignalWithGuards(sub, guardCtx));
+  }
+  const real = createSignalAdapter(config, { db, tenantId });
+  return [wrapSignalWithGuards(real, guardCtx)];
+}
+
+/**
+ * Resolve the signal adapter for a tenant.
+ *
+ * Stage A Task 7: probes `provider_config` for EVERY provider in
+ * {@link REAL_SIGNAL_PROVIDERS} (not just the first enabled match) and
+ * COMPOSES all of them into one `ProviderAdapter` via
+ * {@link composeSignalAdapters} — a tenant with both Exa and Trigify enabled
+ * gets evidence from both, fanned out in parallel exactly like the existing
+ * Exa+News composition. Returns `null` when NO enabled provider row exists
+ * (across the whole list) or every enabled provider's adapter construction
+ * fails; the caller short-circuits to `eligibilityState: "unconfigured"`.
+ *
+ * A single provider's construction failure does NOT block the others — it
+ * is logged and that provider is skipped, mirroring the pre-Task-7
+ * "treat construction failure as unconfigured" posture but now scoped
+ * per-provider instead of aborting the whole resolution.
+ *
+ * Thresholds precedence: the FIRST enabled row (in `REAL_SIGNAL_PROVIDERS`
+ * order) with VALID thresholds wins. This keeps Exa-only tenants on
+ * byte-identical eligibility behavior post-Task-7 (Exa's thresholds already
+ * governed staleness/confidence gating before Trigify existed).
  */
 async function resolveSignalAdapter(
   db: Database,
   tenantId: string,
   correlationId: string | undefined,
 ): Promise<SignalResolution | null> {
-  let chosen: ProviderConfig | null = null;
+  const enabledConfigs: ProviderConfig[] = [];
   for (const providerName of REAL_SIGNAL_PROVIDERS) {
     try {
       const cfg = await getProviderConfig({ db }, { tenantId, providerName });
       if (cfg?.enabled) {
-        chosen = cfg;
-        break;
+        enabledConfigs.push(cfg);
       }
     } catch {
       // Resolver failure must not break the snapshot path — try the next
-      // provider, ultimately returning null below.
+      // provider; this one simply contributes nothing.
     }
   }
 
-  if (!chosen) {
+  if (enabledConfigs.length === 0) {
     return null;
   }
 
   // Construction can throw — e.g., required tenant-scoped deps are missing,
   // or a provider config row has a non-null field that's nullable in the
-  // schema. Treat as unconfigured, not a 500.
-  //
-  // For the Exa row we fan out: `createExaSignalAdapters` returns the main
-  // ExaAdapter plus (when `settings.newsEnabled !== false`) a NewsAdapter
-  // driven off the same API key. Each sub-adapter is wrapped individually
-  // so the process rate limiter + observability log apply per-source; the
-  // composite is then handed to the snapshot assembler as a single
-  // `ProviderAdapter` whose `fetchSignals` flattens evidence from all
-  // sub-adapters. Non-Exa providers (none today — `hubspot-enrichment` is
-  // excluded from `REAL_SIGNAL_PROVIDERS`) stay on the single-adapter path.
-  let adapter: ProviderAdapter;
-  try {
-    if (chosen.name === "exa") {
-      const subAdapters = createExaSignalAdapters(chosen, { db, tenantId });
-      if (subAdapters.length === 0) {
-        return null;
+  // schema. A per-provider failure is logged and that provider is skipped
+  // rather than aborting resolution for every enabled provider.
+  const allSubAdapters: ProviderAdapter[] = [];
+  let firstValidThresholds: ThresholdConfig | undefined;
+  let firstAllowList: string[] | undefined;
+  let firstBlockList: string[] | undefined;
+
+  for (const config of enabledConfigs) {
+    try {
+      const wrapped = buildWrappedSubAdapters(config, db, tenantId, correlationId);
+      if (wrapped.length === 0) continue;
+      allSubAdapters.push(...wrapped);
+      if (firstValidThresholds === undefined && isValidThresholds(config.thresholds)) {
+        firstValidThresholds = config.thresholds;
+        firstAllowList = config.allowList;
+        firstBlockList = config.blockList;
       }
-      const wrapped = subAdapters.map((sub) =>
-        wrapSignalWithGuards(sub, {
-          tenantId,
-          correlationId,
-          rateLimiter: getProcessRateLimiter(),
-        }),
-      );
-      adapter = composeSignalAdapters(wrapped, chosen.name);
-    } else {
-      const real = createSignalAdapter(chosen, { db, tenantId });
-      adapter = wrapSignalWithGuards(real, {
+    } catch (err) {
+      console.error("signal_adapter_construction_failed", {
         tenantId,
-        correlationId,
-        rateLimiter: getProcessRateLimiter(),
+        provider: config.name,
+        errorClass: err instanceof Error ? err.constructor.name : typeof err,
       });
     }
-  } catch (err) {
-    console.error("signal_adapter_construction_failed", {
-      tenantId,
-      provider: chosen.name,
-      errorClass: err instanceof Error ? err.constructor.name : typeof err,
-    });
+  }
+
+  if (allSubAdapters.length === 0) {
     return null;
   }
 
+  // Composite name mirrors the first enabled provider so existing logs/metrics
+  // that key on a single adapter name keep working when only one provider is
+  // enabled (the common case today). When multiple providers compose, this
+  // is still a stable, deterministic choice (list order), not "whichever
+  // resolved last".
+  const compositeName = enabledConfigs[0]?.name ?? "composed";
+  const adapter = composeSignalAdapters(allSubAdapters, compositeName);
+
   return {
     adapter,
-    allowList: chosen.allowList,
-    blockList: chosen.blockList,
-    thresholds: isValidThresholds(chosen.thresholds) ? chosen.thresholds : undefined,
+    allowList: firstAllowList,
+    blockList: firstBlockList,
+    thresholds: firstValidThresholds,
   };
 }
 
 /**
- * V1 fixture property fetchers. Selected via `?eligibility=` query param so
- * the route can produce the eligible / ineligible / unconfigured snapshot
- * shapes end-to-end. Slice 2 replaces these with a real HubSpot CRM property
- * fetch (one fetcher, gating value comes from real CRM data).
+ * V1 fixture property fetchers. ONLY reachable outside production (see
+ * {@link resolvePropertyFetcher}) via the `?eligibility=` query param, so QA
+ * fixtures / dev convenience keep working. Production ALWAYS uses the real
+ * HubSpot-backed fetcher — this override is completely inert there
+ * regardless of what the caller passes.
  */
 const eligiblePropertyFetcher: CompanyPropertyFetcher = async () => true;
 const ineligiblePropertyFetcher: CompanyPropertyFetcher = async () => false;
@@ -285,7 +345,7 @@ function isEligibilityMode(v: unknown): v is EligibilityMode {
   return typeof v === "string" && (ELIGIBILITY_MODES as readonly string[]).includes(v);
 }
 
-function pickPropertyFetcher(mode: EligibilityMode): CompanyPropertyFetcher {
+function pickFixturePropertyFetcher(mode: EligibilityMode): CompanyPropertyFetcher {
   switch (mode) {
     case "ineligible":
       return ineligiblePropertyFetcher;
@@ -296,22 +356,53 @@ function pickPropertyFetcher(mode: EligibilityMode): CompanyPropertyFetcher {
   }
 }
 
+/**
+ * Resolve the {@link CompanyPropertyFetcher} the snapshot route should use.
+ *
+ * Production (`NODE_ENV === "production"`) ALWAYS returns the real
+ * HubSpot-backed fetcher — the `?eligibility=` fixture override never fires
+ * there, even if a caller supplies the query param. Outside production, an
+ * explicit `eligibilityParam` still selects a fixture fetcher (QA/dev
+ * convenience, matching pre-Task-8 behavior); when absent, the real fetcher
+ * is used so local/dev testing against a real HubSpot test portal works
+ * without the query param.
+ *
+ * Exported (like {@link composeSignalAdapters}) so this env-gate boundary is
+ * unit-testable without spinning up the full Hono app + auth stack.
+ */
+export function resolvePropertyFetcher(
+  db: Database,
+  eligibilityParam: string | undefined,
+  clientFactory?: HubSpotClientFactory,
+): CompanyPropertyFetcher {
+  const isProduction = process.env.NODE_ENV === "production";
+  if (!isProduction && isEligibilityMode(eligibilityParam)) {
+    return pickFixturePropertyFetcher(eligibilityParam);
+  }
+  return createHubSpotCompanyPropertyFetcher({ db, clientFactory });
+}
+
+/**
+ * Resolve the {@link ContactFetcher} the snapshot route should use.
+ *
+ * Always the real HubSpot-backed fetcher — there is no fixture contact
+ * override in the resolver (the three-hardcoded-contacts fixture is gone).
+ * Kept as its own function (rather than inlined) so route code stays a thin
+ * caller and the resolution is independently unit-testable.
+ */
+export function resolveContactFetcher(
+  db: Database,
+  clientFactory?: HubSpotClientFactory,
+): ContactFetcher {
+  return createHubSpotContactFetcher({ db, clientFactory });
+}
+
 function isTenantAccessRevokedError(error: unknown): boolean {
   return (
     error instanceof TenantAccessRevokedError ||
     (error instanceof Error && error.name === "TenantAccessRevokedError")
   );
 }
-
-/**
- * V1 fixture contact fetcher — returns three ICP-shaped contacts for any
- * company. Step 9+ replace with a real HubSpot contact association fetch.
- */
-const fixtureContactFetcher: ContactFetcher = async () => [
-  { id: "contact-1", name: "Alex Champion", title: "VP Engineering" },
-  { id: "contact-2", name: "Jordan Decider", title: "CTO" },
-  { id: "contact-3", name: "Sam Influencer", title: "Head of Platform" },
-];
 
 snapshotRoutes.post("/:companyId", async (c) => {
   const rawCompanyId = c.req.param("companyId") ?? "";
@@ -334,7 +425,6 @@ snapshotRoutes.post("/:companyId", async (c) => {
   }
 
   const eligibilityParam = c.req.query("eligibility");
-  const mode: EligibilityMode = isEligibilityMode(eligibilityParam) ? eligibilityParam : "eligible";
 
   try {
     const db = c.get("db");
@@ -367,8 +457,8 @@ snapshotRoutes.post("/:companyId", async (c) => {
         db,
         providerAdapter: signal.adapter,
         llmAdapter,
-        propertyFetcher: pickPropertyFetcher(mode),
-        contactFetcher: fixtureContactFetcher,
+        propertyFetcher: resolvePropertyFetcher(db, eligibilityParam),
+        contactFetcher: resolveContactFetcher(db),
         thresholds,
         allowList: signal.allowList,
         blockList: signal.blockList,
@@ -385,7 +475,7 @@ snapshotRoutes.post("/:companyId", async (c) => {
       console.warn("snapshot_route.tenant_access_revoked", {
         tenantId,
         companyId,
-        eligibilityMode: mode,
+        eligibilityParam,
         errorClass: err instanceof Error ? err.constructor.name : typeof err,
       });
       return c.json(
@@ -402,7 +492,7 @@ snapshotRoutes.post("/:companyId", async (c) => {
     console.error("snapshot_route_error", {
       tenantId,
       companyId,
-      eligibilityMode: mode,
+      eligibilityParam,
       errorClass: err instanceof Error ? err.constructor.name : typeof err,
     });
     return c.json({ error: "internal_error" }, 500);

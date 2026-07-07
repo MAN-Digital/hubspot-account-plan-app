@@ -17,6 +17,7 @@ function preserveBlankSecret(value: unknown): string | undefined {
 export const settingsSignalProviderNameSchema = z.enum([
   "exa",
   "hubspot-enrichment",
+  "trigify",
 ]) satisfies z.ZodType<SettingsSignalProviderName>;
 
 export const settingsProviderStateSchema = z
@@ -33,6 +34,7 @@ export const settingsResponseSchema = z
       .object({
         exa: settingsProviderStateSchema,
         hubspotEnrichment: settingsProviderStateSchema,
+        trigify: settingsProviderStateSchema,
       })
       .strict(),
     llm: z
@@ -189,6 +191,8 @@ export const settingsUpdateSchema = z
       .object({
         exa: providerUpdateSchema.optional(),
         hubspotEnrichment: hubspotEnrichmentUpdateSchema.optional(),
+        // Same shape/schema as exa — a real user-entered/rotatable key.
+        trigify: providerUpdateSchema.optional(),
       })
       .strict()
       .optional(),

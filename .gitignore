@@ -14,6 +14,11 @@ build/
 out/
 *.tsbuildinfo
 
+# HubSpot extension bundle output produced by the Vite build step that runs
+# during `pnpm test` / bundling (outDir `.bundle-artifacts/`). Generated, never
+# committed.
+.bundle-artifacts/
+
 # Stray TS build artifacts that occasionally leak into src/ when tsc is run
 # without the right --build context (proper outDir is dist/).
 packages/*/src/**/*.js
@@ -76,6 +81,7 @@ supabase/.temp
 # HubSpot
 .hubspot/
 apps/hubspot-project/hsprofile.*.json
+apps/hubspot-project/src/hsprofile.*.json
 !apps/hubspot-project/hsprofile.*.example.json
 apps/hubspot-project/local.json
 

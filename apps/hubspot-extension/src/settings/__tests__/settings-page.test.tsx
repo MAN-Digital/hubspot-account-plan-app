@@ -25,6 +25,7 @@ const VALID_SETTINGS = {
   signalProviders: {
     exa: { enabled: true, hasApiKey: true },
     hubspotEnrichment: { enabled: true, hasApiKey: false },
+    trigify: { enabled: false, hasApiKey: false },
   },
   llm: {
     provider: "openai" as const,
@@ -311,6 +312,7 @@ describe("HubSpotSettingsPage", () => {
       signalProviders: {
         exa: { enabled: true, apiKey: "exa-rotated" },
         hubspotEnrichment: { enabled: true },
+        trigify: { enabled: false },
       },
       llm: {
         provider: "custom",
@@ -414,6 +416,7 @@ describe("HubSpotSettingsPage", () => {
       signalProviders: {
         exa: { enabled: true },
         hubspotEnrichment: { enabled: true },
+        trigify: { enabled: false },
       },
       llm: {
         provider: null,
@@ -507,6 +510,7 @@ describe("HubSpotSettingsPage", () => {
       signalProviders: {
         exa: { enabled: true, hasApiKey: false },
         hubspotEnrichment: { enabled: true, hasApiKey: false },
+        trigify: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: "openai" as const,

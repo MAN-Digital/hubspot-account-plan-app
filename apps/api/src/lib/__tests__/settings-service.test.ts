@@ -62,6 +62,7 @@ describe("readSettings", () => {
       signalProviders: {
         exa: { enabled: false, hasApiKey: false },
         hubspotEnrichment: { enabled: false, hasApiKey: false },
+        trigify: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: null,
@@ -334,6 +335,113 @@ describe("updateSettings", () => {
       endpointUrl: undefined,
       hasApiKey: true,
     });
+  });
+
+  it("writes an encrypted trigify key and reflects hasApiKey/enabled in the read model", async () => {
+    const tenant = await seedTenant();
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          trigify: { enabled: true, apiKey: "trigify-secret-1" },
+        },
+      },
+    );
+
+    const [trigifyRow] = await db
+      .select()
+      .from(providerConfig)
+      .where(
+        and(eq(providerConfig.tenantId, tenant.id), eq(providerConfig.providerName, "trigify")),
+      );
+    expect(trigifyRow?.enabled).toBe(true);
+    expect(trigifyRow?.apiKeyEncrypted).toBeTruthy();
+    expect(decryptProviderKey(tenant.id, trigifyRow?.apiKeyEncrypted ?? "")).toBe(
+      "trigify-secret-1",
+    );
+
+    const settings = await readSettings({ db, tenantId: tenant.id });
+    expect(settings.signalProviders.trigify).toEqual({
+      enabled: true,
+      hasApiKey: true,
+    });
+  });
+
+  it("rotates a trigify key: preserves the old key when apiKey is omitted, replaces it when present", async () => {
+    const tenant = await seedTenant();
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          trigify: { enabled: true, apiKey: "trigify-key-v1" },
+        },
+      },
+    );
+
+    // Omitting apiKey on a subsequent update preserves the existing ciphertext.
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      { signalProviders: { trigify: { enabled: false } } },
+    );
+    const [afterDisable] = await db
+      .select()
+      .from(providerConfig)
+      .where(
+        and(eq(providerConfig.tenantId, tenant.id), eq(providerConfig.providerName, "trigify")),
+      );
+    expect(afterDisable?.enabled).toBe(false);
+    expect(decryptProviderKey(tenant.id, afterDisable?.apiKeyEncrypted ?? "")).toBe(
+      "trigify-key-v1",
+    );
+
+    // Supplying a new apiKey rotates it.
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          trigify: { enabled: true, apiKey: "trigify-key-v2" },
+        },
+      },
+    );
+    const [afterRotate] = await db
+      .select()
+      .from(providerConfig)
+      .where(
+        and(eq(providerConfig.tenantId, tenant.id), eq(providerConfig.providerName, "trigify")),
+      );
+    expect(decryptProviderKey(tenant.id, afterRotate?.apiKeyEncrypted ?? "")).toBe(
+      "trigify-key-v2",
+    );
+  });
+
+  it("clears a stored trigify key via clearApiKey", async () => {
+    const tenant = await seedTenant();
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          trigify: { enabled: true, apiKey: "trigify-key-to-clear" },
+        },
+      },
+    );
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      { signalProviders: { trigify: { clearApiKey: true } } },
+    );
+
+    const [row] = await db
+      .select()
+      .from(providerConfig)
+      .where(
+        and(eq(providerConfig.tenantId, tenant.id), eq(providerConfig.providerName, "trigify")),
+      );
+    expect(row?.apiKeyEncrypted).toBeNull();
+
+    const settings = await readSettings({ db, tenantId: tenant.id });
+    expect(settings.signalProviders.trigify.hasApiKey).toBe(false);
   });
 
   it("rejects an attempt to store an apiKey on hubspotEnrichment", async () => {

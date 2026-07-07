@@ -84,6 +84,7 @@ type ProviderRow = {
   thresholds: unknown;
   allowList: unknown;
   blockList: unknown;
+  settings: unknown;
 };
 type LlmRow = {
   providerName: string;
@@ -198,6 +199,23 @@ function parseStringArray(raw: unknown): string[] | undefined {
 }
 
 /**
+ * Parse the `settings` jsonb column into a plain object. The column is
+ * `NOT NULL DEFAULT '{}'::jsonb` (see `packages/db/src/schema/provider-config.ts`),
+ * so a present-but-empty row still yields `{}` rather than `undefined` —
+ * callers (Exa's `newsEnabled` gate, the Trigify ranking-config read path)
+ * distinguish "no settings configured" (`{}`) from "resolver bug, settings
+ * missing entirely" (`undefined`) by this column always round-tripping.
+ * A malformed/non-object value defensively falls back to `{}` rather than
+ * crashing the snapshot path.
+ */
+function parseSettings(raw: unknown): Record<string, unknown> {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    return raw as Record<string, unknown>;
+  }
+  return {};
+}
+
+/**
  * Deep-freeze a config object. We chose freeze-on-set over clone-on-read:
  *  - one allocation per DB read instead of one per cache hit
  *  - immediately crashes buggy callers that try to mutate shared state
@@ -275,6 +293,7 @@ export async function getProviderConfig(
       thresholds: providerConfig.thresholds,
       allowList: providerConfig.allowList,
       blockList: providerConfig.blockList,
+      settings: providerConfig.settings,
     })
     .from(providerConfig)
     .where(
@@ -299,11 +318,13 @@ export async function getProviderConfig(
     };
     const allowList = parseStringArray(row.allowList);
     const blockList = parseStringArray(row.blockList);
+    const settings = parseSettings(row.settings);
     result = {
       name: row.providerName,
       enabled: row.enabled,
       apiKeyRef,
       thresholds,
+      settings,
       ...(allowList ? { allowList } : {}),
       ...(blockList ? { blockList } : {}),
     };

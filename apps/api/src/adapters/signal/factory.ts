@@ -36,6 +36,7 @@ import type { ProviderAdapter, ProviderCompanyContext } from "../provider-adapte
 import { ExaAdapter } from "./exa.js";
 import { HubSpotEnrichmentAdapter } from "./hubspot-enrichment.js";
 import { NewsAdapter } from "./news.js";
+import { createTrigifyStoreAdapter } from "./trigify.js";
 
 /** Optional constructor-injection hooks for tests and non-default wiring. */
 export interface SignalFactoryDeps {
@@ -98,6 +99,12 @@ export function createSignalAdapter(
           });
         })();
       return new HubSpotEnrichmentAdapter(client);
+    }
+    case "trigify": {
+      if (!deps?.db || !deps.tenantId) {
+        throw new Error("createSignalAdapter: trigify requires deps.tenantId and deps.db.");
+      }
+      return createTrigifyStoreAdapter(deps.db, config.settings);
     }
     default: {
       const name = (config as { name: string }).name;

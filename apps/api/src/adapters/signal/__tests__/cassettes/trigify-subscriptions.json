@@ -1,0 +1,30 @@
+{
+  "_comment": "Recorded cassette for Trigify social-signals subscriptions list. SCRUBBED of the Authorization header value before commit.",
+  "_recordedAt": "2026-07-03",
+  "request": {
+    "url": "https://api.trigify.io/v1/social-signals/subscriptions",
+    "method": "GET",
+    "headers": {
+      "Authorization": "Bearer [REDACTED]",
+      "Accept": "application/json"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": [
+        {
+          "id": "sub_01HXB1",
+          "linkedin_url": "https://www.linkedin.com/in/jane-doe/",
+          "status": "ACTIVE",
+          "config": {
+            "version": 1,
+            "cadence": "daily",
+            "lookbackWindowMs": 2592000000
+          },
+          "created_at": "2026-06-15T12:00:00.000Z"
+        }
+      ]
+    }
+  }
+}
