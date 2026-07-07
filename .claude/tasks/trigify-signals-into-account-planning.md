@@ -199,21 +199,23 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
   accents, #ff7a59 CTA orange, #cbd6e2 borders, #f5f8fa canvas).
 - **Header bar**: company name + industry/location chips + domain link | stage chip +
   health chip | "Last synced" + Refresh button.
-- **Tab nav**: Overview / People / Signals (count badge) / Plan / Context, active-tab
-  underline.
-- **Overview**: 4-stat strip (Deal Value, Stage, Active Contacts, Expected Close) →
-  full-width "Why Now" callout (left-border accent, bulleted evidence) → 2-column grid:
-  left = "Top Signals" table, right = "Recommended Next Move" card (orange left border,
-  **Draft Outreach** button) + "Key People" list.
+- **Tab nav**: Overview / People / Buying Group / Signals (count badge) / Outreach /
+  Data Gaps / Plan / Context, active-tab underline.
+- **Overview**: state-aware KPI strip (open deal, no deal, no data variants) →
+  one top **Executive Summary** → separate full-width "Why Now" callout (left-border
+  accent, bulleted evidence) → Top Signals → **This Outreach** mini-summary →
+  **Blockers & Risks** + Key People. Blocker actions deep-link to Data Gaps, Research,
+  Outreach, or Settings; the old standalone next-move card is gone, and blockers must not
+  replace the Outreach summary.
 
 ### Interaction Flows
 
 - Clicking a signal row (Overview or Signals tab) opens its detail (headline, snippet,
   provenance chain, linked people with roles).
 - Signals tab: source filter (All / External Only / CRM Only), type filter, free-text
-  search; "CRM Gap" and "Data Quality" callouts surface hygiene findings.
-- **Draft Outreach** on the Next Move card kicks off the outreach pipeline and lands the
-  user on the generated DRAFT for review/approval.
+  search; observed evidence only. CRM/data-quality hygiene findings live in Data Gaps.
+- Outreach tab generation kicks off the outreach pipeline and lands the user on the
+  generated DRAFT for review/approval.
 - Refresh re-runs the snapshot; "Generate account research" (Context tab) runs the
   on-demand research and renders it with sources.
 
@@ -224,8 +226,10 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 - Person cards: role badge (Decision Maker / Champion / Technical Evaluator), CRM status
   (In CRM / External), reason-to-talk, bio, evidence line, per-person signals, LinkedIn
   link.
-- Plan tab: event timeline (deal moves, signal milestones, CRM gaps) + "This week"
-  actions + messaging guidance (Lead With / Anchor On / Avoid).
+- Data Gaps tab: missing/stale inputs task list with severity, impact, owner, credit
+  projection, status, and actions.
+- Plan tab: event timeline (deal moves, signal milestones, resolved data-gap events) +
+  "This week" actions + messaging guidance (Lead With / Anchor On / Avoid).
 - Context tab: industry/platform/initiative/relevance grid, tracked topics, competitor +
   our-advantage, data-sources footer.
 
@@ -375,14 +379,16 @@ Monitor management, settings, frontend, end-to-end validation on a real test por
 
 ### Phase 6 (Stage B): Account research + outreach engine
 
-- On-demand **account research**: `POST /api/research/:companyId` (button in Context
-  tab) — CRM context + signal store + tenant-Exa retrieval synthesized by the tenant's
+- On-demand **account research / full account plan generation**:
+  `POST /api/research/:companyId` (first-run empty state + Context regenerate + workflow
+  action) — CRM context + signal store + tenant-Exa retrieval synthesized by the tenant's
   LLM (GPT-5.5 / Claude / Gemini / OpenRouter / custom via existing `llm_config`) into
-  structured sections with source provenance; persisted in `account_research`.
+  structured sections with source provenance; persisted in `account_research` and paired
+  with `account_data_gaps` / `account_generation_runs`.
 - **Outreach pipeline** port (envelope → cadence-strategist → copywriter → copy-qa) as
   LLM prompt-chain services on the tenant's LLM; `outreach_drafts` status machine
   (`draft → qa_passed → approved → exported`); **DRAFT-only invariant** — no send path
-  exists; Draft Outreach button surfaces the QA-gated draft for human approval; export
+  exists; Outreach tab surfaces the QA-gated draft for human approval; export
   adapters (clipboard always; settings-chosen channel: HubSpot Sequences enrollment
   or Woodpecker email / email+LinkedIn — revised 2026-07-06, each behind explicit
   confirm; sequence enrollment confirm must state it authorizes HubSpot to send).
@@ -592,7 +598,9 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Assigned To**: `db-foundation`
 - **Agent Type**: supabase-specialist
 - **Parallel**: true
-- TDD. Add `account_research`, `outreach_drafts`, `outreach_config`, `notification_settings` tables (per PRD delta §4), tenant-scoped, RLS for `hap_app`, migrations + tests.
+- TDD. Add `account_research`, `account_data_gaps`, `account_generation_runs`,
+  `outreach_drafts`, `outreach_config`, `notification_settings` tables (per PRD delta
+  §4), tenant-scoped, RLS for `hap_app`, migrations + tests.
 
 ### 14. Workspace tab UI (Magic Patterns translation)
 
@@ -640,7 +648,57 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   selected campaign"; secondary = "Create new campaign"; include "View all campaigns"
   with search/filter. Personalization uses Woodpecker snippets/custom fields and
   per-prospect step content, not separate campaigns or sequences.
-- TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (stat strip, Why-Now, Top Signals, Next Move + Draft Outreach button, Key People), Signals (filters, search, provenance, detail), People (person cards). Plan/Context tabs render explicit empty states until 15/16 land. All 8 V1 states must keep rendering.
+- **UI feedback round 11 (Romeo, 2026-07-07):**
+  (m) **Overview is top summary + outreach + blockers, not a weak next-move card.** Keep
+  exactly one Executive Summary at the top; keep "Why now" as a separate evidence callout;
+  keep Top Signals above the restored **This Outreach** mini-summary; and replace the
+  standalone Recommended Next Move card with Blockers & Risks. Blockers include no open
+  deal, missing amount/stage/close date, stale CRM, missing buying roles, missing
+  LinkedIn URLs, missing warm path, no verified signal, provider setup, and rep/tenant
+  credit limits. Each blocker deep-links to the resolving action and must not delete or
+  replace the Outreach overview section.
+  (n) **No-open-deal variant:** the Overview must not render blank deal metric cards.
+  When no active deal exists, show account-development highlights: fit/ICP, last
+  meaningful CRM activity, strongest signal, buying-group coverage, warm paths, and
+  setup actions. Generating a plan must work without a deal.
+  (o) **No-data / first-run wireframe:** a blank company record shows what a full account
+  plan will generate, projected credits, current rep's remaining monthly credits, tenant
+  credits, and setup blockers. Primary CTA = "Generate full account plan"; confirmation
+  itemizes research, buying-group, enrichment, outreach draft, and optional monitor
+  costs before debit.
+  (p) **New Data Gaps tab:** add a tab between Outreach and Plan/Context. Move CRM Gap /
+  Data Quality out of Signals. Data Gaps is a working task list with gap type, impact,
+  source, owner, suggested fix, projected credits, status, and actions (Research, Enrich
+  people, Create HubSpot task, Update CRM, Mark not needed). No silent CRM writes.
+- TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components
+  (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (state
+  KPI strip, one top Executive Summary, separate Why-Now, Top Signals, This Outreach,
+  Blockers & Risks, Key People), Signals (filters, search, provenance, detail), People
+  (person cards), Data Gaps (actionable gap list), Plan/Context. All 8 V1 states plus
+  no-deal and no-data states must keep rendering.
+
+### 14c. Data Gaps tab + Overview blocker model
+
+- **Task ID**: `v2-data-gaps`
+- **Depends On**: `v2-workspace-ui`, `v2-schema`, `v2-account-research`
+- **Assigned To**: `tab-frontend` + `signal-backend`
+- **Agent Type**: frontend-specialist + backend-engineer
+- **Parallel**: true after schema slice starts
+- Requested by Romeo round 11. Build a first-class **Data Gaps** tab and feed its highest
+  severity items into Overview Blockers & Risks. The tab is a work queue for missing or
+  stale account data: no open deal, missing CRM deal fields, weak/no verified signal,
+  missing company domain/industry/ICP fields, stale activity, unknown buying roles,
+  missing LinkedIn URLs, missing warm paths, missing provider setup, low research
+  confidence, and credit/budget blockers.
+- Backend: create a data-gap evaluator that reads HubSpot company/deal/contact data,
+  signal store, research status, provider setup, and credit state; writes
+  `account_data_gaps`; resolves/ignores gaps with audit metadata. It must not write CRM
+  fields automatically.
+- UI: rows/cards show severity, impact, source, suggested fix, owner, projected credits,
+  status, and action buttons. Actions may launch research/enrichment, create HubSpot
+  tasks, or open explicit CRM update flows. "Mark not needed" requires a reason.
+- QA: no data gap should appear as a signal; Signals remains observed evidence only.
+  Overview must link each blocker to Data Gaps or the exact resolving tab/action.
 
 ### 14b. Buying Group tab (AI-generated, editable)
 
@@ -716,6 +774,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Agent Type**: backend-engineer
 - **Parallel**: true
 - TDD. `services/research/` + `POST /api/research/:companyId`: gather CRM context + signal store + tenant-Exa retrieval → tenant-LLM synthesis into structured sections with per-section source provenance → persist to `account_research` (history kept). Degraded providers → explicit degraded/empty sections, never fabricated content. Rate-limited per tenant. Render in the Context tab (with `tab-frontend`).
+- Round 11 extension: the same endpoint powers the **Generate full account plan** first-run
+  CTA from a blank/no-data company record. Before debit, return a projected-cost preview
+  and blocker list (tenant credits, rep monthly cap, provider setup). When confirmed,
+  create an `account_generation_runs` audit row, generate research/context, seed the
+  editable account plan, generate/refresh `account_data_gaps`, and support no-open-deal
+  records without treating them as errors.
 
 ### 17. Outreach engine port
 
@@ -725,10 +789,18 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Agent Type**: backend-engineer
 - **Parallel**: true
 - **Re-audit the CURRENT engine first (2026-07-07):** OpenClaw outreach-engine received F-series changes after this plan was written — 15-key slot contract (campaign_reuse, F5/schema), contact identity populated in signal_json (F4), MC-server-augmented trigify fields in the parity test (F5b), constant-time Woodpecker webhook token compare (F13), PII evidence-log permissions (F6). Port against the engine's CURRENT state, not this plan's earlier snapshot; the golden-envelope test must match the live contract.
-- **Entry points:** Draft Outreach from the Next Move card AND a per-person "Draft outreach" action on People-tab cards (reps outreach individuals outside the plan). Output UI = the Outreach Sequence card (see Magic Patterns `v2/OutreachSequenceCard.tsx`): day-by-day cadence with per-step channel badges (Email / LinkedIn), "Review copy" per step, QA-gated DRAFT banner, and export actions — "Enroll via HubSpot Sequence" (enroll-into-existing, Pro+ seat, email steps; copy saved as drafts) and "Push to Woodpecker (email + LinkedIn)" (LinkedIn touches ride as Woodpecker LinkedIn/manual tasks).
+- **Entry points:** Outreach tab target generation/rebuild, first-run full account plan
+  generation when the rep includes outreach in scope, and per-person "Draft outreach"
+  actions where explicitly exposed. The old Overview "Next Move" card is replaced by
+  Blockers & Risks and no longer owns outreach generation. Output UI = the Outreach
+  Sequence card (see Magic Patterns `v2/OutreachSequenceCard.tsx`): day-by-day cadence
+  with per-step channel badges (Email / LinkedIn), "Review copy" per step, QA-gated DRAFT
+  banner, and export actions — "Enroll via HubSpot Sequence" (enroll-into-existing, Pro+
+  seat, email steps; copy saved as drafts) and "Push to Woodpecker (email + LinkedIn)"
+  (LinkedIn touches ride as Woodpecker LinkedIn/manual tasks).
 - TDD, porting the OpenClaw contracts (C2/C3/C4) and the golden-envelope test (`test_envelope_contract.py`): `services/outreach/{envelope,cadence,copywriter,copy-qa,pipeline}.ts`, each step an LLM prompt-chain on the tenant's configured LLM receiving the WHOLE envelope; deterministic linter before the LLM judge in QA; any hard failure blocks.
 - `outreach_drafts` status machine (`draft → qa_passed → approved → exported`); routes for run/approve/reject/export; **DRAFT-only invariant enforced by tests** (no code path transmits copy without approved status + explicit user action); derived signals and restricted evidence can never appear in envelopes or copy (zero-leak test).
-- Wire the Draft Outreach button (Next Move card) end to end. Export adapters (REVISED 2026-07-06 after Sequences API verification): clipboard always; plus the tenant's configured channel from settings (task 15):
+- Wire the Outreach-tab generation/export flow end to end. Export adapters (REVISED 2026-07-06 after Sequences API verification): clipboard always; plus the tenant's configured channel from settings (task 15):
   - **HubSpot Sequences adapter** — docs-check FIRST against https://developers.hubspot.com/docs/api-reference/latest/automation/sequences/guide. Verified facts (2026-07-06): API base `/automation/sequences/2026-03/`; supports LIST sequences, FETCH sequence, ENROLL contact, and enrollment status — it CANNOT create or edit sequences. Export = user picks an existing sequence (list endpoint) + we enroll the draft's contacts (`userId` of a seat-holding sender required; Sales/Service Hub Pro or Enterprise seat). Drafted copy is additionally saved as HubSpot DRAFT email engagements (never sent) since the API can't inject our copy into a sequence.
   - **Woodpecker adapter** — campaign reuse/push with tenant key; `email` or
     `email+linkedin` variant per settings. Before any campaign create, list/search the
@@ -804,6 +876,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Billing rails:** research HubSpot marketplace billing vs own Stripe (pricing PRD decides).
 - **Round 8 confirmations (Romeo, 2026-07-07):** Pro = **500 credits/mo + top-up purchases** (top-ups never expire) — approved. **Per-contact pricing logic** is part of the model (not UI guesswork): enrichment charges per contact (`contacts × 4` credits), cadence generation charges per person, buying-group generation covers a config-capped candidate pool; UI always shows projected credit cost BEFORE contact-based runs and confirms above a config threshold. Full math in `planning/chatprd/PRICING_AND_PACKAGING.md` ("Per-contact pricing logic").
 - **Round 9 credit sizing (Romeo, 2026-07-07):** 500/mo is PROVISIONAL — validate against real usage from the round-9 Usage & logs before GA lock. Analysis in `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md`: margin is safe (80–93% GM at full burn); the binding constraint is RECURRING Trigify monitor credits (they accumulate and crowd out research/outreach). OPEN DECISION for pricing sign-off: decouple "tracked accounts" (monitors) into a separate per-tier allowance vs keep monitors in-pool at a lower per-monitor credit cost. Per-rep budgets (task 15c) cap individual spend. Credit debit path must attribute every debit to a `hubspot_user_id` + `action_type` so the logs can right-size the number.
+- **Round 11 credit journey (Romeo, 2026-07-07):** generation is rep-initiated and
+  ad hoc from the company record, not only preselected target-account automation. A rep
+  with app access can run **Generate full account plan** if tenant credits and their
+  monthly `credit_cap` allow it. Every credit-metered CTA must show projected cost,
+  remaining personal credits, and remaining tenant credits before debit; blocked attempts
+  write usage/audit events with result `blocked_budget` or `blocked_provider_setup`.
 
 ### 18. Notifications + plan-aware monitoring
 

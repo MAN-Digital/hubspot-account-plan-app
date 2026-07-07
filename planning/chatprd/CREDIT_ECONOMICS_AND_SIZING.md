@@ -2,6 +2,10 @@
 
 **ChatPRD doc:** `faa0a41d-407b-4fe9-83b9-e7a6845a2a86`
 
+**ChatPRD sync markers:**
+- `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
+- `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`
+
 **Written 2026-07-07 (round 9, Romeo asked: "think about this 500 credits… is it enough
 to use that or not, and how do we do it").** This doc answers three questions: (1) does
 500 credits/mo cover our COGS, (2) is 500 enough for a customer to get value, (3) how do
@@ -95,6 +99,21 @@ We should NOT hard-lock 500 from a spreadsheet. Instead:
 - **Open decision for pricing sign-off:** decouple monitoring from the credit pool
   (recommended option 1) vs. keep monitors in-pool at a lower per-monitor cost. Needs
   Romeo's call before GA pricing locks.
+
+## Round 11 update — workspace-visible rep budgets
+
+Romeo clarified that generation should be **rep-initiated ad hoc from the company record**,
+not primarily a superadmin-curated target-account batch. Pricing/credits UX therefore must
+show the rep's personal monthly cap and remaining credits at the point of action:
+
+- blank/no-data account → **Generate full account plan** shows the itemized projected
+  credit cost before debit;
+- no-open-deal account → generation still works, with no-deal treated as a planning state,
+  not an error;
+- blocked runs (rep cap, tenant pool, missing provider setup) are explicit states and are
+  logged like successful debits;
+- Usage & logs remains the admin/superadmin reporting surface, but reps see their own
+  remaining budget in the workspace.
 
 ## Open questions to resolve before GA pricing lock
 

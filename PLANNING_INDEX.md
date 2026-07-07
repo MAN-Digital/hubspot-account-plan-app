@@ -24,9 +24,10 @@ Currently present under `planning/`:
 
 - `planning/chatprd/AI_CODING_RULES_AND_STANDARDS.md`
 - `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` — the V2 expansion authorization
-  (Trigify signals, 5-tab workspace UI, account research, outreach engine, notifications,
-  workflow action). Synced into the ChatPRD cloud docs through round 10 on 2026-07-07;
-  local mirror kept for re-sync.
+  (Trigify signals, 8-tab workspace UI including Data Gaps, account research, outreach
+  engine, no-deal/no-data generation journeys, notifications, workflow action). Synced
+  into the ChatPRD cloud docs through round 11 on 2026-07-07; local mirror kept for
+  re-sync.
 - `planning/chatprd/PRICING_AND_PACKAGING.md` — Pricing & Packaging ChatPRD mirror
   refreshed into ChatPRD on 2026-07-07.
 - `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md` — Credit Economics & Sizing ChatPRD
@@ -72,7 +73,7 @@ Important:
 - `.claude/tasks/2026-04-19-slice-11-dev-operationalization.md`
 - `.claude/tasks/trigify-signals-into-account-planning.md` — ACTIVE plan: Stage A
   (Trigify signal substrate, tasks 1–11) + Stage B (V2 expansion, tasks 13–19, gated on
-  the ChatPRD sync — satisfied through round 10 on 2026-07-07). Contains the ChatPRD
+  the ChatPRD sync — satisfied through round 11 on 2026-07-07). Contains the ChatPRD
   doc-UUID registry in its Notes section.
 - `docs/runbooks/slice-11-dev-quickstart.md`
 - `docs/superpowers/plans/2026-04-14-slice-1-core-domain.md`
@@ -164,7 +165,7 @@ https://app.chatprd.ai/chat?doc=faa0a41d-407b-4fe9-83b9-e7a6845a2a86
 
 https://app.chatprd.ai/chat/643c3e89-701c-405e-b859-6ad5545dfa99?doc=b018a084-a75c-4d27-89ae-91db4f4be454
 
-All ChatPRD documents above carry the V2 expansion delta through round 10 as of
+All ChatPRD documents above carry the V2 expansion delta through round 11 as of
 2026-07-07 (source: `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`). Programmatic
 access: the `chatprd` MCP (`get_document` with the `doc=` UUID from each link).
 

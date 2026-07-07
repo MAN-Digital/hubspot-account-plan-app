@@ -2,6 +2,10 @@
 
 **ChatPRD doc:** `0b2aae63-a4de-4ebe-bf13-41124843cf2b`
 
+**ChatPRD sync markers:**
+- `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
+- `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`
+
 **Researched 2026-07-07** (official vendor pages; re-verify quarterly — LLM/vendor
 rates move fast). Full research brief in session history; key numbers below.
 
@@ -18,7 +22,7 @@ rates move fast). Full research brief in session history; key numbers below.
 | Tier       | Price           | Credits            | Keys                      | Notes                                                                                                                    |
 | ---------- | --------------- | ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Free trial | $0              | **30 credits**     | managed                   | ≈ 1 full account cycle (research 12 + buying group 3 + cadence 8 + 2 enrichments 8); COGS ~$0.40 — cheap conversion cost |
-| Pro        | **from $99/mo** | **500 credits/mo** | managed except Woodpecker | ~20–25 full account cycles/mo; GM 84% @20 accts, 76% @30, 68% stress-case floor                                          |
+| Pro        | **from $99/mo** | **500 credits/mo** | managed except Woodpecker | Launch allowance is provisional: ~4–6 actively worked new accounts/mo plus light monitoring if monitors stay in-pool; usage logs set the GA number |
 | Enterprise | custom          | custom             | BYO everything            | + custom cards/views + optional full-service (we run signals+outreach, train team) — retainer                            |
 
 ## Credit price table (config-driven, 1 credit ≈ $0.02 retail; Clay-style: don't hide COGS variance in one flat credit)
@@ -54,6 +58,36 @@ COGS scales per contact (Apollo 1–8 credits/contact; Trigify person-enrich 4):
 - Warm-intro scoring rides on research credits (no separate per-connection charge).
   All multipliers/caps/thresholds live in the config-driven credit table (per-tenant
   overridable on Enterprise), never hardcoded in UI.
+
+## Rep-initiated account generation (round 11)
+
+The primary usage journey is now **ad hoc from a company record**, not only a superadmin
+preselecting target accounts in settings or workflows. A rep with app access can click
+**Generate full account plan** when tenant credits and that rep's monthly cap allow it.
+
+Every credit-metered CTA must show, before debit:
+
+- projected action cost;
+- current rep's used / cap / remaining monthly credits;
+- tenant pool remaining;
+- whether any provider/setup blocker prevents the run.
+
+The first-run account-plan estimate is displayed as an itemized preview. Default example:
+
+| Component                              | Credits |
+| -------------------------------------- | ------- |
+| Account research run                   | 12      |
+| Buying-group generation                | 3       |
+| Apollo/people enrichment (5 contacts)  | 20      |
+| Outreach draft for 3 stakeholders      | 24      |
+| Optional company + 2 person monitors   | 54/mo   |
+| **One-time subtotal without monitors** | **59**  |
+| **First-month total with monitors**    | **113** |
+
+The app records every debit and blocked attempt with the acting HubSpot user, company or
+contact target, action type, projected credits, debited credits, and result. Superadmins
+set per-rep caps in Team & access; reps see their own remaining budget in the workspace
+where the action happens.
 
 ## LLM default (managed tier) — IMPORTANT correction
 

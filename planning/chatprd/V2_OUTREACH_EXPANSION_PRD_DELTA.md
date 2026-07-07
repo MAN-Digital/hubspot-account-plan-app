@@ -1,6 +1,6 @@
 # V2 Expansion PRD Delta — Account Workspace UI + Outreach Engine + Monitoring
 
-**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 10 on
+**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 11 on
 2026-07-07 via the authenticated `chatprd` MCP.
 **ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
 **Sync record (2026-07-06):** every section below has been applied to its target ChatPRD
@@ -21,6 +21,10 @@ Round 8 §2d and round 9 §2e were synced to their mapped docs with marker
 "Credit Economics & Sizing" was created as `faa0a41d-407b-4fe9-83b9-e7a6845a2a86`.
 Round 10 §2f was synced to the mapped docs with marker
 `ChatPRD sync addendum — round 10 Woodpecker campaign reuse — 2026-07-07`.
+Round 11 §2g was synced to the mapped docs with marker
+`ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`.
+The round 11 Overview correction was synced with marker
+`ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`.
 
 ---
 
@@ -39,8 +43,8 @@ engine**, porting proven logic from the OpenClaw outreach-engine
 2. **Account workspace UI** — the Magic Patterns design
    (https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35, editor id
    `xmdzva7bxdn4ubmtrbvs35`, active artifact `b9bdba8b-...`, use the **v2/** components)
-   becomes the canonical screen-by-screen UI reference: 5 tabs — Overview, People,
-   Signals, Plan, Context.
+   becomes the canonical screen-by-screen UI reference: 8 tabs — Overview, People,
+   Buying Group, Signals, Outreach, Data Gaps, Plan, Context.
 3. **On-demand account research** — a "Generate account research" button per company,
    running on the tenant's own provider keys (Exa for retrieval + the tenant's chosen LLM
    — e.g. GPT-5.5, Claude, Gemini, or any configured provider — for synthesis).
@@ -56,15 +60,20 @@ engine**, porting proven logic from the OpenClaw outreach-engine
 
 **User journey (canonical):**
 
-> I open a company record → the workspace tab shows the Overview (Why-Now summary, top
-> signals, next move, key people). I can click **Generate account research** to build the
-> research on demand with my own API keys. If Trigify is connected, the **Signals** tab
-> shows past signals within my plan's lookback window (30d vs 14d) and monitoring is on;
-> when a new signal lands, I get a notification (via a HubSpot workflow triggered on the
-> app's signal properties). From the **Next Move** card I click **Draft Outreach** — the
-> engine drafts a signal-led cadence + copy with my own LLM, QA-gates it, and shows it to
-> me as a DRAFT for approval/export. In HubSpot **workflows** I can add the app's
-> "Generate account snapshot" action to automate report generation for target accounts.
+> I open a company record → the workspace tab shows the Overview (one executive summary
+> at the top, why-now, top signals, This Outreach, blockers/risks, key people). If the
+> account is blank or weakly populated, I can click **Generate full account plan** from
+> the empty state; the app shows projected credit cost and my remaining monthly rep
+> budget before it runs. If there is no open deal, the Overview switches to an
+> account-development view instead of showing blank deal metrics. The **Data Gaps** tab
+> lists missing CRM/research inputs and lets me solve them by researching, enriching,
+> creating a task, or explicitly
+> marking a gap not needed. If Trigify is connected, the **Signals** tab shows past
+> signals within my plan's lookback window (30d vs 14d) and monitoring is on; when a new
+> signal lands, I get a notification (via a HubSpot workflow triggered on the app's signal
+> properties). From **Outreach** I generate/review/export approved DRAFT copy. In HubSpot
+> **workflows** I can still add the app's "Generate account snapshot" action, but the
+> primary journey is rep-initiated, ad hoc account generation within per-rep credits.
 
 ---
 
@@ -90,14 +99,27 @@ Link + template id above. Screen-by-screen (v2 components):
 
 - **Header** (`v2/HeaderV2.tsx`): company name, industry/location chips, domain link,
   stage chip, health chip, "Last synced" + Refresh.
-- **Tab nav** (`v2/TabNavV2.tsx`): Overview / People / Signals (count) / Plan / Context.
+- **Tab nav** (`v2/TabNavV2.tsx`): Overview / People / Buying Group / Signals (count) /
+  Outreach / Data Gaps / Plan / Context.
 - **Overview** (`v2/OverviewTabV2.tsx`):
-  - 4-stat strip (deal value, stage, active contacts, expected close) — CRM-derived.
-  - "Executive Summary: Why Now" callout — maps to `reasonToContact` + evidence bullets.
+  - State-aware KPI strip. With an open deal: deal value, stage, active contacts,
+    expected close. With no open deal: account fit, last meaningful activity, signals in
+    window, buying-group coverage. With no data: research readiness, estimated credit
+    cost, remaining rep credits, and setup status.
+  - One **Executive Summary** at the top of the populated Overview — summarizes current
+    account state, confidence, key highlights, and what is known without assuming a deal
+    exists. Do not duplicate this summary later in the page.
+  - Separate **Why Now** callout — maps to `reasonToContact` + evidence bullets.
   - "Top Signals" table with per-source badges (Exa.ai / HubSpot / Trigify) + relative
     time — maps to ranked evidence.
-  - "Recommended Next Move" card with **Draft Outreach** button — maps to `nextMove` and
-    triggers the outreach pipeline.
+  - **This Outreach** mini-summary directly after Top Signals — selected angle, target
+    count, draft/review/export status, warm-path coverage, and a link to Outreach.
+  - Replace the weak "Recommended Next Move" card with **Blockers & Risks**: data
+    confidence, missing decision process, missing buying roles, no verified signal, no
+    open deal, stale CRM activity, missing LinkedIn/domain fields, budget/credit limit,
+    or missing provider setup. Each blocker links to the tab/action that resolves it.
+  - A concise "Next action" may appear inside Blockers & Risks, but outreach generation
+    belongs in the Outreach tab and research/data cleanup belongs in Data Gaps.
   - "Key People" list with role badges (Decision Maker / Champion) — maps to `people`.
 - **People** (`v2/PeopleTabV2.tsx`): expanded person cards — name, title, location,
   CRM status (In CRM / External), role badge, reason-to-talk, bio, evidence line,
@@ -109,10 +131,19 @@ Link + template id above. Screen-by-screen (v2 components):
 - **Signals** (`v2/SignalsTabV2.tsx`): filterable list (All / External Only / CRM Only;
   type filter; search), each signal row: source badge, headline, category, relative time,
   linked people + roles, **provenance chain** ("Exa.ai → Datadog Q3 2026 Earnings
-  Transcript"), detail panel with snippet; CRM Gap + Data Quality callouts.
+  Transcript"), detail panel with snippet. Signals owns observed evidence only; CRM/data
+  gaps move out of this tab into **Data Gaps**.
+- **Data Gaps** (`v2/DataGapsTabV2.tsx`): a new first-class tab between Outreach and
+  Plan/Context. It lists missing or stale inputs that would improve the account plan,
+  context, buying group, or outreach: no open deal, missing amount/stage/close date,
+  missing ICP/industry/domain, stale last activity, missing LinkedIn URLs, unknown
+  buying roles, weak signal coverage, missing warm paths, missing Woodpecker/provider
+  setup, and low-confidence research. Each gap shows impact, suggested resolution,
+  owner, projected credits if enrichment/research is needed, and actions: Research,
+  Enrich people, Create HubSpot task, Update CRM, Mark not needed. No silent CRM writes.
 - **Plan** (`v2/PlanTabV2.tsx`): timeline of account events (deal stage moves, signal
-  milestones, CRM gaps), "This week" actions, messaging guidance (Lead With / Anchor On /
-  Avoid).
+  milestones, resolved data-gap events), "This week" actions, messaging guidance (Lead
+  With / Anchor On / Avoid).
 - **Context** (`v2/ContextTabV2.tsx`): industry/platform/initiative/relevance grid,
   tracked topics, competitor + our-advantage, data-sources footer. This is where the
   generated **account research** renders.
@@ -375,17 +406,76 @@ and Engineering Handoff.
    suggestion, View all campaigns, Add to selected, and Create new all open/toggle real
    states rather than dead buttons.
 
+## 2g. Round 11 feedback (2026-07-07 — Overview strength, Data Gaps, no-deal/no-data, ad hoc rep credits)
+
+**ChatPRD sync:** synced 2026-07-07 to Specs for the AI prototype, Product Brief,
+Feature Implementation Spec, Technical Design Document, Database Schema, Pricing &
+Packaging, Credit Economics & Sizing, QA & Verification Plan, and Engineering Handoff.
+Correction synced with marker
+`ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`.
+
+1. **Overview is an executive workspace summary, not a next-move card.** Keep only one
+   **Executive Summary**, at the top of the populated Overview. It states the account
+   state, confidence, key highlights, and what is known. Keep **Why Now** as its own
+   evidence callout, then show **Top Signals** above a restored **This Outreach**
+   mini-summary. Replace the weak standalone "Recommended Next Move" surface with
+   **Blockers & Risks**. Examples: missing buying-role owner, no verified recent signal,
+   no open deal, missing close date/amount, stale CRM activity, missing LinkedIn URLs,
+   missing warm path, low research confidence, missing Woodpecker/provider setup, and rep
+   or tenant credit limit. Each blocker links to the exact tab/action that resolves it.
+   Blockers complement the Outreach summary; they do not replace it.
+2. **No-open-deal variant is mandatory.** Many company records will not have an open deal.
+   The Overview must not show blank deal value/stage/close-date cards. It switches to an
+   account-development summary: fit/ICP, last meaningful CRM activity, strongest signal in
+   window, buying-group coverage, relationship/warm-path status, and recommended account
+   setup actions. "Create/open a deal" may be a task, but the plan can still be generated
+   without a deal.
+3. **Absolute no-data / first-run wireframe is mandatory.** When a rep opens a company
+   with little or no usable data, show a clear empty state: what will be generated, why it
+   helps, projected credit cost for a full account plan, the rep's remaining monthly
+   credits, and the tenant pool status. The primary CTA is **Generate full account plan**.
+   Before running, the confirm step breaks down expected debits: account research, buying
+   group, people enrichment, outreach draft per person, and optional monitor creation.
+   If the rep is over budget or provider setup is missing, show the blocker and route to
+   Data Gaps/settings/admin instead of failing silently.
+4. **New Data Gaps tab.** Move "CRM Gap" / "Data Quality" out of Signals into a dedicated
+   **Data Gaps** tab placed between Outreach and Plan/Context. It is a working task list
+   for improving the account plan and context: gap type, impact, source, owner, suggested
+   fix, cost if credit-metered, status (Open / In progress / Resolved / Ignored), and
+   action buttons. The tab can create HubSpot tasks or launch research/enrichment, but CRM
+   updates remain explicit user actions.
+5. **Credits are rep-facing at the point of action.** The product should not assume a
+   superadmin preselects all target accounts. A rep with app access can generate a plan
+   ad hoc on a company record as long as tenant credits and that rep's monthly cap allow
+   it. Every credit-metered CTA shows projected cost, remaining personal credits, and
+   remaining tenant credits before debit. The debit path logs the acting HubSpot user,
+   account/contact target, action type, credits, and result. Settings still let a
+   superadmin/admin set caps and view usage, but the workspace itself must make the
+   budget state visible to reps.
+6. **Journey/status requirements.** The app must represent these states clearly:
+   blank/no data → ready to generate → generating research/account plan → data gaps found
+   → context/plan ready → outreach building → draft/in review/approved/exported. No-deal
+   is an account state, not an error state. Budget/provider blockers are explicit states
+   with a resolution path.
+
 ## 3. Technical Design Document
 
 **Apply — new subsystems (all tenant-isolated, config-driven, BYO keys):**
 
 1. **Signal substrate** — as per `.claude/tasks/trigify-signals-into-account-planning.md`
    (signals store, poller, ranking, adapter composition). Unchanged.
-2. **Account research generator** — `POST /api/research/:companyId` (UI button + workflow
-   action both call it): gathers CRM context + signal store + Exa retrieval, synthesizes
-   via the tenant's LLM into a structured research doc (sections match the Context tab).
-   Persisted per (tenant, company) with regenerate semantics + staleness display.
-3. **Outreach pipeline** — TS port of the OpenClaw envelope model:
+2. **Account research / plan generator** — `POST /api/research/:companyId` (workspace
+   first-run CTA + workflow action both call it): gathers CRM context + signal store +
+   Exa retrieval, synthesizes via the tenant's LLM into a structured research doc
+   (sections match the Context tab) plus a first account-plan draft and data-gap
+   assessment. Persisted per (tenant, company) with regenerate semantics + staleness
+   display. It supports no-open-deal and no-data records explicitly.
+3. **Data-gap engine** — evaluates company/deal/contact/research completeness and writes
+   tenant-scoped `account_data_gaps`: gap type, severity, impact, suggested fix, owner,
+   status, source, projected credits, and resolution audit. It feeds Overview blockers,
+   Data Gaps tab, Plan context, and QA/no-data states. It never writes CRM fields
+   silently; Update CRM and task creation are explicit actions.
+4. **Outreach pipeline** — TS port of the OpenClaw envelope model:
    `outreach_envelope` (company + people + signals + positioning + vocabulary) →
    `cadence` step (strategist prompt: fit-grade contacts, one funnel stage, 5+ signal-led
    touches ~12 days, framework + angle per touch) → `copy` step (per-touch, per-contact
@@ -401,20 +491,20 @@ and Engineering Handoff.
    search existing tenant campaigns, recommend matches by account + angle + signal/channel
    (Angle + Signal for pitch/direct motions), and add the person to the selected existing
    campaign unless the user explicitly chooses to create a new one.
-4. **Notification propagation** — poller, on NEW qualifying signal: (opt-in per tenant)
+5. **Notification propagation** — poller, on NEW qualifying signal: (opt-in per tenant)
    writes app-namespaced company properties (`hap_latest_signal_type`,
    `hap_latest_signal_headline`, `hap_latest_signal_at`, `hap_signal_strength`,
    `hap_signal_evidence_url`). Customers build native HubSpot workflows on property
    change → in-app/email/Slack notification. Ship 2–3 documented workflow recipes.
    (Timeline/app events on the new developer platform require HubSpot approval — tracked
    as a later enhancement, not V2-blocking.)
-5. **Custom workflow action** — registered via Automation API v4
+6. **Custom workflow action** — registered via Automation API v4
    (`POST /automation/actions/2026-03/{appId}`), `objectTypes: ["COMPANY"]`, actionUrl →
    our API; action "Generate Account Snapshot/Research" with input fields (depth,
    regenerate?) and output fields (state, strength, reason headline) usable in later
    workflow steps. actionUrl endpoint verifies HubSpot signature; async completion
    supported for long research runs.
-6. **Two UI surfaces** — (a) `crm.record.tab` extension (HubSpot components);
+7. **Two UI surfaces** — (a) `crm.record.tab` extension (HubSpot components);
    (b) hosted settings web app (our stack) for install-time and ongoing configuration:
    providers/keys, Trigify monitors (spend-gated), outreach config (positioning,
    vocabulary, frameworks, sender identity), notification toggles + recipes, plan/usage.
@@ -427,6 +517,14 @@ and Engineering Handoff.
 - `account_research` — id, tenant_id, company_id, status, sections (jsonb), sources
   (jsonb, provenance), generated_by (llm provider/model), created_at; latest-per-company
   view; regenerate keeps history.
+- `account_data_gaps` — id, tenant_id, company_id, deal_id?, contact_id?, gap_type,
+  severity, impact, suggested_fix, owner_hubspot_user_id?, source, projected_credits,
+  status (open/in_progress/resolved/ignored), resolution_ref, created_at, updated_at.
+  Feeds Overview blockers and the Data Gaps tab; no silent CRM writes.
+- `account_generation_runs` — id, tenant_id, company_id, requested_by_hubspot_user_id,
+  trigger (workspace/workflow), requested_scope (research/buying_group/outreach/monitor),
+  projected_credits, debited_credits, status, blockers (jsonb), created_at, completed_at.
+  Lets the empty-state/full-plan generation journey be audited and resumed.
 - `outreach_drafts` — id, tenant_id, company_id, snapshot_id?, envelope (jsonb), cadence
   (jsonb), copy (jsonb), qa (jsonb), status (draft/qa_passed/approved/exported/rejected),
   approved_by, created_at, updated_at.
@@ -455,7 +553,7 @@ and Engineering Handoff.
 
 - **Phase A (in flight):** Trigify signal substrate — tasks 1–12 of
   `.claude/tasks/trigify-signals-into-account-planning.md`.
-- **Phase B:** Account workspace UI (5-tab translation to HubSpot components) + hosted
+- **Phase B:** Account workspace UI (8-tab translation to HubSpot components) + hosted
   settings app shell.
 - **Phase C:** Account research generator (+ Context tab rendering) and outreach engine
   (envelope/cadence/copy/qa + Draft Outreach + approval + export adapters).
@@ -518,9 +616,12 @@ troubleshooting. Every claim must match shipped behavior.
 **Apply — new verifications:**
 
 - UI: all 8 V1 states + new surfaces render in the tab (component-translated) on the test
-  portal; Signals tab filters/provenance; Context renders research with sources.
+  portal; Signals tab filters/provenance; Data Gaps renders actionable gaps; Context
+  renders research with sources.
 - Research: generate → persisted → regenerate keeps history; degraded provider → explicit
-  degraded state, never fabricated content.
+  degraded state, never fabricated content. No-deal and no-data company records must
+  render useful generation states with projected credit cost and personal remaining
+  credits.
 - Outreach: golden-envelope contract test (each step receives the WHOLE envelope — port
   of OpenClaw `test_envelope_contract.py`); QA gate blocks fabricated stats/links; a
   derived signal in the envelope never surfaces in copy; DRAFT-only invariant test — no
@@ -533,6 +634,9 @@ troubleshooting. Every claim must match shipped behavior.
   the test portal.
 - Workflow action: definition registers on app install; execution generates
   snapshot/research and returns output fields; signature-invalid requests rejected.
+- Credits/journey: rep-initiated **Generate full account plan** debits only after explicit
+  projected-cost confirm; blocks cleanly when tenant credits or rep monthly cap are
+  insufficient; writes usage/audit events for success and blocked attempts.
 - Plan-aware lookback: limits API mocked at 14d and 30d → feed/query windows clamp
   accordingly; UI states the active window.
 
