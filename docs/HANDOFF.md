@@ -20,6 +20,7 @@ fully specified, build not started except Stage A).
 ## 2. Current state (2026-07-07)
 
 ### Shipped on main
+
 - **Stage A (Trigify signal substrate) — PR #55, squash `76025af`:** `signals`/
   `company_signal_map`/`trigify_monitors` tables (migration 0011, RLS), TrigifyClient
   (free reads; confirm-guarded subscription create), ranking port (derived-alone = 0),
@@ -30,6 +31,23 @@ fully specified, build not started except Stage A).
   budget), settings key entry (`signalProviders.trigify`), extension settings UI +
   8-state verification. Suite ~1191 tests green at ship time.
 - Security audit PASSED (report-only; 3 LOW/INFO advisories). Live smoke: SHIP-WITH-NOTES.
+- **Supabase advisor fix (PR #72, migration `0012_tenants_rls_and_rest_revoke`):** the
+  `tenants` bootstrap table had no RLS (deliberate 0007 exclusion) and Supabase's default
+  `anon`/`authenticated` PostgREST grants made it publicly readable/writable. 0012
+  enables RLS on `tenants` (never FORCE — owner runs migrations/lifecycle) with
+  `tenants_read_all` (SELECT, any granted role — tenant resolution, nonce sweeps, and
+  uninstall flows read tenants BEFORE tenant context exists) + `tenants_app_role_write`
+  (ALL, `hap_app` only), and revokes ALL `anon`/`authenticated` grants on every public
+  table/sequence incl. default privileges. **Applied to production 2026-07-07 and
+  verified live:** grants = 0 rows (was 77 each), anon-key REST probe → 401 "permission
+  denied". Contract tests: `packages/db/src/schema/__tests__/tenants-rls.test.ts`;
+  the RLS write-path suite grants `hap_app` membership to its test login role (models
+  production posture). Suite 126 files / 1199 tests green.
+- **PROD MIGRATION GOTCHA:** `packages/db/drizzle.config.ts` loads `.env.test.local`
+  with `override: true`, so `DATABASE_URL=<prod> pnpm db:migrate` silently migrates the
+  LOCAL docker DB and still prints success. To migrate prod: `mv .env.test.local /tmp/`,
+  run the migrate, move it back, then VERIFY on prod (`drizzle.__drizzle_migrations`
+  row count must grow).
 - **Test infra:** local test DB required — `pnpm test:db:up` (docker compose postgres
   :5433 + migrations + `.env.test.local` scaffold); vitest globalSetup fail-fast
   preflight. NEVER weaken the `ALLOW_TEST_AUTH` guard in `packages/config/src/env.ts`.
@@ -39,6 +57,7 @@ fully specified, build not started except Stage A).
 - **main is push-protected** — every change lands via PR (docs changes included).
 
 ### Open items from Stage A
+
 - ONE authorized live Trigify monitor subscribe (1 credit) still UNUSED — do it via the
   settings UI with a LinkedIn **person** profile (person-level signal types; a company
   page 400s). Test portal: **147062576**. Budget is fail-closed: set
@@ -47,9 +66,11 @@ fully specified, build not started except Stage A).
 - Duplicate ChatPRD QA docs (`f704414e`, `7aed1d8b`) — user deletes manually.
 
 ### V2: fully specified, not built
+
 Plan: `.claude/tasks/trigify-signals-into-account-planning.md` — Stage B tasks 13–19c
 (+17a-d, 14b). Seven feedback rounds (2026-07-07) are recorded in the plan + delta +
 ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta):
+
 1. 7-tab UI: Overview / People / Buying Group / Signals / Outreach / Plan / Context.
 2. Buying Group = OrgChartHub-style org chart, AI-generated + fully editable (replace-
    person via CRM contact picker in BOTH views, placeholders, edits survive Regenerate);
@@ -76,11 +97,11 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    $99/mo (we manage keys EXCEPT Woodpecker) / Enterprise (BYO + custom + full-service).
    Apollo PROMOTED to the prospecting/enrichment provider. Open decision: show
    underlying API sources on managed tier (recommend yes).
-9b. Settings IA (round 7): native HubSpot app settings page (new-platform settings
-    component) replaces the hosted settings app (now fallback); superadmin/admin-only
-    w/ server-side role checks; provider taxonomy Signals/Research/People(Apollo+
-    Harvest)/Delivery(Woodpecker BYO always)/AI; BYO key fields only on Enterprise
-    plans; no manual monitor form (card-contextual only).
+   9b. Settings IA (round 7): native HubSpot app settings page (new-platform settings
+   component) replaces the hosted settings app (now fallback); superadmin/admin-only
+   w/ server-side role checks; provider taxonomy Signals/Research/People(Apollo+
+   Harvest)/Delivery(Woodpecker BYO always)/AI; BYO key fields only on Enterprise
+   plans; no manual monitor form (card-contextual only).
 10. Mintlify docs task 19b (repo `romeoman/mintlify-docs`, `mint` CLI, deploy on push).
 11. OpenClaw engine port must track its CURRENT state — commits `177929a` (breakup
     retired, LinkedIn frameworks/steps) + F-series (15-key slot contract, signal_json
@@ -95,9 +116,13 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
   the drive ROOT pending a manual move into the project (+round 6/pricing/handoff docs pending at write
   time). UUID registry in the plan's Notes. MCP: `chatprd` (HTTP, OAuth, flaps across
   restarts — retry once, then ask user to re-auth).
-- **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, artifact
-  `b9bdba8b-9ee3-47e6-bdfc-ac3a9c15c50b`, `v2/*` files. **COMPLETE — published through
-  round 7b (2026-07-07):** all 7 workspace tabs, TrackSignalsModal, OutreachTab (angles
+- **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, active
+  artifact `03a453e0-8d7e-4e5d-8d17-7e0886f22536` (v8 "Swap Plan and Outreach tabs") —
+  the editor is collaborative, so always call `get_artifact` for the CURRENT active
+  artifact instead of trusting a cached ID. `v2/*` files; `v2/AppV2.tsx` switches
+  between the workspace view (7 tabs) and the settings view (header settings button →
+  `AppSettingsChromeV2`, back link returns). **COMPLETE — published through
+  round 7b (2026-07-07), both app AND app settings verified live in v8:** all 7 workspace tabs, TrackSignalsModal, OutreachTab (angles
   picker read-only for reps, warm intro w/ required LinkedIn URLs, rebuild lockout,
   three-way export, thread badges, signal chips), org-chart BuyingGroupTab w/ contact
   picker, and the app-settings page inside accurate Connected-Apps chrome
