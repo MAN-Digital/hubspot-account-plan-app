@@ -68,7 +68,7 @@ fully specified, build not started except Stage A).
 ### V2: fully specified, not built
 
 Plan: `.claude/tasks/trigify-signals-into-account-planning.md` — Stage B tasks 13–19c
-(+17a-d, 14b). Seven feedback rounds (2026-07-07) are recorded in the plan + delta +
+(+17a-d, 14b). Feedback through round 10 (2026-07-07) is recorded in the plan + delta +
 ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta):
 
 1. 7-tab UI: Overview / People / Buying Group / Signals / Outreach / Plan / Context.
@@ -84,7 +84,9 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
 6. Exports: HubSpot TASKS = default (one task per touch w/ approved copy; API cannot
    inject copy into sequences — enrollment = {contactId,senderEmail,sequenceId} ONLY);
    sequences = template motions w/ mandatory disclaimer; Woodpecker = THE full-custom-
-   copy channel (LinkedIn steps: PROFILE_VISIT/CONNECTION_REQUEST/DIRECT_MESSAGE/INMAIL).
+   copy channel (LinkedIn steps: PROFILE_VISIT/CONNECTION_REQUEST/DIRECT_MESSAGE/INMAIL)
+   and is **campaign-reuse-first**: add people to an existing account/angle/signal
+   campaign by default; do not create one Woodpecker campaign per person.
 7. Angles: campaign-level (Interview/Feedback/Event×3/Direct + prompt-to-angle w/
    research); GOVERNANCE: create/edit in Settings behind superadmin, per-angle
    enabled-for-reps, server-side enforcement; QA hard-fails angle violations.
@@ -126,6 +128,12 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    real constraint is recurring monitor credits; 500 stays PROVISIONAL pending
    real-usage data from the logs; open decision = decouple monitors from the credit
    pool. Delta §2e is canonical. Permissions model = §"App roles & permissions" below.
+   9e. Round 10 (2026-07-07): **Woodpecker campaign reuse** — the Outreach UI/Magic
+   Patterns wireframe must prompt before creating campaigns. On Woodpecker export/add
+   person, suggest existing campaigns by account + angle + signal/channel (pitch/direct
+   can use Angle + Signal); primary CTA = Add to selected campaign, secondary =
+   Create new campaign, with View all campaigns search/filter. Personalization happens
+   through snippets/custom fields and per-prospect copy, not separate campaigns/sequences.
 10. Mintlify docs task 19b (repo `romeoman/mintlify-docs`, `mint` CLI, deploy on push).
 
 **App roles & permissions (round 9):** three app roles layered on HubSpot's own perms —
@@ -176,7 +184,7 @@ checks for "RECURRING monitor credits".
 **Other repo paths a syncing agent needs:**
 
 - Execution plan (all rounds, tasks 13–19c incl. 15c RBAC): `.claude/tasks/trigify-signals-into-account-planning.md`
-- Round-by-round delta (§2a–§2e, all synced through round 9): `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`
+- Round-by-round delta (§2a–§2f, all synced through round 10): `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`
 - Planning index (resolves any moved paths): `PLANNING_INDEX.md`
 
 **Remaining ChatPRD UI-only cleanup:** root-level docs — "Pricing & Packaging"
@@ -186,9 +194,10 @@ duplicate QA docs (`f704414e`, `7aed1d8b`) should be archived/deleted. These are
 actions in ChatPRD, not MCP calls.
 
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, active
-  artifact `495ee577-b08c-458c-bf28-dfe4db5d7e58` (v11, round 9 — Team & access +
-  Usage & logs settings tabs wired; built on v9/v10 round-8 Overview hub, ranked signals,
-  cross-ref outreach, toggle fix, plain-English notifications) —
+  artifact `16a33879-e765-4b23-af0d-f2f249e73c75` (v13, round 10 — Woodpecker
+  Modal Reuse-First Flow; built on v11 round-9 Team & access + Usage & logs settings
+  tabs, v9/v10 round-8 Overview hub, ranked signals, cross-ref outreach, toggle fix,
+  and plain-English notifications) —
   the editor is collaborative, so always call `get_artifact` for the CURRENT active
   artifact instead of trusting a cached ID. `v2/*` files; `v2/AppV2.tsx` switches
   between the workspace view (7 tabs) and the settings view (header settings button →

@@ -1,6 +1,6 @@
 # V2 Expansion PRD Delta — Account Workspace UI + Outreach Engine + Monitoring
 
-**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 9 on
+**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 10 on
 2026-07-07 via the authenticated `chatprd` MCP.
 **ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
 **Sync record (2026-07-06):** every section below has been applied to its target ChatPRD
@@ -19,6 +19,8 @@ Round 8 §2d and round 9 §2e were synced to their mapped docs with marker
 `ChatPRD sync addendum — rounds 8 and 9 — 2026-07-07`; Pricing & Packaging
 `0b2aae63-...` was refreshed from `PRICING_AND_PACKAGING.md`; and the new ChatPRD doc
 "Credit Economics & Sizing" was created as `faa0a41d-407b-4fe9-83b9-e7a6845a2a86`.
+Round 10 §2f was synced to the mapped docs with marker
+`ChatPRD sync addendum — round 10 Woodpecker campaign reuse — 2026-07-07`.
 
 ---
 
@@ -134,7 +136,10 @@ Link + template id above. Screen-by-screen (v2 components):
   visible rebuilding state. Woodpecker export opens a channel-choice (Email / LinkedIn /
   both); LinkedIn steps per official API: PROFILE_VISIT, CONNECTION_REQUEST,
   DIRECT_MESSAGE, INMAIL_MESSAGE; campaign DRAFT/EDITED statuses; step versions
-  PATCHable with our edited copy.
+  PATCHable with our edited copy. **Woodpecker campaigns are reuse-first, never
+  person-per-campaign by default:** adding another person looks for an existing campaign
+  for the same account + angle + signal/channel, recommends it, and requires an explicit
+  user choice before creating a new campaign.
 - **HubSpot execution model + threading (2026-07-07, round 4 — SUPERSEDES the
   "enroll via sequence" primary flow):** follow-up emails are ALWAYS same-thread
   replies (Woodpecker: subject null on steps 2+, verified; QA hard-fails new subjects
@@ -332,6 +337,44 @@ and the NEW "Credit Economics & Sizing" doc
    PROVISIONAL launch number, and use the round-9 Usage logs to set the real allowance
    from actual data. Pro = 500/mo + never-expiring top-ups confirmed.
 
+## 2f. Round 10 feedback (2026-07-07 — Woodpecker campaign reuse)
+
+**ChatPRD sync:** synced 2026-07-07 to Specs for the AI prototype, Feature
+Implementation Spec, Technical Design Document, Database Schema, QA & Verification Plan,
+and Engineering Handoff.
+
+1. **Woodpecker campaign invariant — one campaign per angle/signal motion, not one per
+   person.** When a rep exports or adds another stakeholder to Woodpecker, the app must
+   NOT create a separate Woodpecker campaign for each person. The default behavior is
+   "add this person to an existing campaign" when the account/angle/signal/channel
+   context matches. For pitch/direct motions, the suggested grouping can use
+   **Angle + Signal** (for example, Direct + "Hiring spike") plus the account/company and
+   channel variant.
+2. **Export/add-person modal.** On "Push to Woodpecker" or "Add person to campaign", the
+   UI queries the tenant's existing Woodpecker campaigns and opens a decision modal:
+   `"There is already a Woodpecker campaign for this angle and signal. Add this person
+   here, or create a new campaign?"` The primary CTA is **Add to selected campaign**.
+   **Create new campaign** is secondary and explicit. The modal shows suggested matching
+   campaigns first (account, angle, signal, channel, status, current person count, last
+   exported/synced), and includes **View all campaigns** with search/filter so a rep can
+   pick any existing campaign if the suggestion is wrong.
+3. **Personalization model.** Personalization belongs in Woodpecker snippets/custom
+   fields and per-prospect step content, not in separate campaign or sequence creation.
+   The export must send person-level variables such as role, signal headline, signal
+   evidence URL, warm-path summary, first-line opener, and angle-specific snippet values.
+   Existing campaign steps remain the shared structure; snippets/custom fields carry the
+   per-person differences.
+4. **Backend/export guard.** The Woodpecker adapter lists/searches campaigns before it can
+   create one, persists the selected external campaign ID, and logs whether the export
+   reused or created a campaign. Creating a new campaign requires explicit user intent
+   from the modal and must be auditable. Provider integration stays tenant-keyed and
+   tenant-isolated.
+5. **Magic Patterns wireframe requirement.** The clickable Outreach tab must show this
+   flow in both places it matters: first Woodpecker export and later adding another
+   person. The existing interactive standard still applies: channel choice, campaign
+   suggestion, View all campaigns, Add to selected, and Create new all open/toggle real
+   states rather than dead buttons.
+
 ## 3. Technical Design Document
 
 **Apply — new subsystems (all tenant-isolated, config-driven, BYO keys):**
@@ -354,6 +397,10 @@ and the NEW "Credit Economics & Sizing" doc
    status machine: `draft → qa_passed → approved → exported`. **Nothing sends from this
    app.** Optional export adapters (behind the provider-adapter pattern): copy-to-
    clipboard / HubSpot draft email engagement / Woodpecker campaign (tenant's key).
+   Woodpecker export is reuse-first: before creating a campaign, the adapter must list or
+   search existing tenant campaigns, recommend matches by account + angle + signal/channel
+   (Angle + Signal for pitch/direct motions), and add the person to the selected existing
+   campaign unless the user explicitly chooses to create a new one.
 4. **Notification propagation** — poller, on NEW qualifying signal: (opt-in per tenant)
    writes app-namespaced company properties (`hap_latest_signal_type`,
    `hap_latest_signal_headline`, `hap_latest_signal_at`, `hap_signal_strength`,
@@ -383,6 +430,16 @@ and the NEW "Credit Economics & Sizing" doc
 - `outreach_drafts` — id, tenant_id, company_id, snapshot_id?, envelope (jsonb), cadence
   (jsonb), copy (jsonb), qa (jsonb), status (draft/qa_passed/approved/exported/rejected),
   approved_by, created_at, updated_at.
+- `outreach_campaigns` — tenant-local mapping for external outreach campaigns:
+  tenant_id, company_id, provider (`woodpecker` initially), external_campaign_id,
+  angle_id/angle_key, primary_signal_key/headline, channel_variant, name, status,
+  last_synced_at, created_by, created_at, updated_at. Unique enough to prevent accidental
+  duplicate campaigns for the same account + angle + signal/channel while still allowing
+  explicit user-created exceptions.
+- `outreach_campaign_members` — tenant_id, campaign_id, contact_id/person_key, draft_id?,
+  external_prospect_id, snippets/custom_fields (jsonb), export_status, added_by,
+  added_at. This is the join that lets one Woodpecker campaign hold many personalized
+  prospects without creating person-per-campaign duplicates.
 - `outreach_config` — id, tenant_id, positioning (jsonb), vocabulary (jsonb), frameworks
   (jsonb), export_provider (nullable), settings (jsonb). **DECIDED 2026-07-06 (Romeo):
   own explicit table** — not `provider_config` rows.
@@ -467,7 +524,11 @@ troubleshooting. Every claim must match shipped behavior.
 - Outreach: golden-envelope contract test (each step receives the WHOLE envelope — port
   of OpenClaw `test_envelope_contract.py`); QA gate blocks fabricated stats/links; a
   derived signal in the envelope never surfaces in copy; DRAFT-only invariant test — no
-  network call to any send provider without approved status + user action.
+  network call to any send provider without approved status + user action. Woodpecker
+  export tests must prove campaign reuse is the default: matching campaigns are suggested,
+  adding a second person reuses the selected campaign, snippets/custom fields differ per
+  prospect, and campaign creation only happens after an explicit "Create new campaign"
+  action from the modal.
 - Notifications: property writes only when enabled; workflow recipe fires end-to-end on
   the test portal.
 - Workflow action: definition registers on app install; execution generates

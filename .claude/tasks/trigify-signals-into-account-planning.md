@@ -615,7 +615,7 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   • **People tab** = prospecting/info only — REMOVE the "Draft outreach" button.
   • **NEW Outreach tab**: AI-recommended outreach targets, ranked by relevance (grounded in buying group + signals + plan alignment), user selects who; per-person outreach detail (like People's master-detail pattern): per-person cadence, per-step copy, channel badges. **Status machine per person: Building → Draft → In review → Approved → Exported** — copy is editable during review; ONLY an approved outreach can be exported; while the engine generates, show an explicit "building outreach plan…" state.
   • **Plan↔Outreach dependency**: editing the account plan invalidates/regenerates affected outreach copy + priorities (visible "rebuilding" state, never silent).
-  (g) **Export channel logic**: HubSpot Sequence = enroll-into-existing (unchanged). Woodpecker button opens a **channel-choice step: Email only / LinkedIn only / Email + LinkedIn**. Woodpecker LinkedIn step types verified from the official API docs (developers.woodpecker.co): PROFILE_VISIT, CONNECTION_REQUEST (optional message), DIRECT_MESSAGE, INMAIL_MESSAGE — mixable with EMAIL steps in one campaign; campaign statuses DRAFT/EDITED; step versions updatable via PATCH (so our edited copy pushes cleanly).
+  (g) **Export channel logic**: HubSpot Sequence = enroll-into-existing (unchanged). Woodpecker button opens a **channel-choice step: Email only / LinkedIn only / Email + LinkedIn**. Woodpecker LinkedIn step types verified from the official API docs (developers.woodpecker.co): PROFILE_VISIT, CONNECTION_REQUEST (optional message), DIRECT_MESSAGE, INMAIL_MESSAGE — mixable with EMAIL steps in one campaign; campaign statuses DRAFT/EDITED; step versions updatable via PATCH (so our edited copy pushes cleanly). **Woodpecker campaign reuse is mandatory:** adding a person defaults to an existing campaign for the same account + angle + signal/channel; never create one Woodpecker campaign per person unless the rep explicitly overrides.
   (h) Design must be INTERACTIVE in Magic Patterns: Edit plan actually toggles editing, Review copy opens a copy editor, exports open their modals — no dead buttons.
 - **UI feedback round 8 (Romeo, 2026-07-07):**
   (i) **Overview tab = summary hub** — beyond the why-now hero it must summarize: active
@@ -629,6 +629,17 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   hiring spikes, funding, competitor-post engagement, tooling-migration posts…).
   (k) **Buying Group**: REMOVE the "HubSpot's native Buying Groups requires Sales Hub
   Enterprise…" UI note (capability stays; the note goes).
+- **UI feedback round 10 (Romeo, 2026-07-07):**
+  (l) **Woodpecker add-to-existing-campaign flow:** the Outreach tab and Magic Patterns
+  prototype must show that Woodpecker campaigns are angle/signal motions, not person
+  containers. On first export and when adding another person, open a campaign-selection
+  modal after channel choice. Suggested campaigns appear first, matched by company/account,
+  angle, signal, and channel variant; pitch/direct campaigns may group by **Angle +
+  Signal**. Modal copy: "There is already a Woodpecker campaign for this angle and
+  signal. Add this person here, or create a new campaign?" Primary action = "Add to
+  selected campaign"; secondary = "Create new campaign"; include "View all campaigns"
+  with search/filter. Personalization uses Woodpecker snippets/custom fields and
+  per-prospect step content, not separate campaigns or sequences.
 - TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (stat strip, Why-Now, Top Signals, Next Move + Draft Outreach button, Key People), Signals (filters, search, provenance, detail), People (person cards). Plan/Context tabs render explicit empty states until 15/16 land. All 8 V1 states must keep rendering.
 
 ### 14b. Buying Group tab (AI-generated, editable)
@@ -719,7 +730,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - `outreach_drafts` status machine (`draft → qa_passed → approved → exported`); routes for run/approve/reject/export; **DRAFT-only invariant enforced by tests** (no code path transmits copy without approved status + explicit user action); derived signals and restricted evidence can never appear in envelopes or copy (zero-leak test).
 - Wire the Draft Outreach button (Next Move card) end to end. Export adapters (REVISED 2026-07-06 after Sequences API verification): clipboard always; plus the tenant's configured channel from settings (task 15):
   - **HubSpot Sequences adapter** — docs-check FIRST against https://developers.hubspot.com/docs/api-reference/latest/automation/sequences/guide. Verified facts (2026-07-06): API base `/automation/sequences/2026-03/`; supports LIST sequences, FETCH sequence, ENROLL contact, and enrollment status — it CANNOT create or edit sequences. Export = user picks an existing sequence (list endpoint) + we enroll the draft's contacts (`userId` of a seat-holding sender required; Sales/Service Hub Pro or Enterprise seat). Drafted copy is additionally saved as HubSpot DRAFT email engagements (never sent) since the API can't inject our copy into a sequence.
-  - **Woodpecker adapter** — campaign push with tenant key; `email` or `email+linkedin` variant per settings.
+  - **Woodpecker adapter** — campaign reuse/push with tenant key; `email` or
+    `email+linkedin` variant per settings. Before any campaign create, list/search the
+    tenant's Woodpecker campaigns and recommend matches by account + angle +
+    signal/channel (Angle + Signal for pitch/direct motions). Default export adds the
+    person to the selected existing campaign with person-level snippets/custom fields;
+    creating a new campaign is an explicit, audited modal action.
     All behind the provider-adapter pattern + explicit confirm per export; nothing ever auto-sends from our app (a sequence enrollment IS a send-authorizing action in HubSpot — the confirm dialog must say so explicitly).
 
 ### 17a. HubSpot execution model + threading (round 4, 2026-07-07)
@@ -750,7 +766,7 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Rebuild lockout (round 5, 2026-07-07):** whenever the angle changes (or a plan edit triggers regeneration), the affected cadence/copy/export surfaces are DISABLED — grayed out with a visible "Rebuilding sequences for the new angle…" progress state — until the rebuild completes. No reviewing, approving, or exporting a stale sequence; per-person status returns to Building during the rebuild.
 - **Angle governance (round 5, 2026-07-07 — admin-gated to avoid rep chaos):** angle CREATION and EDITING (including editing the presets — e.g. adding tenant-specific information, adjusting goal/tone/frameworks/QA rules) lives in SETTINGS under a **superadmin permission**, NOT in the rep-facing picker. The superadmin controls exactly what each angle does and which angles are enabled for reps. Reps see a read-only picker containing ONLY admin-enabled angles (+ a "managed by your admin" hint). The prompt-to-angle creation flow moves into the settings angle manager. Enforcement is SERVER-SIDE (angle-write endpoints check the admin role; the picker filtering is cosmetic on top) — app-level role stored per tenant (installer defaults to superadmin; can grant others), not inferred from UI.
 - **Custom angles (prompt-to-angle):** the user prompts a new angle → the pipeline runs RESEARCH on the tenant's LLM+Exa (what email/LinkedIn frameworks & best practices fit this angle) → generates a structured angle definition (goal, tone, allowed claims, frameworks, per-touch template skeletons, QA additions) → user reviews → saved to tenant config, reusable like presets.
-- **Architecture:** angle definitions live in `outreach_config.angles[]` (jsonb); the campaign envelope carries `campaign.angle`; cadence-strategist + copywriter + copy-QA all consume it; **QA enforces angle fidelity as a hard failure** (e.g. any pitch inside an Interview-angle sequence blocks). Maps onto the engine's config-driven `messaging_vocabulary` (frameworks {id,label,era}, angle families) — the campaign angle filters/extends the vocabulary. Author preset templates/frameworks at build time (research round per preset).
+- **Architecture:** angle definitions live in `outreach_config.angles[]` (jsonb); the campaign envelope carries `campaign.angle`; cadence-strategist + copywriter + copy-QA all consume it; **QA enforces angle fidelity as a hard failure** (e.g. any pitch inside an Interview-angle sequence blocks). Maps onto the engine's config-driven `messaging_vocabulary` (frameworks {id,label,era}, angle families) — the campaign angle filters/extends the vocabulary. Author preset templates/frameworks at build time (research round per preset). Woodpecker campaign identity is also angle-aware: the reuse key is account/company + angle + primary signal/channel, with Angle + Signal naming for pitch/direct motions. Multi-person personalization belongs in snippets/custom fields, while the campaign remains shared.
 - **Engine re-audit (2026-07-07):** OpenClaw engine landed 177929a — 'The Breakup' retired in favor of a signal-led final touch, LinkedIn frameworks/steps added — and campaign-angle work is in progress there; port against the engine's CURRENT state and mirror its angle model where it exists.
 
 ### 17c. Warm intro / connecting-the-dots
