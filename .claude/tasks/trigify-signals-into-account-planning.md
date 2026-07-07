@@ -717,6 +717,23 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Presentation (CTD.ai reference, 2026-07-07):** surface "warm paths" summary metrics on the account (Overview chip: "N warm paths · M strong · K to buying group") + account relationship-strength chip; grade each path strong/medium. Future (V2.5 candidate, provider-adapter pattern): CTD.ai integration (`GET /v1/paths?company=…` + MCP) auto-populates warm paths for tenants who connect it; manual entry stays the default/fallback.
 - **Storage:** `warm_intros` per (tenant, company, target person): mutual_connections[] {name, linkedinUrl, source: manual, enrichment jsonb, score}, intro_requests[] {connector, message, status}.
 
+### 17d. Credits, tiers & admin billing (round 6, 2026-07-07)
+
+- **Task ID**: `v2-credits-tiers`
+- **Depends On**: `v2-settings-app`
+- **Assigned To**: backend + settings UI (Stage B/C boundary — pricing PRD gates final numbers)
+- **Two supply models, one credits system:** (A) **Managed keys** — we own the provider API keys (Exa, Apollo, Trigify, LLM), customer consumes CREDITS; (B) **BYO keys** — tenant brings their own keys (current architecture, unchanged). BOTH modes meter usage in credits (BYO for visibility/limits, managed for billing).
+- **Credit-metered actions** (each debits a configured credit cost, per-tenant ledger, audit-logged): account research run, buying-group generation/regenerate, outreach cadence+copy generation (per person), copy-QA re-runs beyond N, Apollo enrichment (per contact), Trigify monitor create (maps to Trigify credit), Exa-heavy research, warm-intro enrichment/scoring run. Credit costs live in CONFIG (not code); a per-tenant `credit_ledger` table records every debit/credit with action + reference.
+- **Tier draft (final numbers gated on the pricing research → Pricing & Packaging PRD):**
+  1. **Free trial** — ~30 credits, everything unlocked, no card; sized so a user can research 1-2 accounts end to end (validate against researched credit costs).
+  2. **Pro — from $99/mo** — WE manage all provider keys (Exa/Apollo/Trigify/LLM; cheapest-good LLM default, e.g. Gemini Flash-class pending research); customer brings ONLY their Woodpecker API key (sending stays under their identity/deliverability); monthly credit allowance + top-ups; margins priced over Apollo/Trigify/Exa/LLM/server costs.
+  3. **Enterprise — custom** — BYO all APIs, custom development (custom cards/views), and optionally the SERVICE tier: we run signals + outreach for them, train the team, set up all connections (agency-style retainer on top).
+- **Selling point (Product Brief):** our buying group + org chart works on ANY HubSpot tier — enterprise-grade features (buying groups need Sales Hub Enterprise natively) without the Enterprise license.
+- **Apollo (promoted from V2.5):** Apollo.io becomes the people prospecting/enrichment provider (replacing the Harvest plan) — proven in OpenClaw (`signals_source.py`, `web_visitor_qualify.py`, apollo-api skill). Provider-adapter pattern, works in both managed and BYO modes.
+- **Admin settings page (extends v2-settings-app):** Plan & Billing section — current tier card, credits balance + monthly allowance, usage breakdown by action category, top-up/upgrade CTA, per-provider key mode indicator ("Managed by app" vs "Your key"), roles management (superadmin grants), invoice history placeholder. Roles: superadmin (billing + angles + keys + roles) > admin (settings) > rep (use).
+- **Open decision (flag in ChatPRD):** transparency of underlying API sources on managed tier — recommendation: SHOW sources always (consistent with the verify-everything trust principle; provenance chains already name Exa/Trigify), white-labeling deferred unless a strong sales reason emerges.
+- **Billing rails:** research HubSpot marketplace billing vs own Stripe (pricing PRD decides).
+
 ### 18. Notifications + plan-aware monitoring
 
 - **Task ID**: `v2-notifications`
@@ -747,6 +764,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - Author (MDX pages, organized in docs.json navigation): Getting started / install guide (HubSpot marketplace → OAuth → settings app), Providers & API keys (Exa, Trigify, LLM providers — BYO keys), Trigify signals (signal types, observable vs derived, lookback windows, credit model + spend confirmations), Account research, Outreach drafts (pipeline, QA gates, DRAFT-only guarantee, export channels incl. the Sequences seat requirement), Notifications (hap_* properties + the 2-3 workflow recipes), Workflow action, Security & tenant isolation, Troubleshooting/FAQ.
 - Accuracy rule: every documented behavior must match the shipped implementation — verify claims against the repo before writing; no aspirational features.
 - Verify: `mint dev` renders locally without errors; navigation complete; screenshots from the test portal where useful.
+
+### 19c. Handoff documentation (Codex continuation)
+
+- **Task ID**: `v2-handoff-doc`
+- **Depends On**: none (do IMMEDIATELY, maintain continuously)
+- Romeo will run out of Claude Code credits and continue with Codex. Produce and maintain `docs/HANDOFF.md` in the REPO (Codex reads repos): complete current state (Stage A shipped incl. PR list, live smoke status, one unused credit authorization), all decisions rounds 1-6 with links to plan/delta sections, the ChatPRD doc-UUID registry + sync state, Magic Patterns editor/artifact ids + published design state, OpenClaw source paths (VM mapping), env/secrets inventory (names only, never values: CRON_SECRET locations, Vercel Hobby constraint, test portal id 147062576, local test DB bootstrap), open items + exactly where to resume. Mirror a copy into ChatPRD as a new "Engineering Handoff" document.
 
 ### 20. Final validation
 
