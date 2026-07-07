@@ -62,6 +62,7 @@ describe("readSettings", () => {
       signalProviders: {
         exa: { enabled: false, hasApiKey: false },
         hubspotEnrichment: { enabled: false, hasApiKey: false },
+        trigify: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: null,
@@ -107,6 +108,7 @@ describe("updateSettings", () => {
         signalProviders: {
           exa: { enabled: true, apiKey: "exa-secret-1" },
           hubspotEnrichment: { enabled: true },
+          trigify: { enabled: true, apiKey: "trigify-secret-1" },
         },
         llm: {
           provider: "openai",
@@ -129,6 +131,18 @@ describe("updateSettings", () => {
       .where(and(eq(providerConfig.tenantId, tenant.id), eq(providerConfig.providerName, "exa")));
     expect(exaRow?.enabled).toBe(true);
     expect(exaRow?.apiKeyEncrypted).toBeTruthy();
+
+    const [trigifyRow] = await db
+      .select()
+      .from(providerConfig)
+      .where(
+        and(eq(providerConfig.tenantId, tenant.id), eq(providerConfig.providerName, "trigify")),
+      );
+    expect(trigifyRow?.enabled).toBe(true);
+    expect(trigifyRow?.apiKeyEncrypted).toBeTruthy();
+    expect(decryptProviderKey(tenant.id, trigifyRow?.apiKeyEncrypted ?? "")).toBe(
+      "trigify-secret-1",
+    );
     expect(decryptProviderKey(tenant.id, exaRow?.apiKeyEncrypted ?? "")).toBe("exa-secret-1");
 
     const [llmRow] = await db
@@ -147,6 +161,10 @@ describe("updateSettings", () => {
     expect(settings.signalProviders.hubspotEnrichment).toEqual({
       enabled: true,
       hasApiKey: false,
+    });
+    expect(settings.signalProviders.trigify).toEqual({
+      enabled: true,
+      hasApiKey: true,
     });
     expect((settings.signalProviders as Record<string, unknown>).news).toBeUndefined();
     expect(settings.llm).toEqual({
@@ -217,6 +235,62 @@ describe("updateSettings", () => {
     expect(decryptProviderKey(tenant.id, afterLlm?.apiKeyEncrypted ?? "")).toBe(
       "anthropic-secret-1",
     );
+  });
+
+  it("preserves and clears the trigify key via the generic settings update", async () => {
+    const tenant = await seedTenant();
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          trigify: { enabled: true, apiKey: "trigify-secret-1" },
+        },
+      },
+    );
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          trigify: { enabled: false },
+        },
+      },
+    );
+
+    const [afterOmit] = await db
+      .select()
+      .from(providerConfig)
+      .where(
+        and(eq(providerConfig.tenantId, tenant.id), eq(providerConfig.providerName, "trigify")),
+      );
+    expect(afterOmit?.enabled).toBe(false);
+    expect(decryptProviderKey(tenant.id, afterOmit?.apiKeyEncrypted ?? "")).toBe(
+      "trigify-secret-1",
+    );
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          trigify: { clearApiKey: true },
+        },
+      },
+    );
+
+    const [afterClear] = await db
+      .select()
+      .from(providerConfig)
+      .where(
+        and(eq(providerConfig.tenantId, tenant.id), eq(providerConfig.providerName, "trigify")),
+      );
+    expect(afterClear?.apiKeyEncrypted).toBeNull();
+
+    const settings = await readSettings({ db, tenantId: tenant.id });
+    expect(settings.signalProviders.trigify).toEqual({
+      enabled: false,
+      hasApiKey: false,
+    });
   });
 
   it("clears llm configuration when the settings payload disables the llm provider", async () => {

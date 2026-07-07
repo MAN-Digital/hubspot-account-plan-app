@@ -12,6 +12,7 @@ dist/
 build/
 .next/
 out/
+.bundle-artifacts/
 *.tsbuildinfo
 
 # Stray TS build artifacts that occasionally leak into src/ when tsc is run

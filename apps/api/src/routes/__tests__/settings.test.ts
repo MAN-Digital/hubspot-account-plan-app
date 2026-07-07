@@ -122,6 +122,7 @@ describe("GET /api/settings", () => {
       signalProviders: {
         exa: { enabled: false, hasApiKey: false },
         hubspotEnrichment: { enabled: false, hasApiKey: false },
+        trigify: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: null,
@@ -191,6 +192,7 @@ describe("PUT /api/settings", () => {
         signalProviders: {
           exa: { enabled: true, apiKey: "exa-secret-route" },
           hubspotEnrichment: { enabled: true },
+          trigify: { enabled: true, apiKey: "trigify-secret-route" },
         },
         llm: {
           provider: "openai",
@@ -211,11 +213,13 @@ describe("PUT /api/settings", () => {
     const body = (await res.json()) as Record<string, unknown>;
     expect(JSON.stringify(body)).not.toContain("exa-secret-route");
     expect(JSON.stringify(body)).not.toContain("openai-secret-route");
+    expect(JSON.stringify(body)).not.toContain("trigify-secret-route");
     expect(body).toMatchObject({
       tenantId: tenant.id,
       signalProviders: {
         exa: { enabled: true, hasApiKey: true },
         hubspotEnrichment: { enabled: true, hasApiKey: false },
+        trigify: { enabled: true, hasApiKey: true },
       },
       llm: {
         provider: "openai",

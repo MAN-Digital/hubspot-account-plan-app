@@ -25,6 +25,7 @@ export class SettingsValidationError extends Error {
 const MANAGED_SIGNAL_PROVIDERS = [
   { key: "exa", providerName: "exa" },
   { key: "hubspotEnrichment", providerName: "hubspot-enrichment" },
+  { key: "trigify", providerName: "trigify" },
 ] as const;
 
 const HUBSPOT_PROVIDER_NAME = "hubspot";
@@ -158,6 +159,10 @@ export async function readSettings(deps: SettingsServiceDeps): Promise<SettingsR
       hubspotEnrichment: {
         enabled: rowByProvider.get("hubspot-enrichment")?.enabled ?? false,
         hasApiKey: !!rowByProvider.get("hubspot-enrichment")?.apiKeyEncrypted,
+      },
+      trigify: {
+        enabled: rowByProvider.get("trigify")?.enabled ?? false,
+        hasApiKey: !!rowByProvider.get("trigify")?.apiKeyEncrypted,
       },
     },
     llm: {
@@ -302,6 +307,24 @@ export async function updateSettings(
             ? null
             : exaPatch.apiKey
               ? encryptProviderKey(tenantId, exaPatch.apiKey)
+              : (existing?.apiKeyEncrypted ?? null),
+          thresholds: {
+            ...DEFAULT_THRESHOLDS,
+            ...parseThresholds(existing?.thresholds),
+            ...update.thresholds,
+          },
+        });
+      }
+
+      const trigifyPatch = update.signalProviders.trigify;
+      if (trigifyPatch) {
+        const existing = providerByName.get("trigify");
+        await upsertSignalProvider(txDb, tenantId, "trigify", {
+          enabled: trigifyPatch.enabled ?? existing?.enabled ?? false,
+          apiKeyEncrypted: trigifyPatch.clearApiKey
+            ? null
+            : trigifyPatch.apiKey
+              ? encryptProviderKey(tenantId, trigifyPatch.apiKey)
               : (existing?.apiKeyEncrypted ?? null),
           thresholds: {
             ...DEFAULT_THRESHOLDS,

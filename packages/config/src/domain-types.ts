@@ -188,7 +188,7 @@ export type TenantConfig = {
  * (same API key, separate `NewsAdapter`), so `news` is intentionally NOT in
  * this union — it is not a user-configurable provider slot.
  */
-export type SettingsSignalProviderName = "exa" | "hubspot-enrichment";
+export type SettingsSignalProviderName = "exa" | "hubspot-enrichment" | "trigify";
 
 /**
  * Presence-only provider settings state returned by the settings API.
@@ -210,6 +210,7 @@ export type SettingsProviderState = {
 export type SettingsSignalProviders = {
   exa: SettingsProviderState;
   hubspotEnrichment: SettingsProviderState;
+  trigify: SettingsProviderState;
 };
 
 /**
@@ -254,6 +255,7 @@ export type SettingsHubspotEnrichmentUpdate = {
 export type SettingsSignalProviderUpdates = {
   exa?: SettingsProviderUpdate;
   hubspotEnrichment?: SettingsHubspotEnrichmentUpdate;
+  trigify?: SettingsProviderUpdate;
 };
 
 /**

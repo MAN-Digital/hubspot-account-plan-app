@@ -15,6 +15,7 @@ describe("settings schemas", () => {
         signalProviders: {
           exa: { enabled: true, hasApiKey: true },
           hubspotEnrichment: { enabled: true, hasApiKey: false },
+          trigify: { enabled: true, hasApiKey: true },
         },
         llm: {
           provider: "openai",
@@ -40,6 +41,7 @@ describe("settings schemas", () => {
         signalProviders: {
           exa: { enabled: true, hasApiKey: true, apiKey: "should-not-leak" },
           hubspotEnrichment: { enabled: true, hasApiKey: false },
+          trigify: { enabled: false, hasApiKey: false },
         },
         llm: {
           provider: "openai",
@@ -65,6 +67,7 @@ describe("settings schemas", () => {
           exa: { enabled: true, hasApiKey: true },
           news: { enabled: false, hasApiKey: false },
           hubspotEnrichment: { enabled: true, hasApiKey: false },
+          trigify: { enabled: false, hasApiKey: false },
         },
         llm: {
           provider: "openai",
@@ -120,6 +123,26 @@ describe("settings schemas", () => {
     ).toBe(true);
   });
 
+  it("accepts a trigify update that rotates its apiKey", () => {
+    expect(
+      settingsUpdateSchema.safeParse({
+        signalProviders: {
+          trigify: { enabled: true, apiKey: "trigify-key-1" },
+        },
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects mixing clearApiKey with a new apiKey on trigify", () => {
+    expect(
+      settingsUpdateSchema.safeParse({
+        signalProviders: {
+          trigify: { apiKey: "new-key", clearApiKey: true },
+        },
+      }).success,
+    ).toBe(false);
+  });
+
   it("treats blank secret fields as preserve-existing rather than explicit delete", () => {
     const result = settingsUpdateSchema.safeParse({
       signalProviders: {
@@ -152,6 +175,7 @@ describe("settings schemas", () => {
   it("validates the supported signal provider names", () => {
     expect(settingsSignalProviderNameSchema.safeParse("exa").success).toBe(true);
     expect(settingsSignalProviderNameSchema.safeParse("hubspot-enrichment").success).toBe(true);
+    expect(settingsSignalProviderNameSchema.safeParse("trigify").success).toBe(true);
     expect(settingsSignalProviderNameSchema.safeParse("mock-signal").success).toBe(false);
   });
 });
