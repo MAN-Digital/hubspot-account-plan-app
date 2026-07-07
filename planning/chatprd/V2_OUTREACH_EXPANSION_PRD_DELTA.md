@@ -1,6 +1,7 @@
 # V2 Expansion PRD Delta — Account Workspace UI + Outreach Engine + Monitoring
 
-**Status:** SYNCED to ChatPRD — authored 2026-07-06, synced 2026-07-06 via the `chatprd` MCP.
+**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 9 on
+2026-07-07 via the authenticated `chatprd` MCP.
 **ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
 **Sync record (2026-07-06):** every section below has been applied to its target ChatPRD
 document. §1/§2/§7 and the feature-plan/repo-checklist/security/QA deltas landed in the
@@ -11,19 +12,13 @@ preserved verbatim. The full doc-UUID registry lives in
 `.claude/tasks/trigify-signals-into-account-planning.md` (Notes → "ChatPRD synced").
 This file remains the local mirror of the upstream planning update that (per CLAUDE.md)
 authorizes scope beyond the V1 wedge; if it and ChatPRD drift, re-sync from here.
-**PENDING ChatPRD re-sync (2026-07-06, later session):** two revisions below are NOT yet
-in the cloud docs (chatprd MCP was unreachable/needs re-auth): (a) open-decision #2
-revised — export channel is now a per-tenant settings choice with tooltips
-(hubspot_sequences | woodpecker_email | woodpecker_email_linkedin; Sequences =
-enroll-into-existing only, Sales/Service Hub Pro+ seat required); (b) §6 addition —
-Mintlify documentation site (repo romeoman/mintlify-docs). Sync targets: Database Schema
-doc `8554b95a-...` (outreach_config decision line), Technical Design doc `86ffe0e4-...`
-(export adapters bullet), Repo Draft & Execution Checklist doc `d1591ae5-...` (docs
-section).
-**PENDING ChatPRD sync (2026-07-07, round 8):** §2d below (Overview summary hub,
-multi-stakeholder cross-referencing, ranked signals, settings copy/toggle fixes,
-500-credits+top-up confirmation) is NOT yet in the cloud docs — chatprd MCP needs
-re-auth. Sync §2d + the Pricing & Packaging additions when the connector is back.
+**Sync record (2026-07-07):** the later 2026-07-06 revisions (export-channel settings
+choice + Mintlify docs checklist) were synced to Database Schema `8554b95a-...`,
+Technical Design `86ffe0e4-...`, and Repo Draft & Execution Checklist `d1591ae5-...`.
+Round 8 §2d and round 9 §2e were synced to their mapped docs with marker
+`ChatPRD sync addendum — rounds 8 and 9 — 2026-07-07`; Pricing & Packaging
+`0b2aae63-...` was refreshed from `PRICING_AND_PACKAGING.md`; and the new ChatPRD doc
+"Credit Economics & Sizing" was created as `faa0a41d-407b-4fe9-83b9-e7a6845a2a86`.
 
 ---
 
@@ -255,9 +250,8 @@ integrations | Outreach angles | Notifications) mapping 1:1 to the SDK Tabs comp
 
 ## 2d. Round 8 feedback (2026-07-07 — Overview hub, cross-referenced outreach, ranked signals, settings copy)
 
-**PENDING ChatPRD sync** (chatprd MCP needs re-auth; this section is the source):
-sync targets = Specs for the AI prototype (§2 UI), Feature Implementation Spec, QA
-Verification Plan, and the "Pricing & Packaging" doc.
+**ChatPRD sync:** synced 2026-07-07 to Specs for the AI prototype (§2 UI), Feature
+Implementation Spec, QA Verification Plan, and the "Pricing & Packaging" doc.
 
 1. **Overview tab = summary hub.** The Overview must summarize EVERYTHING the workspace
    knows, not just the why-now hero: (a) **Tracking** — active signal monitors (people +
@@ -300,11 +294,11 @@ Verification Plan, and the "Pricing & Packaging" doc.
 
 ## 2e. Round 9 feedback (2026-07-07 — team RBAC via HubSpot Users API, per-rep budgets, Usage & logs, credit sizing)
 
-**PENDING ChatPRD sync** (chatprd MCP still not reachable from the non-interactive
-session on 2026-07-07 despite the connector reconnect — sync when an interactive
-`/mcp` session is available). Sync targets = Specs for the AI prototype, Feature
+**ChatPRD sync:** synced 2026-07-07 to Specs for the AI prototype, Feature
 Implementation Spec, Security & Permission Gates, Database Schema, Pricing & Packaging,
-and the NEW "Credit Economics & Sizing" doc (`planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md`).
+and the NEW "Credit Economics & Sizing" doc
+(`faa0a41d-407b-4fe9-83b9-e7a6845a2a86`,
+`planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md`).
 
 1. **Team & access — RBAC sourced from HubSpot's Users API.** Superadmins manage who can
    use the app and at what role. The portal's users are FETCHED from HubSpot (Users

@@ -1,5 +1,7 @@
 # Pricing & Packaging — Credits Model (source of truth, mirrors ChatPRD doc)
 
+**ChatPRD doc:** `0b2aae63-a4de-4ebe-bf13-41124843cf2b`
+
 **Researched 2026-07-07** (official vendor pages; re-verify quarterly — LLM/vendor
 rates move fast). Full research brief in session history; key numbers below.
 

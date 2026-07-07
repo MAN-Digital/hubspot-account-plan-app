@@ -1,5 +1,7 @@
 # Credit Economics & Sizing — is 500/mo right? (source of truth, mirrors ChatPRD doc)
 
+**ChatPRD doc:** `faa0a41d-407b-4fe9-83b9-e7a6845a2a86`
+
 **Written 2026-07-07 (round 9, Romeo asked: "think about this 500 credits… is it enough
 to use that or not, and how do we do it").** This doc answers three questions: (1) does
 500 credits/mo cover our COGS, (2) is 500 enough for a customer to get value, (3) how do
