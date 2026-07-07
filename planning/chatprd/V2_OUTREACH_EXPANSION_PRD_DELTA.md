@@ -123,6 +123,19 @@ Link + template id above. Screen-by-screen (v2 components):
   HubSpot" writes association-v4 labels + buying-role property (opt-in action, logged,
   reversible; works on Pro+). Native HubSpot Buying Groups = Enterprise-only, manual,
   no public API — ours is the cross-tier, evidence-backed alternative.
+- **IA restructure + org chart (2026-07-07, round 2):** Buying Group tab renders as an
+  ORG CHART (OrgChartHub pattern): hierarchy tree, role badges on person cards, optional
+  dotted relationship lines, placeholder contacts for coverage gaps; AI-generated,
+  editable, no heatmap. Plan tab = pure editable account plan (why-now/value hypothesis,
+  focus, blockers, validate-next, outreach coordination) — next-moves + outreach cards
+  REMOVED from Plan; "Draft outreach" REMOVED from People. NEW **Outreach tab**:
+  AI-ranked recommended targets (buying group + signals + plan alignment), per-person
+  cadence + copy with status machine Building → Draft → In review → Approved → Exported
+  (approve-gate before export); plan edits regenerate outreach copy/priorities with a
+  visible rebuilding state. Woodpecker export opens a channel-choice (Email / LinkedIn /
+  both); LinkedIn steps per official API: PROFILE_VISIT, CONNECTION_REQUEST,
+  DIRECT_MESSAGE, INMAIL_MESSAGE; campaign DRAFT/EDITED statuses; step versions
+  PATCHable with our edited copy.
 - **Trust requirements (2026-07-07):** Trigify appears as a first-class source (badges,
   filters, data-sources footer) beside Exa/HubSpot; EVERY displayed fact/signal carries
   a clickable verify-source link (evidence URL); Plan tab is AI-generated but
