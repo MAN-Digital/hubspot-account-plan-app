@@ -1,0 +1,21 @@
+docs/HANDOFF.md
+  s_c2b65b25fb8214::t_c1cd7d6ab0d6ec 34-50
+  s_c2b65b25fb8214::t_b3c0b274ea8571 119-125
+  s_c2b65b25fb8214::t_9b480f22a50840 23,60,69,73,100-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "bba9fd50dbf9137e3d9d32e0777d023c0bc23705",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
