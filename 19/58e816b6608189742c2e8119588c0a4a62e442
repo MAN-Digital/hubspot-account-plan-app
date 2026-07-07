@@ -1,0 +1,50 @@
+docs/HANDOFF.md
+  s_c47fd3cb9ef010::t_4ff5ed6c3a9eb3 163-167
+  s_c47fd3cb9ef010::t_b652542e2b7080 176
+  s_c47fd3cb9ef010::t_0b2355c841f88d 71,74-75,85-90,93,95,101,104,108,111-114,156,173-174,177,187,189-192,202-203,207-208,213
+  s_c47fd3cb9ef010::t_7119934798a8bd 79-84,150-155
+  s_c47fd3cb9ef010::t_0f1bbe9d96c1a9 175
+  s_c47fd3cb9ef010::t_10a71476b60110 223-227,230-234,236-238
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c47fd3cb9ef010::t_8a85858c1b3b67 202-204,216-218,229-232
+  s_c47fd3cb9ef010::t_877ddcc001559d 652
+  s_c47fd3cb9ef010::t_6b88f9707fc75f 205-209,653-654,658-659,675-678
+  s_c47fd3cb9ef010::t_23a6b093a1281f 382-384,386-387,391
+  s_c47fd3cb9ef010::t_a33f789d535167 601-603,651,655-657,660-674,679-701,777-782,792-800,803,879-884
+planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md
+  s_c47fd3cb9ef010::t_b652542e2b7080 5-8
+  s_c47fd3cb9ef010::t_0cd373f6718668 103-117
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c47fd3cb9ef010::t_341425fdbe7682 26-27,414-415
+  s_c47fd3cb9ef010::t_5020c8d71ead7d 417-426
+  s_c47fd3cb9ef010::t_02e1105c645c27 64
+  s_c47fd3cb9ef010::t_c245cbeaaf20a7 65
+  s_c47fd3cb9ef010::t_c60ce3278408b1 66
+  s_c47fd3cb9ef010::t_d88886d58eae03 68-70
+  s_c47fd3cb9ef010::t_1e2f4d17fe5bcd 3,24-25,46-47,71-76,102-103,105-108,117-122,134-143,145-146
+  s_c47fd3cb9ef010::t_a2d458fcee24ba 409-413,416,427-460,467-478,494,501,507,520-527,556,619-620,622-624,637-639
+  s_c47fd3cb9ef010::t_dbac48884fb000 63,109-112,115-116
+  s_c47fd3cb9ef010::t_4ac018b77de5e2 67
+PLANNING_INDEX.md
+  s_c47fd3cb9ef010::t_9f74b875c6e9ae 27-30,76,168
+planning/chatprd/PRICING_AND_PACKAGING.md
+  s_c47fd3cb9ef010::t_a60e4c04156a5f 25,62-90
+  s_c47fd3cb9ef010::t_b652542e2b7080 5-8
+  s_c47fd3cb9ef010::t_98cff286cb57ab 91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1958e816b6608189742c2e8119588c0a4a62e442",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
