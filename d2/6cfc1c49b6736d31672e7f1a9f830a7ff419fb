@@ -1,0 +1,32 @@
+apps/api/src/services/trigify/monitor-manager.ts
+  s_c2b65b25fb8214::t_86d043dfcc26bf 192-260
+  s_c2b65b25fb8214::t_7e7d13d2971d65 110-112,119-137
+  s_c2b65b25fb8214::t_b42ab8f57c0601 261-262,267,277,307,312
+apps/api/src/services/trigify/__tests__/monitor-manager.test.ts
+  s_c2b65b25fb8214::t_f1027d2e245ede 349-355
+  s_c2b65b25fb8214::t_872ca2d83e1a1f 183-297
+packages/validators/src/__tests__/trigify-monitor-request.test.ts
+  s_c2b65b25fb8214::t_0358bed7e52070 59-89
+packages/validators/src/trigify-monitor-request.ts
+  s_c2b65b25fb8214::t_ac412d0f4ce7e0 18-23
+apps/api/src/routes/settings-trigify.ts
+  s_c2b65b25fb8214::t_2741b1d7db4244 27
+  s_c2b65b25fb8214::t_e9563eff3ba133 115
+  s_c2b65b25fb8214::t_d63cd241ae5b29 71-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "d26cfc1c49b6736d31672e7f1a9f830a7ff419fb",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
