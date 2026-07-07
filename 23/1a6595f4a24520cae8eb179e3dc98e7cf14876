@@ -1,0 +1,74 @@
+apps/api/src/lib/__tests__/config-resolver.test.ts
+  s_c2b65b25fb8214::t_8d65c744ea2d9b 191-205,207-218,220-232,234-253
+  s_c2b65b25fb8214::t_cb4ccbcae81cd4 206,219,233
+apps/api/src/lib/settings-service.ts
+  s_c2b65b25fb8214::t_d48b64e427a0c2 319-340
+  s_c2b65b25fb8214::t_cb7b29fc65685e 28
+  s_c2b65b25fb8214::t_8e29d83707c48a 163-166
+packages/validators/src/settings.ts
+  s_c2b65b25fb8214::t_a74ce72ca46c7d 194-195
+  s_c2b65b25fb8214::t_9a4a0f2193994d 20,37
+apps/api/src/services/trigify/__tests__/signal-ranking.test.ts
+  s_c2b65b25fb8214::t_faa633129e1dda 9-18,26,28,33,35-37,71,79,89,97,106,123-124,129-130,135-136,147-148,156,168,175,182,193-194,205,224,229
+  s_c2b65b25fb8214::t_cb4ccbcae81cd4 34,115,155
+apps/api/src/adapters/signal/__tests__/trigify.test.ts
+  s_c2b65b25fb8214::t_cb4ccbcae81cd4 15,219-220,238,249
+  s_c2b65b25fb8214::t_9ffb7060af874c 180-189,194-218,221-237,239-248,250-255,262-263
+  s_c2b65b25fb8214::t_759d62842f9e51 264
+  s_c2b65b25fb8214::t_33188a6a5b4b22 190-193,256-261
+apps/api/src/adapters/signal/factory.ts
+  s_c2b65b25fb8214::t_c8ac6d1a5d97ba 107
+.github/workflows/trigify-poll.yml
+  s_c2b65b25fb8214::t_3fced26f916c46 1-55
+apps/api/src/lib/__tests__/settings-service.test.ts
+  s_c2b65b25fb8214::t_cb4ccbcae81cd4 365-368,376-380,402-406,424-428
+  s_c2b65b25fb8214::t_69ebb281bce967 65
+  s_c2b65b25fb8214::t_b0cd42bf0b0a34 340-364,369-375,381-401,407-423,429-446
+packages/validators/src/__tests__/settings.test.ts
+  s_c2b65b25fb8214::t_cacb57cd96f22d 18,37-69
+  s_c2b65b25fb8214::t_585dd78de6c308 70,159-209
+  s_c2b65b25fb8214::t_cb4ccbcae81cd4 242
+  s_c2b65b25fb8214::t_500cd5f1637bce 71
+apps/hubspot-extension/src/settings/__tests__/use-settings.test.tsx
+  s_c2b65b25fb8214::t_520e9796752614 13
+apps/hubspot-extension/src/settings/__tests__/settings-page.test.tsx
+  s_c2b65b25fb8214::t_2604b80fbed0eb 28
+  s_c2b65b25fb8214::t_c4f379a54829db 511
+docs/runbooks/vercel-cron-hobby-plan.md
+  s_c2b65b25fb8214::t_10393abebfb194 1-66
+packages/config/src/domain-types.ts
+  s_c2b65b25fb8214::t_c75b8aadbe19e6 315-316
+  s_c2b65b25fb8214::t_6f13a612f4d0dc 242-246
+  s_c2b65b25fb8214::t_7c2145c4640c12 270
+  s_c2b65b25fb8214::t_cb4ccbcae81cd4 248
+apps/api/src/routes/__tests__/settings.test.ts
+  s_c2b65b25fb8214::t_8037bf866ca7ea 125
+  s_c2b65b25fb8214::t_f8fe1000b60f91 481-551
+apps/api/src/adapters/signal/trigify.ts
+  s_c2b65b25fb8214::t_892b2e7f4698c6 33
+  s_c2b65b25fb8214::t_cb4ccbcae81cd4 262,264
+  s_c2b65b25fb8214::t_8c90eceed06d9f 249-260,263,265-288,291-292
+apps/api/vercel.json
+  s_c2b65b25fb8214::t_124f7a0b632431 10
+apps/api/src/lib/config-resolver.ts
+  s_c2b65b25fb8214::t_bddf5aefeca42e 296,321,327
+  s_c2b65b25fb8214::t_6e796713243f4f 87
+  s_c2b65b25fb8214::t_965111dbfe1677 202-215
+  s_c2b65b25fb8214::t_fca7332d56db74 201,216-217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "231a6595f4a24520cae8eb179e3dc98e7cf14876",
+  "prompts": {},
+  "sessions": {
+    "s_c2b65b25fb8214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3fb04811-183b-4bcd-b4fd-3545f260cb2f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
