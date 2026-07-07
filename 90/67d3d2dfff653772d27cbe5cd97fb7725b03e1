@@ -1,0 +1,27 @@
+PLANNING_INDEX.md
+  s_c47fd3cb9ef010::t_67fd7d117e7934 28-33,75-76,155-169
+planning/chatprd/PRICING_AND_PACKAGING.md
+  s_c47fd3cb9ef010::t_dc3ed498781208 3-4
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c47fd3cb9ef010::t_54a4d828d4e3c7 3-4,15-21,253-254,297,299-301
+docs/HANDOFF.md
+  s_c47fd3cb9ef010::t_c1973a63f52aee 144-161,172,179,182-186
+planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md
+  s_c47fd3cb9ef010::t_8c5ea06964e68b 3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9067d3d2dfff653772d27cbe5cd97fb7725b03e1",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
