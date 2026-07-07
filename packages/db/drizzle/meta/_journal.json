@@ -92,6 +92,13 @@
       "when": 1776700000001,
       "tag": "0012_tenants_rls_and_rest_revoke",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1776700000002,
+      "tag": "0013_v2_stage_b_schema",
+      "breakpoints": true
     }
   ]
 }
