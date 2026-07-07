@@ -107,12 +107,34 @@ export type MonitorManagerDeps = {
   planLimits?: ResolvedPlanLimits;
 };
 
+/** One entry of the real API's `config.signals` array. */
+export type TrigifySignalSpec = { type: string; config: Record<string, unknown> };
+
 export type SubscribeArgs = {
   monitorType: string;
   targetUrl: string;
   cadence?: "daily" | "weekly";
   lookbackWindowMs?: number;
   confirm?: boolean;
+  /**
+   * Override the topic keywords used by the default `posted_about_tracked_topic`
+   * signal spec. Pass `[]` explicitly to omit that signal entirely (only
+   * `changed_role` + `changed_company` are subscribed). Ignored when `signals`
+   * is also provided. Config-driven — never hardcoded per call site; the
+   * built-in default list lives in {@link DEFAULT_TOPIC_KEYWORDS} and callers
+   * (routes, settings) may source their own from tenant config instead.
+   */
+  topicKeywords?: string[];
+  /**
+   * Full override of the `config.signals` array this subscription requests.
+   * When provided (and non-empty), takes precedence over `topicKeywords` and
+   * the taxonomy defaults entirely — this is the request-level escape hatch
+   * for a caller that wants a different signal-type selection (e.g. hiring
+   * signals with `jobKeywords`/`locations`). An explicit empty array is
+   * treated the same as "not provided" — the real API 422s on an empty
+   * `signals` array, so we never forward one.
+   */
+  signals?: TrigifySignalSpec[];
 };
 
 export type MonitorSummary = { id: string; status: TrigifyMonitorStatus };
@@ -167,10 +189,82 @@ function clampLookback(ms: number | undefined, planLimits: ResolvedPlanLimits | 
   return clampToPlanLimit(requested, maxMs);
 }
 
+/**
+ * Default topic keywords for the `posted_about_tracked_topic` signal spec.
+ * Mirrors OpenClaw's `_DEFAULT_TOPIC_KEYWORDS` (`trigify_monitors.py`)
+ * verbatim — also verified live against 3 existing production subscriptions
+ * via a FREE `GET /v1/social-signals/subscriptions` read (2026-07-07, zero
+ * credit spend). Config-driven: callers pass `topicKeywords` in
+ * {@link SubscribeArgs} to override this per request; a future settings-level
+ * override can source its own list from tenant config the same way.
+ */
+export const DEFAULT_TOPIC_KEYWORDS: readonly string[] = [
+  "RevOps",
+  "revenue operations",
+  "HubSpot",
+  "CRO",
+  "go-to-market",
+  "marketing operations",
+  "sales operations",
+  "CRM",
+  "pipeline",
+  "revenue workflow",
+];
+
+/**
+ * Build the default `config.signals` array for a Social-Signals subscription:
+ * `changed_role` + `changed_company` (no config — these fire on any role/
+ * company change, no keywords needed) plus `posted_about_tracked_topic`
+ * (config-driven `topicKeywords`) when the keyword list is non-empty.
+ *
+ * Ports `trigify_monitors.default_signal_specs()` verbatim. These three
+ * enum names (`changed_role`, `changed_company`, `posted_about_tracked_topic`)
+ * are the exact internal Trigify signal enum names Task 2 already ported into
+ * `TRIGIFY_INTERNAL_ENUM_NAMES` (`@hap/config`) — the *outbound* subscribe
+ * payload and the *inbound* feed-normalization table (`normalize.ts`, Task 5)
+ * share the same taxonomy, just used in opposite directions.
+ *
+ * hiring/company-hiring signals (`became_hiring`, `company_started_hiring`)
+ * require `jobKeywords`+`locations` and are deliberately NOT defaulted here —
+ * OpenClaw scopes them as opt-in via an explicit `signals` override so a
+ * default subscribe never 422s on missing required per-type fields.
+ */
+export function defaultSignalSpecs(topicKeywords?: readonly string[]): TrigifySignalSpec[] {
+  const keywords = (topicKeywords ?? DEFAULT_TOPIC_KEYWORDS).filter((k) => k.trim().length > 0);
+  const specs: TrigifySignalSpec[] = [
+    { type: "changed_role", config: {} },
+    { type: "changed_company", config: {} },
+  ];
+  if (keywords.length > 0) {
+    specs.push({ type: "posted_about_tracked_topic", config: { topicKeywords: keywords } });
+  }
+  return specs;
+}
+
+/**
+ * Resolve the `signals` array for a subscribe request: an explicit non-empty
+ * `args.signals` override wins outright; otherwise fall back to
+ * {@link defaultSignalSpecs} driven by `args.topicKeywords` (or the built-in
+ * default keyword list). An explicit EMPTY `signals` override is treated as
+ * "not provided" — the real API 422s on an empty `signals` array
+ * (`Required at "subscriptions[0].config.signals"` is what the validator hit;
+ * a present-but-empty array fails the same "minItems 1" constraint), so this
+ * never forwards a payload guaranteed to fail live.
+ */
+function resolveSignals(
+  args: Pick<SubscribeArgs, "signals" | "topicKeywords">,
+): TrigifySignalSpec[] {
+  if (args.signals && args.signals.length > 0) {
+    return args.signals;
+  }
+  return defaultSignalSpecs(args.topicKeywords);
+}
+
 function buildPayload(args: {
   targetUrl: string;
   cadence: "daily" | "weekly";
   lookbackWindowMs: number;
+  signals: TrigifySignalSpec[];
 }): TrigifyCreateSubscriptionPayload {
   return {
     subscriptions: [
@@ -180,6 +274,7 @@ function buildPayload(args: {
           version: 1,
           cadence: args.cadence,
           lookbackWindowMs: args.lookbackWindowMs,
+          signals: args.signals,
         },
       },
     ],
@@ -209,10 +304,12 @@ export async function planSubscribe(
       ? { id: existing.id, status: existing.status as TrigifyMonitorStatus }
       : null;
 
+  const signals = resolveSignals(args);
   const payload = buildPayload({
     targetUrl: args.targetUrl,
     cadence,
     lookbackWindowMs,
+    signals,
   });
 
   const notes: string[] = [];

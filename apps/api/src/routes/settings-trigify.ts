@@ -24,13 +24,12 @@
  */
 
 import { TRIGIFY_MONITORING_TYPES } from "@hap/config";
-import { type Database, providerConfig } from "@hap/db";
+import type { Database } from "@hap/db";
 import {
   trigifyMonitorConfigSchema,
   trigifyMonitorPlanBodySchema,
   trigifyMonitorSubscribeBodySchema,
 } from "@hap/validators";
-import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { TRIGIFY_PROVIDER_NAME } from "../adapters/signal/trigify.js";
 import { TrigifyClient } from "../adapters/signal/trigify-client.js";
@@ -69,43 +68,16 @@ function defaultClientFactory(args: { apiKey: string }): TrigifyClient {
   return new TrigifyClient({ apiKey: args.apiKey });
 }
 
-/** Resolve the tenant's credit budget from the trigify provider row's `settings` JSONB. */
+/**
+ * Resolve the tenant's credit budget from the trigify provider row's
+ * `settings` JSONB. `getProviderConfig` (config-resolver.ts, fixed in
+ * Task 15) now selects and parses the `settings` column itself — no
+ * separate DB read needed here.
+ */
 function resolveBudget(settings: Record<string, unknown> | undefined): CreditBudget {
   const parsed = trigifyMonitorConfigSchema.safeParse(settings ?? {});
   if (!parsed.success) return {};
   return parsed.data.creditBudget;
-}
-
-/**
- * Read the raw `settings` JSONB column for a tenant's `provider_config` row
- * directly.
- *
- * NOTE: `getProviderConfig` (config-resolver.ts) does NOT select/return the
- * `settings` column — its `ProviderRow`/select statement only reads
- * `providerName, enabled, apiKeyEncrypted, thresholds, allowList, blockList`.
- * `ProviderConfig.settings` is typed as optional but is never actually
- * populated by that resolver today (this affects `createExaSignalAdapters`'s
- * `newsEnabled` read too — flagged separately; config-resolver.ts is not
- * owned by this task). Until that's fixed upstream, this route reads the
- * column itself so the credit-budget config Task 9 depends on is actually
- * reachable.
- */
-async function readProviderSettings(
-  db: Database,
-  tenantId: string,
-  providerName: string,
-): Promise<Record<string, unknown> | undefined> {
-  const rows = await db
-    .select({ settings: providerConfig.settings })
-    .from(providerConfig)
-    .where(
-      and(eq(providerConfig.tenantId, tenantId), eq(providerConfig.providerName, providerName)),
-    )
-    .limit(1);
-  const raw = rows[0]?.settings;
-  return raw && typeof raw === "object" && !Array.isArray(raw)
-    ? (raw as Record<string, unknown>)
-    : undefined;
 }
 
 function isValidMonitorType(v: string): boolean {
@@ -140,8 +112,7 @@ export function createSettingsTrigifyRoute(
 
     const client = clientFactory({ apiKey: providerRow.apiKeyRef });
     const store = createDrizzleMonitorStore(db);
-    const rawSettings = await readProviderSettings(db, tenantId, TRIGIFY_PROVIDER_NAME);
-    const budget = resolveBudget(rawSettings);
+    const budget = resolveBudget(providerRow.settings);
     const planLimits = await resolvePlanLimits({
       client,
       tenantId,

@@ -56,6 +56,37 @@ describe("trigifyMonitorSubscribeBodySchema", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("accepts an optional topicKeywords override (Task 17: config-driven signals)", () => {
+    const result = trigifyMonitorSubscribeBodySchema.safeParse({
+      monitorType: "linkedin-profile",
+      targetUrl: "https://www.linkedin.com/in/janedoe",
+      topicKeywords: ["FinOps", "cost optimization"],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.topicKeywords).toEqual(["FinOps", "cost optimization"]);
+    }
+  });
+
+  it("accepts an empty topicKeywords array (explicitly omit the topic signal)", () => {
+    const result = trigifyMonitorSubscribeBodySchema.safeParse({
+      monitorType: "linkedin-profile",
+      targetUrl: "https://www.linkedin.com/in/janedoe",
+      topicKeywords: [],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a non-string entry in topicKeywords", () => {
+    expect(
+      trigifyMonitorSubscribeBodySchema.safeParse({
+        monitorType: "linkedin-profile",
+        targetUrl: "https://www.linkedin.com/in/janedoe",
+        topicKeywords: [123],
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe("trigifyMonitorPlanBodySchema", () => {

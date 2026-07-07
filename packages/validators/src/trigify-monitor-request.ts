@@ -15,6 +15,12 @@ export const trigifyMonitorSubscribeBodySchema = z.object({
   cadence: z.enum(["daily", "weekly"]).optional(),
   lookbackWindowMs: z.number().positive().optional(),
   confirm: z.boolean().optional(),
+  /**
+   * Task 17: override the default `posted_about_tracked_topic` topic
+   * keywords. Pass `[]` to omit that signal entirely (subscribe with only
+   * `changed_role`/`changed_company`). Config-driven — never hardcoded.
+   */
+  topicKeywords: z.array(z.string()).optional(),
 });
 
 export const trigifyMonitorPlanBodySchema = trigifyMonitorSubscribeBodySchema.omit({

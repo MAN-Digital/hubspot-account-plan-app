@@ -180,6 +180,121 @@ describe("planSubscribe (dry-run preview)", () => {
     expect(plan.activeLookbackPlan).toBe("growth");
     expect(plan.lookbackWindowMs).toBe(30 * 24 * 60 * 60 * 1000);
   });
+
+  // ─── Task 17: live 422 bug fix — config.signals is REQUIRED by the real API ──
+  //
+  // Validator's confirmed subscribe (target
+  // https://www.linkedin.com/company/hubspot/, monitorType linkedin-posts) was
+  // rejected live: HTTP 422 `Required at "subscriptions[0].config.signals"`.
+  // The real POST /v1/social-signals/subscriptions body requires a non-empty
+  // `signals` array per subscription. Verified against 3 live (FREE read,
+  // zero-spend) GET /v1/social-signals/subscriptions rows on 2026-07-07 — every
+  // existing monitor carries EXACTLY this shape:
+  //   config.signals = [
+  //     { type: "changed_role", config: {} },
+  //     { type: "changed_company", config: {} },
+  //     { type: "posted_about_tracked_topic", config: { topicKeywords: [...] } },
+  //   ]
+  // This mirrors trigify_monitors.py's default_signal_specs() verbatim.
+
+  it("payload includes a non-empty config.signals array by default (the real API 422s without it)", async () => {
+    const plan = await planSubscribe(
+      { client: makeClient(), store: makeStore(), tenantId: TENANT, now: () => NOW },
+      {
+        monitorType: "linkedin-profile",
+        targetUrl: "https://www.linkedin.com/in/janedoe",
+      },
+    );
+    const signals = plan.payload.subscriptions[0]?.config?.signals;
+    expect(Array.isArray(signals)).toBe(true);
+    expect(signals?.length).toBeGreaterThan(0);
+  });
+
+  it("default signals match the live-verified shape: changed_role + changed_company + posted_about_tracked_topic with default topic keywords", async () => {
+    const plan = await planSubscribe(
+      { client: makeClient(), store: makeStore(), tenantId: TENANT, now: () => NOW },
+      {
+        monitorType: "linkedin-posts",
+        targetUrl: "https://www.linkedin.com/company/hubspot/",
+      },
+    );
+    expect(plan.payload.subscriptions[0]?.config?.signals).toEqual([
+      { type: "changed_role", config: {} },
+      { type: "changed_company", config: {} },
+      {
+        type: "posted_about_tracked_topic",
+        config: {
+          topicKeywords: [
+            "RevOps",
+            "revenue operations",
+            "HubSpot",
+            "CRO",
+            "go-to-market",
+            "marketing operations",
+            "sales operations",
+            "CRM",
+            "pipeline",
+            "revenue workflow",
+          ],
+        },
+      },
+    ]);
+  });
+
+  it("is config-driven: a caller-supplied topicKeywords override replaces the default keyword list", async () => {
+    const plan = await planSubscribe(
+      { client: makeClient(), store: makeStore(), tenantId: TENANT, now: () => NOW },
+      {
+        monitorType: "linkedin-profile",
+        targetUrl: "https://www.linkedin.com/in/janedoe",
+        topicKeywords: ["FinOps", "cost optimization"],
+      },
+    );
+    const topicSignal = plan.payload.subscriptions[0]?.config?.signals?.find(
+      (s) => s.type === "posted_about_tracked_topic",
+    );
+    expect(topicSignal?.config).toEqual({ topicKeywords: ["FinOps", "cost optimization"] });
+  });
+
+  it("omits the posted_about_tracked_topic signal entirely when topicKeywords is explicitly an empty array", async () => {
+    const plan = await planSubscribe(
+      { client: makeClient(), store: makeStore(), tenantId: TENANT, now: () => NOW },
+      {
+        monitorType: "linkedin-profile",
+        targetUrl: "https://www.linkedin.com/in/janedoe",
+        topicKeywords: [],
+      },
+    );
+    const types = plan.payload.subscriptions[0]?.config?.signals?.map((s) => s.type);
+    expect(types).toEqual(["changed_role", "changed_company"]);
+  });
+
+  it("is config-driven: a caller-supplied signals override replaces the taxonomy defaults entirely", async () => {
+    const customSignals = [{ type: "changed_role", config: {} }];
+    const plan = await planSubscribe(
+      { client: makeClient(), store: makeStore(), tenantId: TENANT, now: () => NOW },
+      {
+        monitorType: "linkedin-profile",
+        targetUrl: "https://www.linkedin.com/in/janedoe",
+        signals: customSignals,
+      },
+    );
+    expect(plan.payload.subscriptions[0]?.config?.signals).toEqual(customSignals);
+  });
+
+  it("rejects an explicit empty signals override (the real API 422s on an empty array — never send a request that will fail live)", async () => {
+    const plan = await planSubscribe(
+      { client: makeClient(), store: makeStore(), tenantId: TENANT, now: () => NOW },
+      {
+        monitorType: "linkedin-profile",
+        targetUrl: "https://www.linkedin.com/in/janedoe",
+        signals: [],
+      },
+    );
+    // Falls back to the taxonomy defaults rather than shipping a payload that
+    // is guaranteed to 422 — never silently drop to an empty array.
+    expect(plan.payload.subscriptions[0]?.config?.signals?.length).toBeGreaterThan(0);
+  });
 });
 
 describe("subscribe (guarded spend)", () => {
@@ -231,6 +346,13 @@ describe("subscribe (guarded spend)", () => {
         subscriptions: [
           expect.objectContaining({
             linkedin_url: "https://www.linkedin.com/in/janedoe",
+            // Task 17 regression guard: the real API 422s
+            // (`Required at "subscriptions[0].config.signals"`) without a
+            // non-empty config.signals array. This is the exact bug the
+            // validator hit on its one authorized confirmed subscribe.
+            config: expect.objectContaining({
+              signals: expect.arrayContaining([expect.objectContaining({ type: "changed_role" })]),
+            }),
           }),
         ],
       }),
