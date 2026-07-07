@@ -90,7 +90,9 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
 
 - **ChatPRD** (source-of-truth PRDs, project "Account Planning in HubSpot"):
   https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot —
-  ALL 7 docs synced through round 5 (+round 6/pricing/handoff docs pending at write
+  ALL 9 docs synced through round 7 (7 core docs + NEW "Pricing & Packaging"
+  `0b2aae63-...` + NEW "Engineering Handoff" `b018a084-...` — the two new docs sit in
+  the drive ROOT pending a manual move into the project (+round 6/pricing/handoff docs pending at write
   time). UUID registry in the plan's Notes. MCP: `chatprd` (HTTP, OAuth, flaps across
   restarts — retry once, then ask user to re-auth).
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, artifact
