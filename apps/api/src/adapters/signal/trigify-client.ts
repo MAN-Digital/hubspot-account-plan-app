@@ -108,17 +108,84 @@ export interface TrigifySignalFeedItem {
   headline?: string;
   detail?: string;
   url?: string;
-  occurred_at?: string;
+  /** Real field name per `normalize.ts`'s DATE_KEYS — NOT `occurred_at`. */
+  posted_at?: string;
   detected_at?: string;
   [key: string]: unknown;
 }
 
+/**
+ * Normalized, ALREADY-UNWRAPPED shape returned by
+ * {@link TrigifyClient.getSocialSignalsFeed} to every caller in this app.
+ *
+ * The REAL wire response from `GET /v1/social-signals/feed` nests the item
+ * list one level deeper than this: `{data: {items: [...], page, page_size,
+ * total_count, has_next_page}}` — verified live against api.trigify.io with
+ * a real key (Task 16). `getSocialSignalsFeed` unwraps that envelope
+ * internally (see {@link extractFeedItems}) so `data` here is ALWAYS the
+ * flat item array; callers (the poller) never see the nested envelope.
+ */
 export interface TrigifyFeedResponse {
   data: TrigifySignalFeedItem[];
   page?: number;
-  page_size?: number;
-  has_more?: boolean;
+  pageSize?: number;
+  totalCount?: number;
+  hasNextPage?: boolean;
+}
+
+/** Raw wire shape of `GET /v1/social-signals/feed` before unwrapping. */
+interface RawTrigifyFeedEnvelope {
+  data?:
+    | TrigifySignalFeedItem[]
+    | {
+        items?: TrigifySignalFeedItem[];
+        results?: TrigifySignalFeedItem[];
+        page?: number;
+        page_size?: number;
+        total_count?: number;
+        has_next_page?: boolean;
+      };
   [key: string]: unknown;
+}
+
+/**
+ * Extract the flat item array + pagination metadata from a raw feed
+ * envelope, tolerating every documented shape (mirrors
+ * `trigify_source.py`'s `_feed_items()` docstring: "the spike shape is
+ * {data:{items:[...], page, page_size, total_count, has_next_page}}; also
+ * tolerate {data:[...]} and a bare list"):
+ *  1. `{data: {items: [...]}}` — the REAL, live-verified shape.
+ *  2. `{data: {results: [...]}}` — a documented alternate shape.
+ *  3. `{data: [...]}` — a bare array (pre-live-verification assumption).
+ * Anything else (missing/malformed `data`) returns an empty array rather
+ * than throwing — a malformed envelope must never crash the poller.
+ */
+function extractFeedItems(raw: RawTrigifyFeedEnvelope): TrigifyFeedResponse {
+  const data = raw.data;
+  if (Array.isArray(data)) {
+    return { data };
+  }
+  if (data && typeof data === "object") {
+    if (Array.isArray(data.items)) {
+      return {
+        data: data.items,
+        page: data.page,
+        pageSize: data.page_size,
+        totalCount: data.total_count,
+        hasNextPage: data.has_next_page,
+      };
+    }
+    if (Array.isArray(data.results)) {
+      return {
+        data: data.results,
+        page: data.page,
+        pageSize: data.page_size,
+        totalCount: data.total_count,
+        hasNextPage: data.has_next_page,
+      };
+    }
+  }
+  return { data: [] };
 }
 
 export interface TrigifySubscription {
@@ -248,14 +315,22 @@ export class TrigifyClient {
 
   // -- FREE reads: Social Signals (buying-intent feed) -----------------------
 
-  /** GET /v1/social-signals/feed — the pull feed (FREE). */
+  /**
+   * GET /v1/social-signals/feed — the pull feed (FREE).
+   *
+   * The real API nests the item list as `{data: {items: [...], page,
+   * page_size, total_count, has_next_page}}` (verified live, Task 16) — this
+   * method unwraps that envelope so `result.data` is always the flat item
+   * array for every caller.
+   */
   async getSocialSignalsFeed(params?: {
     page?: number;
     pageSize?: number;
   }): Promise<TrigifyFeedResponse> {
-    return this.request<TrigifyFeedResponse>("GET", "/social-signals/feed", {
+    const raw = await this.request<RawTrigifyFeedEnvelope>("GET", "/social-signals/feed", {
       params: { page: params?.page, page_size: params?.pageSize },
     });
+    return extractFeedItems(raw);
   }
 
   /** GET /v1/social-signals/subscriptions — Social-Signals monitors (FREE). */

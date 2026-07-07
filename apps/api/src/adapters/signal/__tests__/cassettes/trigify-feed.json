@@ -1,6 +1,6 @@
 {
-  "_comment": "Recorded cassette for Trigify social-signals feed. SCRUBBED of the Authorization header value before commit. Shape verified against the Task-1 spike (docs/trigify-signal-layer-design.md) and trigify_client.py's get_social_signals_feed. Replayed by apps/api/src/adapters/signal/__tests__/trigify-client.test.ts via fetch injection.",
-  "_recordedAt": "2026-07-03",
+  "_comment": "Recorded cassette for Trigify social-signals feed. SCRUBBED of the Authorization header value before commit. REAL API envelope shape verified live against api.trigify.io with a real TRIGIFY_API_KEY (Task 16 validator finding, 2026-07-07): {data:{items:[...], page, page_size, total_count, has_next_page}} — NOT a flat {data:[...]} array. Cross-checked against trigify_source.py's _feed_items() docstring ('the spike shape is {data:{items:[...], page, page_size, total_count, has_next_page}}; also tolerate {data:[...]} and a bare list') and trigify_client.py's data_of() (unwraps the outer {data: ...} envelope before _feed_items inspects it). Replayed by apps/api/src/adapters/signal/__tests__/trigify-client.test.ts via fetch injection.",
+  "_recordedAt": "2026-07-07",
   "request": {
     "url": "https://api.trigify.io/v1/social-signals/feed?page=1&page_size=2",
     "method": "GET",
@@ -12,34 +12,37 @@
   "response": {
     "status": 200,
     "body": {
-      "data": [
-        {
-          "id": "sig_01HXA1",
-          "type": "changed_role",
-          "profile_url": "https://www.linkedin.com/in/jane-doe/",
-          "company_url": "https://www.linkedin.com/company/acme-corp/",
-          "company_domain": "acme.com",
-          "headline": "Jane Doe became VP of RevOps at Acme Corp",
-          "detail": "Promoted from Director to VP of Revenue Operations",
-          "url": "https://www.linkedin.com/posts/jane-doe_promotion-activity-01HXA1",
-          "occurred_at": "2026-07-01T09:00:00.000Z",
-          "detected_at": "2026-07-01T10:15:00.000Z"
-        },
-        {
-          "id": "sig_01HXA2",
-          "type": "buying_window",
-          "profile_url": "https://www.linkedin.com/in/jane-doe/",
-          "company_url": "https://www.linkedin.com/company/acme-corp/",
-          "company_domain": "acme.com",
-          "headline": "Jane Doe shows elevated buying-window signals",
-          "detail": "Inferred from aggregate engagement patterns",
-          "occurred_at": "2026-07-02T09:00:00.000Z",
-          "detected_at": "2026-07-02T09:30:00.000Z"
-        }
-      ],
-      "page": 1,
-      "page_size": 2,
-      "has_more": false
+      "data": {
+        "items": [
+          {
+            "id": "sig_01HXA1",
+            "type": "changed_role",
+            "profile_url": "https://www.linkedin.com/in/jane-doe/",
+            "company_url": "https://www.linkedin.com/company/acme-corp/",
+            "company_domain": "acme.com",
+            "headline": "Jane Doe became VP of RevOps at Acme Corp",
+            "detail": "Promoted from Director to VP of Revenue Operations",
+            "url": "https://www.linkedin.com/posts/jane-doe_promotion-activity-01HXA1",
+            "posted_at": "2026-07-01T09:00:00.000Z",
+            "detected_at": "2026-07-01T10:15:00.000Z"
+          },
+          {
+            "id": "sig_01HXA2",
+            "type": "buying_window",
+            "profile_url": "https://www.linkedin.com/in/jane-doe/",
+            "company_url": "https://www.linkedin.com/company/acme-corp/",
+            "company_domain": "acme.com",
+            "headline": "Jane Doe shows elevated buying-window signals",
+            "detail": "Inferred from aggregate engagement patterns",
+            "posted_at": "2026-07-02T09:00:00.000Z",
+            "detected_at": "2026-07-02T09:30:00.000Z"
+          }
+        ],
+        "page": 1,
+        "page_size": 2,
+        "total_count": 2,
+        "has_next_page": false
+      }
     }
   }
 }

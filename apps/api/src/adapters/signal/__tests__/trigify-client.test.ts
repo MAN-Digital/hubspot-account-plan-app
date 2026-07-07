@@ -92,6 +92,92 @@ describe("TrigifyClient", () => {
       expect(result.data[0]?.type).toBe("changed_role");
     });
 
+    it("unwraps the real API's data.items envelope (Task 16 regression: data is NOT a flat array)", async () => {
+      // The REAL GET /v1/social-signals/feed response nests items one level
+      // deeper than the original (wrong) cassette assumed:
+      //   {data: {items: [...], page, page_size, total_count, has_next_page}}
+      // NOT {data: [...]}. Verified live against api.trigify.io with a real
+      // key (Task 16 validator finding). Cross-checked against
+      // trigify_source.py's _feed_items() docstring and trigify_client.py's
+      // data_of() (which unwraps the outer envelope before item extraction
+      // happens). getSocialSignalsFeed() must unwrap data.items itself so
+      // every caller (the poller) can keep treating result.data as a flat
+      // array — the poller must never see the nested envelope shape.
+      const cassette = loadCassette("trigify-feed.json");
+      const rawBody = cassette.response.body as {
+        data: {
+          items: unknown[];
+          page: number;
+          page_size: number;
+          total_count: number;
+          has_next_page: boolean;
+        };
+      };
+      // Sanity-check the fixture itself is shaped the way the real API is —
+      // if this assertion ever fails, the cassette regressed to the wrong
+      // flat-array shape and every other assertion in this test is moot.
+      expect(Array.isArray(rawBody.data)).toBe(false);
+      expect(Array.isArray(rawBody.data.items)).toBe(true);
+
+      const client = new TrigifyClient({
+        apiKey: "trigify-secret-1",
+        fetch: (async () =>
+          new Response(JSON.stringify(rawBody), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          })) as unknown as typeof fetch,
+      });
+
+      const result = await client.getSocialSignalsFeed({ page: 1, pageSize: 2 });
+
+      expect(Array.isArray(result.data)).toBe(true);
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0]?.id).toBe("sig_01HXA1");
+      expect(result.totalCount).toBe(2);
+      expect(result.hasNextPage).toBe(false);
+    });
+
+    it("tolerates a bare {data: [...]} array (backward-compat with the pre-live-verification shape)", async () => {
+      const client = new TrigifyClient({
+        apiKey: "trigify-secret-1",
+        fetch: (async () =>
+          new Response(JSON.stringify({ data: [{ id: "sig_bare", type: "changed_role" }] }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          })) as unknown as typeof fetch,
+      });
+      const result = await client.getSocialSignalsFeed();
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]?.id).toBe("sig_bare");
+    });
+
+    it("tolerates a {data: {results: [...]}} envelope (documented alternate shape)", async () => {
+      const client = new TrigifyClient({
+        apiKey: "trigify-secret-1",
+        fetch: (async () =>
+          new Response(
+            JSON.stringify({ data: { results: [{ id: "sig_results", type: "changed_role" }] } }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          )) as unknown as typeof fetch,
+      });
+      const result = await client.getSocialSignalsFeed();
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]?.id).toBe("sig_results");
+    });
+
+    it("returns an empty array (never throws) when the feed envelope is empty/malformed", async () => {
+      const client = new TrigifyClient({
+        apiKey: "trigify-secret-1",
+        fetch: (async () =>
+          new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          })) as unknown as typeof fetch,
+      });
+      const result = await client.getSocialSignalsFeed();
+      expect(result.data).toEqual([]);
+    });
+
     it("listSubscriptions returns subscription rows", async () => {
       const cassette = loadCassette("trigify-subscriptions.json");
       const client = new TrigifyClient({
