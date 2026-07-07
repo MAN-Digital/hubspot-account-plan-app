@@ -102,22 +102,59 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    w/ server-side role checks; provider taxonomy Signals/Research/People(Apollo+
    Harvest)/Delivery(Woodpecker BYO always)/AI; BYO key fields only on Enterprise
    plans; no manual monitor form (card-contextual only).
+   9c. Round 8 (2026-07-07): Overview tab =
+   summary hub (Tracking/monitors, ranked Top signals across ALL sources incl. Apollo,
+   buying-group coverage, outreach+warm-paths status, plan one-liner — all deep-linked);
+   signals ranked hottest-first w/ heat/tier indicator + broader Trigify signal variety;
+   Sales-Hub-Enterprise note DELETED from Buying Group; **multi-stakeholder outreach
+   must cross-reference colleagues' outreach** (engine coordinates roster-wide,
+   "Cross-ref" chips per step, QA hard-fails missing/fabricated/out-of-order
+   references); settings: shared Toggle component fixed (knob escaped pill when ON),
+   Notifications in plain English (no `hap_*` jargon in UI; "Add signal updates to the
+   company record"), workflow-recipes/technical items removed from settings; pricing
+   CONFIRMED Pro 500 credits/mo + never-expiring top-ups, per-contact pricing logic in
+   `planning/chatprd/PRICING_AND_PACKAGING.md`. Delta §2d is the canonical record.
+   9d. Round 9 (2026-07-07): **Team & access RBAC** — the portal's users are fetched from
+   HubSpot's user endpoints (Owners API `/crm/v3/owners` and/or User Provisioning
+   `/settings/v3/users`; docs-check + scope pinned by the round-9 research, see plan
+   task 15c); superadmin assigns app role (superadmin>admin>rep) + toggles app access
+   per user + sets a **per-rep monthly credit budget** (enforced at debit time,
+   fail-closed). New **Usage & logs** settings tab (admin-only): per-rep usage rollup +
+   filterable activity/audit log (who/action/target/credits/result). New tables
+   `tenant_users` + `usage_events` (tenant-scoped RLS). **Credit sizing re-examined**
+   (`planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md`): 500/mo margin is safe, but the
+   real constraint is recurring monitor credits; 500 stays PROVISIONAL pending
+   real-usage data from the logs; open decision = decouple monitors from the credit
+   pool. Delta §2e is canonical. Permissions model = §"App roles & permissions" below.
 10. Mintlify docs task 19b (repo `romeoman/mintlify-docs`, `mint` CLI, deploy on push).
-11. OpenClaw engine port must track its CURRENT state — commits `177929a` (breakup
-    retired, LinkedIn frameworks/steps) + F-series (15-key slot contract, signal_json
-    contact identity, constant-time Woodpecker webhook compare).
+
+**App roles & permissions (round 9):** three app roles layered on HubSpot's own perms —
+**superadmin** (billing, provider keys, angle governance, roles + per-rep budgets, view
+logs), **admin** (settings + logs; no billing/roles), **rep** (workspace use; own usage
+visible; no settings). All role/budget/log routes enforce the role SERVER-SIDE, tenant-
+scoped by RLS; the HubSpot user roster requires the users-read scope and degrades to an
+empty state if not granted. App scopes ≠ installer day-to-day visibility (CLAUDE.md rule). 11. OpenClaw engine port must track its CURRENT state — commits `177929a` (breakup
+retired, LinkedIn frameworks/steps) + F-series (15-key slot contract, signal_json
+contact identity, constant-time Woodpecker webhook compare).
 
 ## 3. External surfaces & registries
 
 - **ChatPRD** (source-of-truth PRDs, project "Account Planning in HubSpot"):
   https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot —
+  **ROUNDS 8 & 9 SYNC ARE PENDING** (chatprd MCP was not reachable from the
+  non-interactive session on 2026-07-07 even after the connector reconnect — needs an
+  interactive `/mcp` session). Sync: delta §2d (round 8) + §2e (round 9), the
+  Pricing & Packaging per-contact/top-up additions, and the NEW
+  `CREDIT_ECONOMICS_AND_SIZING.md` doc. Repo docs are canonical until then.
   ALL 9 docs synced through round 7 (7 core docs + NEW "Pricing & Packaging"
   `0b2aae63-...` + NEW "Engineering Handoff" `b018a084-...` — the two new docs sit in
   the drive ROOT pending a manual move into the project (+round 6/pricing/handoff docs pending at write
   time). UUID registry in the plan's Notes. MCP: `chatprd` (HTTP, OAuth, flaps across
   restarts — retry once, then ask user to re-auth).
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, active
-  artifact `03a453e0-8d7e-4e5d-8d17-7e0886f22536` (v8 "Swap Plan and Outreach tabs") —
+  artifact `495ee577-b08c-458c-bf28-dfe4db5d7e58` (v11, round 9 — Team & access +
+  Usage & logs settings tabs wired; built on v9/v10 round-8 Overview hub, ranked signals,
+  cross-ref outreach, toggle fix, plain-English notifications) —
   the editor is collaborative, so always call `get_artifact` for the CURRENT active
   artifact instead of trusting a cached ID. `v2/*` files; `v2/AppV2.tsx` switches
   between the workspace view (7 tabs) and the settings view (header settings button →

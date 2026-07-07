@@ -20,6 +20,10 @@ Mintlify documentation site (repo romeoman/mintlify-docs). Sync targets: Databas
 doc `8554b95a-...` (outreach_config decision line), Technical Design doc `86ffe0e4-...`
 (export adapters bullet), Repo Draft & Execution Checklist doc `d1591ae5-...` (docs
 section).
+**PENDING ChatPRD sync (2026-07-07, round 8):** §2d below (Overview summary hub,
+multi-stakeholder cross-referencing, ranked signals, settings copy/toggle fixes,
+500-credits+top-up confirmation) is NOT yet in the cloud docs — chatprd MCP needs
+re-auth. Sync §2d + the Pricing & Packaging additions when the connector is back.
 
 ---
 
@@ -248,6 +252,91 @@ bar, breadcrumb, app header w/ Installed chip, HubSpot's Overview|Settings tabs)
 (b) our settings content is organized in INTERNAL TABS (Plan & Billing | Providers &
 integrations | Outreach angles | Notifications) mapping 1:1 to the SDK Tabs component;
 (c) the in-record gear deep-links to this Connected-Apps settings page.
+
+## 2d. Round 8 feedback (2026-07-07 — Overview hub, cross-referenced outreach, ranked signals, settings copy)
+
+**PENDING ChatPRD sync** (chatprd MCP needs re-auth; this section is the source):
+sync targets = Specs for the AI prototype (§2 UI), Feature Implementation Spec, QA
+Verification Plan, and the "Pricing & Packaging" doc.
+
+1. **Overview tab = summary hub.** The Overview must summarize EVERYTHING the workspace
+   knows, not just the why-now hero: (a) **Tracking** — active signal monitors (people +
+   company, source, last poll) with a link to Signals; (b) **Top signals** — ranked
+   hottest-first across ALL sources (Trigify, Apollo, Exa, HubSpot, LinkedIn — Apollo was
+   missing from the overview/top-signals sources and must appear); (c) **Buying group**
+   mini-summary (role coverage + gaps); (d) **Outreach & warm paths** mini-summary
+   (per-person status counts + warm-intro availability); (e) **Plan** mini-summary
+   (current play + next coordination step). Each mini-summary links to its tab.
+2. **Buying Group note removed.** The "HubSpot's native Buying Groups view requires
+   Sales Hub Enterprise…" note is deleted from the UI (keep the capability, drop the
+   marketing note).
+3. **Multi-stakeholder outreach must cross-reference.** When outreaching to multiple
+   stakeholders at the same account, later/parallel touches MUST reference the outreach
+   already sent to colleagues ("I also reached out to Amanda on your platform team…").
+   Requirements: (a) the cadence engine coordinates copy across persons in the same
+   campaign — cross-references are generated, tracked per step (which step references
+   which person), and kept in order; (b) UI shows a "Cross-ref" indicator on steps whose
+   copy references another stakeholder; (c) copy-QA HARD-FAILS a cadence that outreaches
+   multiple stakeholders with zero cross-references, and hard-fails references to
+   outreach that was never exported/sent (no fabricated "I spoke with X").
+4. **Signals ranked + fuller Trigify coverage.** Signals list is sorted hottest-first
+   with a visible heat/tier indicator per signal (reuses the A/B/C ranking model —
+   derived-alone = 0 stays). Design + docs must show MORE Trigify signal variety (job
+   changes, promotions, hiring spikes, funding, competitor-post engagement, tooling-
+   migration posts…), since Trigify emits many more types than the early mocks showed.
+5. **"Manage by app" contact math needs pricing logic.** Contact-based actions (Apollo
+   enrichment etc.) are charged per contact; the per-contact calculation is part of the
+   pricing model, not UI guesswork — see Pricing & Packaging update (top-ups included).
+6. **Settings copy + toggle fixes:** (a) the toggle component is broken everywhere —
+   when ON/green the knob renders outside the pill; fix the component once, reuse it
+   (includes the Exa people-research toggle); (b) Notifications tab drops jargon: no
+   `hap_*`/underscore property names in UI copy — plain-English label "Add signal
+   updates to the company record" + description explaining app-managed company fields;
+   (c) REMOVE "View workflow recipes" and the production-build-ish technical items from
+   Notifications (these live in docs, not settings); (d) tier threshold worded plainly
+   ("Notify for: Hot signals only / Hot + warm / All qualifying").
+7. **Pricing confirmed:** Pro = 500 credits/mo PLUS top-up purchases (top-ups never
+   expire). Approved by Romeo round 8.
+
+## 2e. Round 9 feedback (2026-07-07 — team RBAC via HubSpot Users API, per-rep budgets, Usage & logs, credit sizing)
+
+**PENDING ChatPRD sync** (chatprd MCP still not reachable from the non-interactive
+session on 2026-07-07 despite the connector reconnect — sync when an interactive
+`/mcp` session is available). Sync targets = Specs for the AI prototype, Feature
+Implementation Spec, Security & Permission Gates, Database Schema, Pricing & Packaging,
+and the NEW "Credit Economics & Sizing" doc (`planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md`).
+
+1. **Team & access — RBAC sourced from HubSpot's Users API.** Superadmins manage who can
+   use the app and at what role. The portal's users are FETCHED from HubSpot (Users
+   Provisioning API `/settings/v3/users` and/or Owners API `/crm/v3/owners` — exact
+   endpoint/scope pinned by the round-9 research task; see plan task 15c). Superadmin
+   assigns an **app role** per user (superadmin > admin > rep) and toggles **app access**
+   on/off per user (control over who you grant it to — Romeo's point: "you want some
+   control over who you give it to"). We do NOT invent identities — the roster is HubSpot's.
+2. **Per-rep credit budgets.** Each user can have a monthly credit cap. Enforced
+   server-side AT DEBIT TIME: an action proceeds only if (tenant has credits) AND (rep is
+   under their personal cap) — fail-closed with a clear "budget exceeded" message. Admins/
+   superadmin can be uncapped. Prevents one rep draining the shared pool.
+3. **Usage & logs (new settings tab, admin/superadmin only).** (a) Per-rep usage rollup:
+   credits used this period, cap, remaining, last active. (b) Activity/audit log: every
+   credit-metered and sensitive action with WHO (HubSpot user), WHAT action, TARGET
+   (company/contact), CREDITS spent, timestamp, RESULT (incl. "blocked — budget
+   exceeded"). Filterable by rep / action / date. This is how we track usage per rep AND
+   how we gather the data to right-size the credit allowance.
+4. **Permissions model (documented for security):** three app roles on top of HubSpot's
+   own permissions — **superadmin** (billing, provider keys, angle governance, roles +
+   budgets, view logs), **admin** (settings + view logs, no billing/roles), **rep** (use
+   the workspace; no settings; own usage visible). All role/budget/log routes enforce the
+   role SERVER-SIDE (never UI-only), tenant-scoped by RLS. App scopes ≠ installer
+   day-to-day visibility — reads of the HubSpot user roster require the users-read scope
+   and must degrade gracefully if not granted.
+5. **Credit sizing re-examined** (Romeo: "is 500 enough… how do we do it"). New doc
+   `CREDIT_ECONOMICS_AND_SIZING.md`: margin is safe (80–93% GM at full burn); the binding
+   constraint is RECURRING Trigify monitor credits, which accumulate and crowd out real
+   work. 500/mo ≈ ~4–6 fully-worked new accounts/mo + light monitoring. Recommendation:
+   decouple "tracked accounts" (monitors) from the research/outreach pool, keep 500 as a
+   PROVISIONAL launch number, and use the round-9 Usage logs to set the real allowance
+   from actual data. Pro = 500/mo + never-expiring top-ups confirmed.
 
 ## 3. Technical Design Document
 
