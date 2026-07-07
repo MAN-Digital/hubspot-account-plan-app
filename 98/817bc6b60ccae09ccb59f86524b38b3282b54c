@@ -1,0 +1,53 @@
+apps/hubspot-extension/src/settings/__tests__/use-settings.test.tsx
+  s_9a28339789b6b9::t_27152a6fe361ec 13
+apps/api/src/lib/__tests__/settings-service.test.ts
+  s_9a28339789b6b9::t_485fa7c1d426c0 139,143-144
+  s_9a28339789b6b9::t_3e54b23f88437f 134-138,140-142
+  s_9a28339789b6b9::t_c51ccbd3e88da6 111
+  s_9a28339789b6b9::t_32e3cb221dc62d 165-168
+  s_9a28339789b6b9::t_d210f091a2aea1 65
+  s_9a28339789b6b9::t_070f5af28e146d 145,240-295
+packages/validators/src/settings.ts
+  s_9a28339789b6b9::t_0193de29817ae4 20
+  s_9a28339789b6b9::t_194268d0bd8a37 194
+  s_9a28339789b6b9::t_49b9c6a1c185a7 37
+apps/api/src/lib/settings-service.ts
+  s_9a28339789b6b9::t_6bfdc2b298804a 163-166
+  s_9a28339789b6b9::t_dc87a384b56ad6 319-336
+  s_9a28339789b6b9::t_de9ef8d81dd194 28
+apps/api/src/routes/__tests__/settings.test.ts
+  s_9a28339789b6b9::t_27fb5dfe77ec88 195
+  s_9a28339789b6b9::t_5677f2a4f28e02 125
+  s_9a28339789b6b9::t_553edfdab4dba6 216,222
+apps/hubspot-extension/src/settings/__tests__/settings-page.test.tsx
+  s_9a28339789b6b9::t_a43d43b4572ecd 28
+  s_9a28339789b6b9::t_b1a4c3fcab8731 511
+packages/validators/src/__tests__/settings.test.ts
+  s_9a28339789b6b9::t_b824306b9de3fa 18
+  s_9a28339789b6b9::t_49975c328ef574 178
+  s_9a28339789b6b9::t_1cff92f5182a9d 70
+  s_9a28339789b6b9::t_58b49b68b14527 44
+  s_9a28339789b6b9::t_9a8f08455af1ad 126-145
+packages/config/src/domain-types.ts
+  s_9a28339789b6b9::t_594e13c6d4fee5 213
+  s_9a28339789b6b9::t_d1e36565b28d05 258
+  s_9a28339789b6b9::t_485fa7c1d426c0 191
+.gitignore
+  s_9a28339789b6b9::t_d6b82894b72680 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "98817bc6b60ccae09ccb59f86524b38b3282b54c",
+  "prompts": {},
+  "sessions": {
+    "s_9a28339789b6b9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "52faed90-f359-4176-99f3-2da4ece83440",
+        "model": "claude-fable-5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
