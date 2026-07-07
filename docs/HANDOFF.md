@@ -151,6 +151,49 @@ contact identity, constant-time Woodpecker webhook compare).
   the drive ROOT pending a manual move into the project (+round 6/pricing/handoff docs pending at write
   time). UUID registry in the plan's Notes. MCP: `chatprd` (HTTP, OAuth, flaps across
   restarts — retry once, then ask user to re-auth).
+
+### ⚠️ ChatPRD sync — UNRESOLVED, ACTION REQUIRED (rounds 8 & 9)
+
+**Status:** rounds 8 and 9 are NOT in the ChatPRD cloud docs. Attempted 2026-07-07
+across multiple turns; the `chatprd` MCP tools do NOT resolve in this (non-interactive)
+session even after Romeo re-authorized the connector — the OAuth handshake can only run
+in an interactive context. **The repo docs below are the canonical source until synced.**
+
+**How to fix (Romeo / next agent):**
+
+1. Open an INTERACTIVE `claude` terminal (not this SDK/headless session).
+2. Run `/mcp`, then authorize/reconnect the `chatprd` server there.
+3. Confirm tools resolve: a normal session should expose `mcp__chatprd__search_documents`,
+   `mcp__chatprd__list_documents`, `mcp__chatprd__get_document`, `mcp__chatprd__update_document`,
+   `mcp__chatprd__create_document`. (Find docs via `search_documents`/`list_documents` —
+   `list_projects` returns no IDs; match `createdInThread.assistant.name`.)
+4. Push each repo doc into its ChatPRD target (mapping below), preserving V1 text and
+   appending round-8/9 sections.
+
+**ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
+
+**Repo source → ChatPRD target mapping (all paths relative to repo root):**
+
+| Repo source (canonical)                                             | Round | ChatPRD target doc (UUID)                                      |
+| ------------------------------------------------------------------- | ----- | -------------------------------------------------------------- |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2d           | 8     | "Specs for the AI prototype" + "Feature Implementation Spec"   |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2e           | 9     | "Security & Permission Gates" + "Technical Design Document"    |
+| `planning/chatprd/PRICING_AND_PACKAGING.md` (per-contact + top-ups) | 8/9   | "Pricing & Packaging" (`0b2aae63-a4de-4ebe-bf13-41124843cf2b`) |
+| `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md` (NEW doc)         | 9     | create NEW ChatPRD doc "Credit Economics & Sizing"             |
+| `tenant_users` + `usage_events` schema (delta §2e / plan task 15c)  | 9     | "Database Schema Design" (`8554b95a-...`)                      |
+| `docs/HANDOFF.md` (this file)                                       | 8/9   | "Engineering Handoff" (`b018a084-a75c-4d27-89ae-91db4f4be454`) |
+
+**Other repo paths a syncing agent needs:**
+
+- Execution plan (all rounds, tasks 13–19c incl. 15c RBAC): `.claude/tasks/trigify-signals-into-account-planning.md`
+- Round-by-round delta (§2a–§2e, PENDING headers per section): `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`
+- Planning index (resolves any moved paths): `PLANNING_INDEX.md`
+
+**Also still pending in ChatPRD (pre-round-8, unchanged):** the two docs created in the
+drive ROOT — "Pricing & Packaging" (`0b2aae63-...`) and "Engineering Handoff"
+(`b018a084-...`) — must be MOVED into the project; and duplicate QA docs (`f704414e`,
+`7aed1d8b`) deleted. These are UI actions in ChatPRD, not MCP calls.
+
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, active
   artifact `495ee577-b08c-458c-bf28-dfe4db5d7e58` (v11, round 9 — Team & access +
   Usage & logs settings tabs wired; built on v9/v10 round-8 Overview hub, ranked signals,
