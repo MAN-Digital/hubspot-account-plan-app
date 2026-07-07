@@ -75,7 +75,7 @@ describe("slice3 phase3: migration 0007 RLS catalog state", () => {
     }
   });
 
-  it("does not put the bootstrap tenants table under RLS", async () => {
+  it("tenants (bootstrap table) has RLS enabled but not forced (superseded by 0012)", async () => {
     const rows = await sql<RlsCatalogRow[]>`
       SELECT c.relname, c.relrowsecurity, c.relforcerowsecurity
       FROM pg_class c
@@ -85,7 +85,11 @@ describe("slice3 phase3: migration 0007 RLS catalog state", () => {
     `;
 
     expect(rows).toHaveLength(1);
-    expect(rows[0]?.relrowsecurity).toBe(false);
+    // 0007 deliberately left tenants without RLS (bootstrap lookup). The
+    // Supabase advisor flagged that as publicly accessible, so 0012 enables
+    // RLS with a read-all policy + hap_app write policy — but never FORCE
+    // (the owner runs migrations and pre-context lifecycle writes).
+    expect(rows[0]?.relrowsecurity).toBe(true);
     expect(rows[0]?.relforcerowsecurity).toBe(false);
   });
 

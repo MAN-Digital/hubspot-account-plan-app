@@ -37,12 +37,14 @@ describe("tenants RLS + REST grant revocation (migration 0012)", () => {
     expect(rows[0]?.relrowsecurity).toBe(true);
   });
 
-  it("tenants has a role-scoped allow policy for hap_app", async () => {
+  it("tenants has a read-all policy plus a hap_app write policy", async () => {
     const rows = await sql`
-      SELECT policyname, roles::text AS roles FROM pg_policies
+      SELECT policyname, cmd, roles::text AS roles FROM pg_policies
       WHERE schemaname = 'public' AND tablename = 'tenants'`;
-    const hapPolicy = rows.find((r) => r.roles.includes("hap_app"));
-    expect(hapPolicy).toBeDefined();
+    const readAll = rows.find((r) => r.policyname === "tenants_read_all");
+    const hapWrite = rows.find((r) => r.roles.includes("hap_app"));
+    expect(readAll?.cmd).toBe("SELECT");
+    expect(hapWrite).toBeDefined();
   });
 
   it("hap_app reads tenants WITHOUT tenant context (bootstrap path)", async () => {

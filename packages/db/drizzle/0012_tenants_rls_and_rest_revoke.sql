@@ -11,9 +11,13 @@
 --  * ENABLE RLS on tenants, but do NOT force it: the table owner (migration /
 --    app connection role) keeps its natural owner bypass for the bootstrap
 --    path and lifecycle writes, mirroring the pre-0012 behavior exactly.
---  * A role-scoped allow-all policy for `hap_app` keeps the least-privilege
---    role able to resolve tenants by portal id WITHOUT tenant context.
---    Deliberately NO tenant_id predicate — this is the bootstrap table.
+--  * READ: `tenants` is a bootstrap LOOKUP table — every granted database role
+--    may SELECT it (policy USING true). Tenant resolution, nonce sweeps, and
+--    lifecycle flows all enumerate/subquery tenants BEFORE tenant context
+--    exists, and non-bypass roles (hap_app, test roles) must keep seeing it.
+--    Read protection comes from GRANTS (anon/authenticated are revoked below),
+--    not from row filtering.
+--  * WRITE: gated to `hap_app` (plus the owner's natural bypass).
 --  * `anon`/`authenticated` get NO policy (default-deny) AND lose all grants
 --    on every table/sequence in public — this app never serves PostgREST.
 --    Guarded: those roles only exist on Supabase, not on local dev Postgres.
@@ -24,7 +28,16 @@ ALTER TABLE "tenants" ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "tenants_app_role_all" ON "tenants";
 --> statement-breakpoint
-CREATE POLICY "tenants_app_role_all"
+DROP POLICY IF EXISTS "tenants_read_all" ON "tenants";
+--> statement-breakpoint
+CREATE POLICY "tenants_read_all"
+  ON "tenants"
+  FOR SELECT
+  USING (true);
+--> statement-breakpoint
+DROP POLICY IF EXISTS "tenants_app_role_write" ON "tenants";
+--> statement-breakpoint
+CREATE POLICY "tenants_app_role_write"
   ON "tenants"
   FOR ALL
   TO hap_app
