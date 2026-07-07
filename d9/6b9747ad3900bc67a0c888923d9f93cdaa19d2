@@ -1,0 +1,29 @@
+PLANNING_INDEX.md
+  s_c47fd3cb9ef010::t_a57d71b9de3e3c 29-32,78
+  s_c47fd3cb9ef010::t_fa3a3059c7cd08 170
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c47fd3cb9ef010::t_9daceae7cc3896 193-194
+  s_c47fd3cb9ef010::t_d0f51989cd1e1f 656-661,675-679,694-717,722-724,735
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c47fd3cb9ef010::t_48921951a69c5c 3,47-48
+  s_c47fd3cb9ef010::t_1a7c72404e5ee4 28-29,72-73,141-153,164-169,476-520,533-540,583-589
+docs/HANDOFF.md
+  s_c47fd3cb9ef010::t_3f8f585ae9d1fc 71,79-80,87-93,162-172,190,193-194,205,207,222,226-227,232
+  s_c47fd3cb9ef010::t_fa3a3059c7cd08 242-246,250,253-260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "d96b9747ad3900bc67a0c888923d9f93cdaa19d2",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
