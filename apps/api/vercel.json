@@ -7,6 +7,6 @@
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
   "crons": [
     { "path": "/admin/keep-alive", "schedule": "0 12 * * *" },
-    { "path": "/admin/trigify-poll", "schedule": "0 */6 * * *" }
+    { "path": "/admin/trigify-poll", "schedule": "0 6 * * *" }
   ]
 }

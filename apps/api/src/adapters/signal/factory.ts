@@ -104,7 +104,7 @@ export function createSignalAdapter(
       if (!deps?.db || !deps.tenantId) {
         throw new Error("createSignalAdapter: trigify requires deps.tenantId and deps.db.");
       }
-      return createTrigifyStoreAdapter(deps.db);
+      return createTrigifyStoreAdapter(deps.db, config.settings);
     }
     default: {
       const name = (config as { name: string }).name;

@@ -12,7 +12,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import type { PersistedSignalRow } from "../trigify";
-import { TRIGIFY_PROVIDER_NAME, TrigifyStoreAdapter } from "../trigify";
+import { createTrigifyStoreAdapter, TRIGIFY_PROVIDER_NAME, TrigifyStoreAdapter } from "../trigify";
 
 const TENANT_ID = "tenant-1";
 const COMPANY_ID = "co-99";
@@ -176,5 +176,90 @@ describe("TrigifyStoreAdapter", () => {
     // (an in-window derived signal is present), while staying <= 1.
     expect(observable?.confidence).toBeGreaterThan(0);
     expect(observable?.confidence).toBeLessThanOrEqual(1);
+  });
+
+  describe("ranking config actually flows from provider_config.settings (regression)", () => {
+    it("a custom sendThreshold changes which decision-relevant confidence the adapter emits", async () => {
+      // Two adapters over the SAME weak tier-C signal: default config (send
+      // threshold 0.60) vs. a settings-derived config with a much lower
+      // threshold via `crossesThreshold`-adjacent strength math. We assert on
+      // the ranking config actually being consulted by giving the adapter an
+      // explicit rankingConfig whose tier weights differ from the default and
+      // observing the resulting confidence differs — proving the adapter does
+      // NOT silently ignore whatever rankingConfig it's constructed with.
+      const weakRow = signalRow({
+        tier: "C",
+        signalType: "T_Competitor_Engagement",
+      });
+
+      const defaultAdapter = new TrigifyStoreAdapter({
+        fetchSignalsForCompany: async () => [weakRow],
+      });
+      const boostedAdapter = new TrigifyStoreAdapter({
+        fetchSignalsForCompany: async () => [weakRow],
+        rankingConfig: {
+          rankingVersion: "test-custom",
+          sendThreshold: 0.6,
+          tierWeights: { A: 1.0, B: 0.65, C: 0.95 }, // tier C boosted way up
+          signalTiers: {
+            T_Role_Change: "A",
+            T_Topic_Post: "A",
+            T_Company_Initiative: "A",
+            T_Buying_Window: "A",
+            T_New_Role_Joined: "B",
+            T_Hiring_Surge: "B",
+            T_Comment_On_Tracked: "B",
+            T_Company_Hiring: "B",
+            T_Competitor_Engagement: "C",
+            T_Topic_Engage: "C",
+            T_Influence: "C",
+            T_Expansion: "C",
+            T_Company_Jobs_Up: "C",
+          },
+          derivedTypes: ["T_Buying_Window", "T_Influence", "T_Expansion", "T_Company_Jobs_Up"],
+          topicSignalTypes: ["T_Topic_Post", "T_Topic_Engage", "T_Company_Initiative"],
+          multipliers: { person: 1.0, company: 0.7 },
+          recency: { halfLifeDays: 14, windowDays: 30, floor: 0.15 },
+          topicRelevance: { default: 0.65, map: {} },
+          volumeBonusPerExtra: 0.05,
+          volumeBonusCap: 0.2,
+          derivedBoost: 0.15,
+          derivedBoostCap: 0.25,
+        },
+      });
+
+      const defaultEvidence = await defaultAdapter.fetchSignals(TENANT_ID, {
+        companyId: COMPANY_ID,
+      });
+      const boostedEvidence = await boostedAdapter.fetchSignals(TENANT_ID, {
+        companyId: COMPANY_ID,
+      });
+
+      expect(boostedEvidence[0]?.confidence).toBeGreaterThan(defaultEvidence[0]?.confidence ?? 0);
+    });
+
+    it("createTrigifyStoreAdapter parses a raw settings object into the ranking config via the Zod schema", async () => {
+      // The Zod schema lives in @hap/validators; createTrigifyStoreAdapter
+      // must accept the RAW settings jsonb (as config-resolver now actually
+      // returns it) and parse+merge it with defaults, not silently ignore it.
+      const fetchSignalsForCompany = vi.fn(async () => [
+        signalRow({ tier: "C", signalType: "T_Competitor_Engagement" }),
+      ]);
+      const dbStub = {} as never;
+      const withDefaults = createTrigifyStoreAdapter(dbStub, {}, { fetchSignalsForCompany });
+      const withOverride = createTrigifyStoreAdapter(
+        dbStub,
+        { tierWeights: { A: 1.0, B: 0.65, C: 0.99 } },
+        { fetchSignalsForCompany },
+      );
+
+      const a = await withDefaults.fetchSignals(TENANT_ID, {
+        companyId: COMPANY_ID,
+      });
+      const b = await withOverride.fetchSignals(TENANT_ID, {
+        companyId: COMPANY_ID,
+      });
+      expect(b[0]?.confidence).toBeGreaterThan(a[0]?.confidence ?? 0);
+    });
   });
 });

@@ -239,8 +239,13 @@ export type TenantConfig = {
  * The News vertical is driven by the Exa provider at adapter-factory time
  * (same API key, separate `NewsAdapter`), so `news` is intentionally NOT in
  * this union — it is not a user-configurable provider slot.
+ *
+ * `trigify` follows the same shape as `exa` (a real user-entered/rotatable
+ * API key) — see {@link SettingsProviderUpdate}. It backs the trigify
+ * `provider_config` row that `TrigifyStoreAdapter` and `services/trigify/poller.ts`
+ * resolve at read/poll time.
  */
-export type SettingsSignalProviderName = "exa" | "hubspot-enrichment";
+export type SettingsSignalProviderName = "exa" | "hubspot-enrichment" | "trigify";
 
 /**
  * Presence-only provider settings state returned by the settings API.
@@ -262,6 +267,7 @@ export type SettingsProviderState = {
 export type SettingsSignalProviders = {
   exa: SettingsProviderState;
   hubspotEnrichment: SettingsProviderState;
+  trigify: SettingsProviderState;
 };
 
 /**
@@ -306,6 +312,8 @@ export type SettingsHubspotEnrichmentUpdate = {
 export type SettingsSignalProviderUpdates = {
   exa?: SettingsProviderUpdate;
   hubspotEnrichment?: SettingsHubspotEnrichmentUpdate;
+  /** Same shape as `exa` — trigify is a real user-entered/rotatable API key. */
+  trigify?: SettingsProviderUpdate;
 };
 
 /**

@@ -30,6 +30,7 @@
 
 import { createEvidence, type Evidence } from "@hap/config";
 import { and, type Database, eq, signals } from "@hap/db";
+import { trigifyRankingConfigSchema } from "@hap/validators";
 import {
   confidenceFromContribution,
   DEFAULT_TRIGIFY_RANKING_CONFIG,
@@ -245,13 +246,49 @@ export function createDbFetchSignalsForCompany(
 }
 
 /**
- * Build a {@link TrigifyStoreAdapter} wired to the real database. This is
- * the constructor `createSignalAdapter` (Task 7 factory registration) uses
- * for the `"trigify"` case, mirroring how `hubspot-enrichment` builds its
- * `HubSpotClient` from `{ db, tenantId }` deps.
+ * Parse a tenant's raw `provider_config.settings` jsonb (as returned by
+ * `config-resolver.getProviderConfig`'s `ProviderConfig.settings`) into a
+ * fully-defaulted {@link TrigifyRankingConfig} via the Zod schema in
+ * `@hap/validators`. An empty/absent settings object (`{}` or `undefined`)
+ * yields the schema's defaults — which mirror
+ * `DEFAULT_TRIGIFY_RANKING_CONFIG` — so a tenant who never touches the
+ * ranking config still gets sane zero-config behavior.
+ *
+ * A malformed settings object (fails Zod validation — e.g. a tenant-set
+ * `sendThreshold` outside 0..1) falls back to the defaults rather than
+ * throwing: a bad settings row must never break signal ranking for the
+ * whole tenant.
  */
-export function createTrigifyStoreAdapter(db: Database): TrigifyStoreAdapter {
+export function parseTrigifyRankingConfig(rawSettings: unknown): TrigifyRankingConfig {
+  const candidate =
+    rawSettings && typeof rawSettings === "object" && !Array.isArray(rawSettings)
+      ? (rawSettings as Record<string, unknown>)
+      : {};
+  const result = trigifyRankingConfigSchema.safeParse(candidate);
+  return result.success ? result.data : DEFAULT_TRIGIFY_RANKING_CONFIG;
+}
+
+/**
+ * Build a {@link TrigifyStoreAdapter} wired to the real database, with its
+ * ranking config resolved from the tenant's `provider_config.settings`
+ * jsonb. This is the constructor `createSignalAdapter` (Task 7 factory
+ * registration) uses for the `"trigify"` case, mirroring how
+ * `hubspot-enrichment` builds its `HubSpotClient` from `{ db, tenantId }`
+ * deps.
+ *
+ * `rawSettings` is the tenant's trigify `provider_config.settings` value —
+ * pass `config.settings` from the resolved `ProviderConfig` (now populated;
+ * see `config-resolver.ts`'s settings-column fix). `overrides` lets tests
+ * inject a stub `fetchSignalsForCompany` without a live database.
+ */
+export function createTrigifyStoreAdapter(
+  db: Database,
+  rawSettings?: unknown,
+  overrides?: Partial<TrigifyStoreAdapterOptions>,
+): TrigifyStoreAdapter {
   return new TrigifyStoreAdapter({
     fetchSignalsForCompany: createDbFetchSignalsForCompany(db),
+    rankingConfig: parseTrigifyRankingConfig(rawSettings),
+    ...overrides,
   });
 }

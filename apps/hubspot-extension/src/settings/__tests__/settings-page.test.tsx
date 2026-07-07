@@ -25,6 +25,7 @@ const VALID_SETTINGS = {
   signalProviders: {
     exa: { enabled: true, hasApiKey: true },
     hubspotEnrichment: { enabled: true, hasApiKey: false },
+    trigify: { enabled: false, hasApiKey: false },
   },
   llm: {
     provider: "openai" as const,
@@ -507,6 +508,7 @@ describe("HubSpotSettingsPage", () => {
       signalProviders: {
         exa: { enabled: true, hasApiKey: false },
         hubspotEnrichment: { enabled: true, hasApiKey: false },
+        trigify: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: "openai" as const,

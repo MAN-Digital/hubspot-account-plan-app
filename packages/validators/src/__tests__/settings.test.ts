@@ -15,6 +15,7 @@ describe("settings schemas", () => {
         signalProviders: {
           exa: { enabled: true, hasApiKey: true },
           hubspotEnrichment: { enabled: true, hasApiKey: false },
+          trigify: { enabled: false, hasApiKey: false },
         },
         llm: {
           provider: "openai",
@@ -31,6 +32,41 @@ describe("settings schemas", () => {
         },
       }).success,
     ).toBe(true);
+  });
+
+  it("validates a settings response with trigify enabled and a stored key", () => {
+    expect(
+      settingsResponseSchema.safeParse({
+        tenantId: "tenant-settings",
+        signalProviders: {
+          exa: { enabled: false, hasApiKey: false },
+          hubspotEnrichment: { enabled: false, hasApiKey: false },
+          trigify: { enabled: true, hasApiKey: true },
+        },
+        llm: {
+          provider: "openai",
+          model: "gpt-5.4-mini",
+          hasApiKey: true,
+        },
+        eligibility: { propertyName: "hs_is_target_account" },
+        thresholds: { freshnessMaxDays: 30, minConfidence: 0.5 },
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects a settings response missing the trigify slot (all three providers required)", () => {
+    expect(
+      settingsResponseSchema.safeParse({
+        tenantId: "tenant-settings",
+        signalProviders: {
+          exa: { enabled: true, hasApiKey: true },
+          hubspotEnrichment: { enabled: true, hasApiKey: false },
+        },
+        llm: { provider: "openai", model: "gpt-5.4-mini", hasApiKey: true },
+        eligibility: { propertyName: "hs_is_target_account" },
+        thresholds: { freshnessMaxDays: 30, minConfidence: 0.5 },
+      }).success,
+    ).toBe(false);
   });
 
   it("rejects plaintext secret leakage in the settings response", () => {
@@ -120,6 +156,57 @@ describe("settings schemas", () => {
     ).toBe(true);
   });
 
+  it("accepts a trigify update that enters a new API key (same shape as exa)", () => {
+    const result = settingsUpdateSchema.safeParse({
+      signalProviders: {
+        trigify: { enabled: true, apiKey: "trigify-key-1" },
+      },
+    });
+    expect(result.success).toBe(true);
+    if (!result.success) throw result.error;
+    expect(result.data.signalProviders?.trigify?.apiKey).toBe("trigify-key-1");
+    expect(result.data.signalProviders?.trigify?.enabled).toBe(true);
+  });
+
+  it("accepts a trigify key-rotation update (apiKey only, no enabled change)", () => {
+    const result = settingsUpdateSchema.safeParse({
+      signalProviders: {
+        trigify: { apiKey: "trigify-key-rotated" },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a trigify update that clears the stored key", () => {
+    const result = settingsUpdateSchema.safeParse({
+      signalProviders: {
+        trigify: { clearApiKey: true },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a trigify update combining apiKey and clearApiKey", () => {
+    expect(
+      settingsUpdateSchema.safeParse({
+        signalProviders: {
+          trigify: { apiKey: "new-key", clearApiKey: true },
+        },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("treats a blank trigify apiKey as preserve-existing, not explicit delete", () => {
+    const result = settingsUpdateSchema.safeParse({
+      signalProviders: {
+        trigify: { enabled: true, apiKey: "" },
+      },
+    });
+    expect(result.success).toBe(true);
+    if (!result.success) throw result.error;
+    expect(result.data.signalProviders?.trigify?.apiKey).toBeUndefined();
+  });
+
   it("treats blank secret fields as preserve-existing rather than explicit delete", () => {
     const result = settingsUpdateSchema.safeParse({
       signalProviders: {
@@ -152,6 +239,7 @@ describe("settings schemas", () => {
   it("validates the supported signal provider names", () => {
     expect(settingsSignalProviderNameSchema.safeParse("exa").success).toBe(true);
     expect(settingsSignalProviderNameSchema.safeParse("hubspot-enrichment").success).toBe(true);
+    expect(settingsSignalProviderNameSchema.safeParse("trigify").success).toBe(true);
     expect(settingsSignalProviderNameSchema.safeParse("mock-signal").success).toBe(false);
   });
 });
