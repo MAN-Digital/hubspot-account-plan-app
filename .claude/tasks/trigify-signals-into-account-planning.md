@@ -32,8 +32,9 @@ Reference section below applies to the V2 workstreams).
 the Trigify signal substrate — unchanged. **Stage B (tasks 13–19, shared final
 validation in task 20)**: the V2 expansion —
 account workspace UI (Magic Patterns), on-demand account research, the ported outreach
-engine (cadence → copy → QA, DRAFT-only), signal monitoring notifications, and a HubSpot
-custom workflow action. Stage B is authorized by the upstream planning update at
+engine (cadence → copy → QA, DRAFT-only), signal monitoring, and a HubSpot custom
+workflow action. Notification/webhook settings are removed from active V2 unless
+re-scoped separately. Stage B is authorized by the upstream planning update at
 `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`, which was **synced into the
 ChatPRD cloud project on 2026-07-06** (project: "Account Planning in HubSpot",
 https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot — see
@@ -191,8 +192,12 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 > Canonical UI for the V2 workspace: Magic Patterns design
 > https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35 (editor id
 > `xmdzva7bxdn4ubmtrbvs35`; active artifact
-> `3231eeab-547b-4c7b-8a8c-db9a9255f096`; use the **`v2/*` components** — v1 files are an earlier
+> `5d47932b-9346-44da-82c7-4ac197e6dda9`; use the **`v2/*` components** — v1 files are an earlier
 > iteration). Read via the Magic Patterns MCP (`get_artifact` → `read_artifact_files`).
+> Round 15 prototype rule: the active artifact is one coherent Pro managed / populated
+> account state. No-data, no-deal, Trial, and Enterprise/BYOA variants live in separate
+> prototype flows/artifacts or named scenario specs, not as scenario switchers inside the
+> active product UI.
 
 ### Layout Patterns
 
@@ -202,8 +207,9 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
   health chip | "Last synced" + Refresh button.
 - **Tab nav**: Overview / People / Buying Group / Signals (count badge) / Outreach /
   Data Gaps / Plan / Context, active-tab underline.
-- **Overview**: state-aware KPI strip (open deal, no deal, no data variants) →
-  one top **Executive Summary** → separate full-width "Why Now" callout (left-border
+- **Overview**: active artifact shows the populated open-deal state. Separate no-deal and
+  no-data variants are documented as separate flows. The main flow renders one top
+  **Executive Summary** → separate full-width "Why Now" callout (left-border
   accent, bulleted evidence) → Top Signals → **This Outreach** mini-summary →
   **Blockers & Risks** + Key People. Blocker actions deep-link to Data Gaps, Research,
   Outreach, or Settings; the old standalone next-move card is gone, and blockers must not
@@ -213,8 +219,9 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 
 - Clicking a signal row (Overview or Signals tab) opens its detail (headline, snippet,
   provenance chain, linked people with roles).
-- Signals tab: source filter (All / External Only / CRM Only), type filter, free-text
-  search; observed evidence only. CRM/data-quality hygiene findings live in Data Gaps.
+- Signals tab: level filter (Company / Contact), signal-type filter, free-text search;
+  source remains visible in badges/provenance but is not the primary filter. Observed
+  evidence only. CRM/data-quality hygiene findings live in Data Gaps.
 - Outreach tab generation kicks off the outreach pipeline and lands the user on the
   generated DRAFT for review/approval.
 - Refresh re-runs the snapshot; "Generate account research" (Context tab) runs the
@@ -310,14 +317,14 @@ settings app is fallback only if a documented HubSpot settings-page limitation b
 
 **Stage B new files (summary — full list in PRD delta §6):**
 
-- `packages/db/src/schema/{account-research,outreach-drafts,outreach-config,notification-settings}.ts` + migration.
+- `packages/db/src/schema/{account-research,outreach-drafts,outreach-config,hubspot-signal-rules,tenant-users,credit-ledger}.ts` + migration.
 - `apps/api/src/services/research/*`, `apps/api/src/services/outreach/{envelope,cadence,copywriter,copy-qa,pipeline}.ts`.
 - `apps/api/src/routes/{research,outreach,workflow-action}.ts`.
 - `apps/hubspot-extension/src/app/settings/*` — native HubSpot app settings page
   components/serverless wiring; `apps/settings-web/*` only if a documented settings-page
   limitation forces a fallback.
 - `apps/hubspot-extension/src/` tab components per the Source UI/UX Reference.
-- `docs/notifications/*.md` — native-workflow notification recipes.
+- Notification/webhook docs are out of active V2 unless re-scoped separately.
 
 ## Implementation Phases
 
@@ -376,8 +383,8 @@ Monitor management, settings, frontend, end-to-end validation on a real test por
   to real snapshot + signal-store data; Plan/Context render explicit empty states until
   their data sources exist.
 - Stand up the native HubSpot app settings page (`src/app/settings/`): Settings Overview,
-  Plan & Billing, Team Budgets, Providers, Themes, HubSpot Signals, Outreach Angles, and
-  Notifications. Settings actions call server-authorized API/serverless paths; no dead
+    Plan & Billing, Team Budgets, Providers, Themes, HubSpot Signals, and Outreach
+  Angles. Settings actions call server-authorized API/serverless paths; no dead
   CTAs.
 
 ### Phase 6 (Stage B): Account research + outreach engine
@@ -396,11 +403,11 @@ Monitor management, settings, frontend, end-to-end validation on a real test por
   or Woodpecker email / email+LinkedIn — revised 2026-07-06, each behind explicit
   confirm; sequence enrollment confirm must state it authorizes HubSpot to send).
 
-### Phase 7 (Stage B): Monitoring, notifications, workflows
+### Phase 7 (Stage B): Monitoring and workflows
 
-- Poller emits **opt-in** `hap_*` company-property writes on new qualifying signals
-  (namespaced, logged, toggleable) → customers trigger native HubSpot workflow
-  notifications; ship 2–3 documented workflow recipes.
+- Notification/property-propagation settings are removed from active V2. Poller keeps the
+  signal store fresh; no `hap_*` notification property writes or workflow recipes ship in
+  the current scope.
 - Plan-aware lookback: read `GET /v1/social-signals/limits` per tenant; clamp feed
   queries + UI window (e.g. 30d vs 14d) to the tenant's Trigify plan; display the
   active window in the Signals tab.
@@ -602,8 +609,10 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Agent Type**: supabase-specialist
 - **Parallel**: true
 - TDD. Add `account_research`, `account_data_gaps`, `account_generation_runs`,
-  `outreach_drafts`, `outreach_config`, `notification_settings` tables (per PRD delta
-  §4), tenant-scoped, RLS for `hap_app`, migrations + tests.
+  `outreach_drafts`, `outreach_config`, `hubspot_signal_rules`, `tenant_users`,
+  `usage_events`, and `credit_ledger` tables (per PRD delta §4), tenant-scoped, RLS
+  for `hap_app`, migrations + tests. Notification/webhook settings are not part of
+  active V2 scope.
 
 ### 14. Workspace tab UI (Magic Patterns translation)
 
@@ -615,7 +624,10 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - Docs-check FIRST: verify current `@hubspot/ui-extensions` component set (tabs pattern availability; fallback ToggleGroup sections).
 - **Track-signals-from-card (Romeo, 2026-07-07):** monitor subscription is a CONTEXTUAL action on the company card, not a settings chore. On the People tab, each associated contact (LinkedIn URL from CRM) gets a **"Track signals"** action (creates a person-profile monitor for that contact — the "I chose to outreach this person" moment); the header/Overview gets **"Track company"** (company-level monitor). Both reuse the existing two-step plan→"This spends 1 Trigify credit" confirm flow and the same spend-gated backend routes. The Settings surface keeps: API key, credit budget, default topic keywords, and the full monitor list (pause/delete) — Stage A's manual URL subscribe form remains as the admin fallback. ALSO: expose `creditBudget` entry in settings UI — budget is fail-closed, so card-based tracking is dead until a budget is settable without SQL.
 - **UI feedback round (Romeo, 2026-07-07 — reflected in the published Magic Patterns v2 design):**
-  (a) **Trigify is a first-class signal source** everywhere Exa appears: source badges, a source filter (All/Trigify/Exa/HubSpot) on the Signals tab, and Trigify entries in the Context data-sources footer.
+  (a) **Trigify is a first-class signal source** everywhere Exa appears: provenance badges,
+  verify links, and Context data-source entries. The Signals tab filters primarily by
+  signal type and company/contact level; source remains visible as provenance, not the
+  main filter.
   (b) **Every signal/fact carries a clickable "Verify source" link** (evidence URL) — signals people can't verify aren't trusted; this applies to Signals rows, per-person Recent Activity rows, person evidence lines, and Context initiative rows. Backend already stores evidenceUrl; the UI must surface it everywhere.
   (c) **Plan tab is rep-editable**: AI generates the plan, reps can edit/reorder steps and add their own ("Add your own step"); edits persist per (tenant, company) — plan storage needs a rep-edits layer (extend snapshots or a plan_edits jsonb).
   (d) Track-signals modal copy: the 30-day lookback BACKFILLS history on the next poll (not "wait days"); company monitors capture the real taxonomy (initiative posts tier A, hiring tier B + derived boosts prioritization-only).
@@ -699,13 +711,15 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   summaries must be prominent; remove the signal Copy Link action. Apollo enrichment
   results are data/system events unless backed by a separate observable buying signal.
   (v) **Admin-defined HubSpot signals:** Settings needs a superadmin HubSpot signal-rule
-  builder for properties, lists, object changes, workflow webhooks/custom-code calls, and
-  custom events. Rule fields: object, trigger, condition, signal label/type, level,
-  strength, expiration/lookback, enabled state. Render matches as HubSpot-source signals
-  with 0-credit usage.
+  builder for fetched HubSpot properties, list memberships, behavioral event definitions,
+  and record-created events. Rule fields are object, event source, source reference,
+  condition/operator/value, signal label, level, expiration/lookback, and enabled state.
+  Do not expose workflow/webhook/custom-code choices or invent a strength field. Render
+  matches as HubSpot-source signals with 0-credit usage.
   (w) **HubSpot Recent Intent Signals default path (round 13 correction, Romeo 2026-07-07):**
-  read the built-in company property **Recent Intent Signals** (`hs_recent_intent_signals`)
-  by default and add it to signal tracking without requiring a custom signal rule. It is a
+  read the built-in company property **Recent Intent Signals** by default and add it to
+  signal tracking without requiring a custom signal rule. The internal property key
+  belongs only in implementation notes and must never appear in product UI. It is a
   rolling list of unique intent-signal types detected for the company in the past 30 days;
   each type appears once with the most recent occurrence. It only works for companies that
   HubSpot is tracking for intent. Empty property + not tracked = tracking-required state,
@@ -793,18 +807,18 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Plan-gating of key fields (config-driven):** BYO API-key inputs (Exa/Apollo/Harvest/Trigify/LLM) are visible ONLY on Enterprise/BYO plans; Trial + Pro show "Managed by app" chips with usage info and NO key fields (Woodpecker key field always visible). The plan determines the whole settings shape — one settings page, plan-aware rendering, server-side plan checks on key-write endpoints.
 - **REMOVED:** the manual "Add monitor by LinkedIn URL" form/footnote — monitor creation is exclusively contextual (Track signals / Track company on cards); settings keeps only the monitor admin LIST (pause/delete/usage).
 - Retained scope: Settings Overview, Plan & Billing, Team Budgets, Providers, Themes,
-  HubSpot Signals, Outreach Angles, Notifications, outreach config
+  HubSpot Signals, Outreach Angles, outreach config
   (positioning/vocabulary/frameworks), angle governance section (task 17b),
-  Plan & Billing/top-ups (task 17d), notification toggles, plan/usage.
+  Plan & Billing/top-ups (task 17d), plan/usage.
 - **Round 8 settings fixes (Romeo, 2026-07-07):**
   (a) **Toggle component bug** — every toggle in the design renders its knob OUTSIDE the pill when ON/green; fix the geometry once in a single shared Toggle component and reuse it everywhere (includes the Exa people-research toggle, which currently looks broken).
-  (b) **Notifications tab plain English** — NO `hap_*`/underscore/asterisk property jargon in UI copy. The property-writes opt-in reads: label "Add signal updates to the company record", description "When a strong new signal qualifies, the app writes a short summary into a few app-managed fields on the company so lists and workflows can use it. Off by default." Tier threshold worded plainly ("Notify for: Hot signals only / Hot + warm / All qualifying").
-  (c) **REMOVE from Notifications:** the "View workflow recipes" element and other technical/production items — recipes live in the docs site, not settings.
+  (b) No internal property names, production-build copy, workflow recipes, or
+  notification/webhook controls in Settings; those are removed from active scope.
 - **Round 14 settings corrections (Romeo, 2026-07-08):**
   (a) **Settings Overview is required** — the app settings page starts with Settings
   Overview, then Plan & Billing, Team Budgets, Providers, Themes, HubSpot Signals,
-  Outreach Angles, Notifications. Overview summarizes plan/credits/provider setup/budgets/
-  theme/signal/notification health and next admin actions.
+  Outreach Angles. Overview summarizes plan/credits/provider setup/budgets/theme/signal
+  health and next admin actions.
   (b) **No dead settings CTAs** — New Rule opens a create form and saves through the
   settings API/serverless path; Buy Top-Up Credits opens package/checkout session
   creation. Every visible CTA has a working state, disabled reason, or documented future
@@ -816,13 +830,13 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   access/role/uncapped state; debit path enforces every configured window.
   (f) **Plan scenarios** — Free trial = 100 credits, Pro = managed providers except
   Woodpecker, Enterprise/custom = BYOA fields for Exa/Apollo/Harvest/Trigify/LLM and
-  custom service notes.
+  custom service notes. These are separate prototype flows/specs; the active Magic
+  artifact renders only the Pro managed tenant state.
   (g) **Outreach angles** — extensive create/edit UI for any angle: goal, personas,
   channels, frameworks, tone, guardrails, disallowed claims, QA additions, cadence/template
   skeleton, rep visibility; server enforces disabled/unauthorized angles.
-  (h) **Notifications API-backed** — property writes, HubSpot task creation, digest
-  cadence, notify threshold, webhook URL, and channels save through an API/serverless path
-  and write audit events.
+  (h) **Notifications removed** — no Notifications tab, webhook URL, workflow recipe, or
+  notification-save path in active Settings.
   (i) **Docs backing** — implementation must cite current HubSpot docs for settings pages,
   serverless calls from UI extensions, CRM property fetch/refresh, and settings tests with
   `createRenderer('settings')`.
@@ -836,33 +850,36 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Parallel**: true after schema slice starts
 - Superadmin/admin settings surface for defining internal HubSpot signals from CRM data
   the tenant already owns. Baseline HubSpot signal ingestion does **not** require a
-  custom rule for HubSpot's built-in **Recent Intent Signals** company property
-  (`hs_recent_intent_signals`): read that property by default for tracked companies,
-  normalize the returned 30-day rolling unique intent-signal types into company-level
-  HubSpot-source signals, and show 0-credit usage. Supported custom-rule sources:
-  company/contact/deal properties, HubSpot lists/segments and memberships,
-  object-change/property-change webhooks, workflow custom-code or webhook calls, and
-  custom event occurrences.
-- Rule builder fields: object type (company/contact/deal), trigger source
-  (property/list/object change/custom event/workflow), source reference, condition,
-  signal type/label, signal level (company/contact), strength (hot/warm/qualifying),
-  expiration/lookback (e.g. 14 or 30 days), enabled state, and owner/audit metadata.
+  custom rule for HubSpot's built-in company signal property: read that property by
+  default for tracked companies, normalize the returned 30-day rolling unique signal
+  types into company-level HubSpot-source signals, and show 0-credit usage. The internal
+  property key belongs in implementation docs, not in product UI. Supported custom-rule
+  sources: company/contact/deal properties, HubSpot lists/segments and memberships,
+  behavioral event definitions, and record-created events.
+- Rule builder fields: object type (company/contact/deal), event source
+  (property changed/list membership changed/behavioral event occurred/record created),
+  source reference, condition/operator/value, signal label, signal level
+  (company/contact), expiration/lookback (e.g. 14 or 30 days), enabled state, and
+  owner/audit metadata.
 - Backend ingests matches as HubSpot-source signal events with timestamp, provenance, rule
   id, object id, expiration, and 0-credit usage/audit event. Disabled or expired rules do
   not render active signals. The feature must be tenant-scoped and server-authorized; reps
   cannot create or edit rules.
-- Tracking prerequisite: `hs_recent_intent_signals` is only useful when HubSpot is tracking
-  intent for that company. The app must distinguish tracked-empty from not-tracked/unknown.
+- Tracking prerequisite: the built-in HubSpot company signal property is only useful when
+  HubSpot is tracking that company. The app must distinguish tracked-empty from
+  not-tracked/unknown.
   If not tracked, Signals shows a tracking-required state/action; do not interpret the
   empty property as proof there is no buyer intent.
-- **Round 14 interaction requirement:** clicking **New Rule** in Settings must create a
-  rule. UI opens a form/panel, validates object/source/condition/label/strength/lookback,
+- **Round 14/15 interaction requirement:** clicking **New Rule** in Settings must create
+  a rule. UI opens a form/panel, validates object type, event source, fetched source
+  reference, condition/operator/value, signal label, signal level, and expiration/lookback,
   saves through a server-authorized settings route or HubSpot serverless function, appends
   the created row, and logs the actor. A rule button that only toggles local UI is a bug.
 - Feasibility docs-check required before implementation: HubSpot Properties API, Lists
-  API, Webhooks property-change subscriptions, Custom Events definitions/occurrences, and
-  Workflow custom-code/webhook behavior. If a portal lacks a property/list/event, show a
-  settings validation error rather than creating a dead rule.
+  API, and event-definition/behavioral-event APIs. If a portal lacks a property/list/event,
+  show a settings validation error rather than creating a dead rule. Do not expose workflow,
+  webhook, or custom-code choices in the signal-rule UI unless a separate product scope is
+  approved later.
 
 ### 15c. Team & access RBAC + per-rep budgets + Usage & logs (round 9, 2026-07-07)
 
@@ -907,7 +924,7 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Assigned To**: `tab-frontend`
 - **Agent Type**: frontend-specialist
 - **Parallel**: true
-- Stand up `apps/settings-web` (React + Tailwind, Magic Patterns styling, own Vercel project) against existing settings routes + new outreach/notification routes: provider keys, Trigify monitors (spend-gated flows with explicit "this spends credits" confirm), outreach config (positioning/vocabulary/frameworks), notification toggles, plan/usage. Auth: reuse the app's OAuth/session model for the install-time flow.
+- Stand up `apps/settings-web` only if native HubSpot settings-page limitations force a fallback, against existing settings routes + new outreach/config routes: provider keys, Trigify monitors (spend-gated flows with explicit "this spends credits" confirm), outreach config (positioning/vocabulary/frameworks), HubSpot signal rules, plan/usage. Auth: reuse the app's OAuth/session model for the install-time flow.
 - **Outreach export channel picker (decided 2026-07-06):** a per-tenant setting choosing how approved drafts export — `hubspot_sequences` | `woodpecker_email` | `woodpecker_email_linkedin` (clipboard always available regardless). Each option gets a **tooltip**:
   - _HubSpot Sequences_ — "Enrolls the selected contacts into one of your existing HubSpot sequences. Requires a Sales Hub or Service Hub Professional/Enterprise seat for the sending user. Note: HubSpot's API cannot create sequences, so your drafted copy is saved as draft email engagements — the sequence itself must already exist in HubSpot."
   - _Woodpecker (email)_ — "Pushes the approved cadence and copy into a Woodpecker campaign (email steps only) using your own Woodpecker API key."
@@ -1057,24 +1074,24 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   and HubSpot signal-rule events = 0 credits. Apollo/prospecting/enrichment debits only
   per returned usable contact. Outreach debits per generated stakeholder draft/cadence.
   Trigify monitor/fetch costs remain separate because monitors are the recurring risk.
-- **Round 14 billing/budget update:** Settings must expose Free trial = 100 credits,
-  editable daily/weekly/monthly rep caps, and real top-up checkout session creation. Plan
-  scenarios must render Trial, Pro, and Enterprise/custom BYOA states differently and
-  enforce them server-side.
+- **Round 14/15 billing/budget update:** Settings must expose Free trial = 100 credits,
+  editable daily/weekly/monthly rep caps, and real top-up checkout session creation.
+  Trial, Pro, and Enterprise/custom BYOA plan states must be specified and enforced
+  server-side, but they are separate flows/specs/artifacts; do not mix every scenario into
+  the active Settings screen.
 
-### 18. Notifications + plan-aware monitoring
+### 18. Plan-aware monitoring
 
-- **Task ID**: `v2-notifications`
+- **Task ID**: `v2-plan-aware-monitoring`
 - **Depends On**: `trigify-poller`, `v2-schema`
 - **Assigned To**: `signal-backend`
 - **Agent Type**: backend-engineer
 - **Parallel**: true
-- TDD. Poller emits opt-in `hap_*` company-property writes on new qualifying signals
-  (gated on `notification_settings.property_writes_enabled` + min-tier; every write
-  logged; documented uninstall cleanup). Settings lets admins edit property-write opt-in,
-  HubSpot task creation, digest cadence, notify threshold, webhook URL, and channels
-  through an API/serverless-backed save path with audit events. Author 2–3 native-workflow
-  notification recipes in `docs/`. Verify the recipe end to end on the test portal.
+- TDD. Keep recurring Trigify monitoring plan-aware: monitor creation is explicit,
+  budget-gated, deduplicated, and auditable; poller output updates the internal signal
+  store only. No `hap_*` property writes, notification settings, webhook URLs, digest
+  cadences, or native-workflow notification recipes are part of active V2 scope unless
+  separately re-approved.
 
 ### 19. Custom workflow action
 
@@ -1088,13 +1105,13 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 ### 19b. Documentation site (Mintlify)
 
 - **Task ID**: `v2-docs-mintlify`
-- **Depends On**: `v2-workspace-ui`, `v2-settings-app`, `v2-outreach-pipeline`, `v2-notifications`, `v2-workflow-action`
+- **Depends On**: `v2-workspace-ui`, `v2-settings-app`, `v2-outreach-pipeline`, `v2-plan-aware-monitoring`, `v2-workflow-action`
 - **Assigned To**: `docs-writer`
 - **Agent Type**: content-writer
 - **Parallel**: false
 - Customer-facing product documentation on **Mintlify** (Romeo has a free account). The docs live in a SEPARATE repo: `https://github.com/romeoman/mintlify-docs` (already created via Mintlify's GitHub integration). Local workflow: `git clone https://github.com/romeoman/mintlify-docs && npm i -g mint && cd mintlify-docs && mint dev` (preview at localhost:3000); pushing to main deploys via the Mintlify GitHub app.
 - Docs-check FIRST: read https://mintlify.com/docs (docs.json navigation schema, MDX components, mint CLI) — do not guess the config format.
-- Author (MDX pages, organized in docs.json navigation): Getting started / install guide (HubSpot marketplace → OAuth → settings app), Providers & API keys (Exa, Trigify, LLM providers — BYO keys), Trigify signals (signal types, observable vs derived, lookback windows, credit model + spend confirmations), Account research, Outreach drafts (pipeline, QA gates, DRAFT-only guarantee, export channels incl. the Sequences seat requirement), Notifications (hap_* properties + the 2-3 workflow recipes), Workflow action, Security & tenant isolation, Troubleshooting/FAQ.
+- Author (MDX pages, organized in docs.json navigation): Getting started / install guide (HubSpot marketplace → OAuth → settings app), Providers & API keys (Exa, Trigify, LLM providers — BYO keys), Trigify signals (signal types, observable vs derived, lookback windows, credit model + spend confirmations), Account research, Outreach drafts (pipeline, QA gates, DRAFT-only guarantee, export channels incl. the Sequences seat requirement), HubSpot signal rules, Workflow action, Security & tenant isolation, Troubleshooting/FAQ.
 - Accuracy rule: every documented behavior must match the shipped implementation — verify claims against the repo before writing; no aspirational features.
 - Verify: `mint dev` renders locally without errors; navigation complete; screenshots from the test portal where useful.
 
@@ -1107,12 +1124,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 ### 20. Final validation
 
 - **Task ID**: validate-all
-- **Depends On**: `db-signals-schema`, `domain-signal-metadata`, `trigify-client`, `signal-ranking`, `normalize-and-match`, `trigify-poller`, `trigify-adapter`, `real-hubspot-fetchers`, `monitor-management`, `frontend-trigify`, `security-audit`, `v2-schema`, `v2-workspace-ui`, `v2-settings-app`, `v2-account-research`, `v2-outreach-pipeline`, `v2-notifications`, `v2-workflow-action`, `v2-docs-mintlify`
+- **Depends On**: `db-signals-schema`, `domain-signal-metadata`, `trigify-client`, `signal-ranking`, `normalize-and-match`, `trigify-poller`, `trigify-adapter`, `real-hubspot-fetchers`, `monitor-management`, `frontend-trigify`, `security-audit`, `v2-schema`, `v2-workspace-ui`, `v2-settings-app`, `v2-account-research`, `v2-outreach-pipeline`, `v2-plan-aware-monitoring`, `v2-workflow-action`, `v2-docs-mintlify`
 - **Assigned To**: `validator`
 - **Agent Type**: quality-engineer
 - **Parallel**: false
 - Run all validation commands; verify acceptance criteria; confirm the test portal exercises all 8 states end to end. Operate in validation mode: inspect and report only, do not modify files.
-- Stage B additions: re-dispatch `security-review` for the V2 surfaces (workflow-action endpoint auth, outreach draft PII, DRAFT-only invariant, notification write gating, settings-app auth) before sign-off; verify the golden-envelope contract test, the notification recipe end to end, and the workflow action executing on the test portal.
+- Stage B additions: re-dispatch `security-review` for the V2 surfaces (workflow-action endpoint auth, outreach draft PII, DRAFT-only invariant, HubSpot signal-rule authorization, settings-app auth) before sign-off; verify the golden-envelope contract test and the workflow action executing on the test portal.
 
 ## Quality Gates
 
@@ -1161,15 +1178,16 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   LLM; the golden-envelope contract test passes; a fabricated stat, a derived signal, or
   restricted evidence in copy fails QA/tests; **no code path can send** without approved
   status + explicit user action.
-- Notifications: `hap_*` property writes occur ONLY when the tenant enabled them, are
-  logged, and a documented workflow recipe fires on the test portal.
+- HubSpot signal rules create tenant-scoped, timestamped signal events from fetched
+  properties, lists/memberships, behavioral events, or record-created events only; they
+  do not create notification/webhook behavior or silent CRM writes.
 - The custom workflow action registers on install, executes with signature verification,
   and returns usable output fields in a company-based workflow.
 - Signals tab displays the plan-clamped lookback window (30d vs 14d verified with mocked
   limits).
 - Native app settings covers install-time setup end to end (Settings Overview → Plan &
-  Billing/top-ups → Team Budgets → Providers → Themes → HubSpot Signals → Outreach Angles
-  → Notifications) with spend-gated confirms, including the outreach export-channel picker
+  Billing/top-ups → Team Budgets → Providers → Themes → HubSpot Signals → Outreach Angles)
+  with spend-gated confirms, including the outreach export-channel picker
   (HubSpot Sequences / Woodpecker email / Woodpecker email+LinkedIn) with tooltips; the
   Sequences option surfaces the Pro/Enterprise-seat requirement and enroll-only
   limitation.
@@ -1177,8 +1195,8 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   existing sequence (verified on the test portal with a seat-holding user) and never
   fires without the explicit confirm that states enrollment authorizes HubSpot sends.
 - The Mintlify docs site builds (`mint dev`) and documents install, providers, signals,
-  outreach (incl. export channels + seat requirement), notifications, workflow action,
-  and security — all claims matching shipped behavior.
+  outreach (incl. export channels + seat requirement), HubSpot signal rules, workflow
+  action, and security — all claims matching shipped behavior.
 
 ## Validation Commands
 
@@ -1231,9 +1249,10 @@ HubSpot"`. If a ChatPRD doc and this plan ever conflict, the precedence in
 - **HubSpot platform facts verified 2026-07-06:** custom workflow actions are current
   (Automation v4, `POST /automation/actions/2026-03/{appId}`, actionUrl webhook,
   input/output fields, COMPANY object type). Legacy timeline events v1/v3 are closed to
-  new apps; the new-platform "app events" need HubSpot approval → notifications ship via
-  opt-in `hap_*` property writes + native workflow recipes, app events as a later
-  enhancement. **Sequences API verified 2026-07-06** (fetched live):
+  new apps; the new-platform "app events" need HubSpot approval, so notification/app-event
+  behavior is deferred outside active V2. HubSpot signal rules use fetched CRM properties,
+  lists/memberships, behavioral event definitions, and record-created events only.
+  **Sequences API verified 2026-07-06** (fetched live):
   `/automation/sequences/2026-03/` — list/fetch sequences, enroll contact, enrollment
   status; NO sequence create/edit; requires the acting user to hold a Sales Hub or
   Service Hub Professional/Enterprise seat (userId passed on every call). Hence export =
