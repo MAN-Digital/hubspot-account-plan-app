@@ -291,4 +291,200 @@ describe("POST /api/outreach/:companyId/angle-rebuild/confirm", () => {
       );
     expect(debitRows).toHaveLength(0);
   });
+
+  it("confirms unchanged angles without a credit debit or usage event", async () => {
+    const tenant = await seedTenant();
+    await db.insert(outreachAngles).values({
+      tenantId: tenant.id,
+      angleKey: "direct",
+      name: "Direct",
+      goal: "Direct pitch.",
+      channels: ["email"],
+      frameworks: ["direct"],
+      enabled: true,
+      enabledForReps: true,
+    });
+
+    const app = buildRouteOnlyApp(tenant.id);
+    const res = await app.request("/api/outreach/co-123/angle-rebuild/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        currentAngleKey: "direct",
+        nextAngleKey: "direct",
+        includedPeopleCount: 3,
+      }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      projectedCredits: 0,
+      debitedCredits: 0,
+      status: "unchanged",
+    });
+
+    const debitRows = await db
+      .select()
+      .from(creditLedger)
+      .where(
+        and(
+          eq(creditLedger.tenantId, tenant.id),
+          eq(creditLedger.actionType, "outreach_angle_rebuild"),
+        ),
+      );
+    expect(debitRows).toHaveLength(0);
+
+    const usageRows = await db
+      .select()
+      .from(usageEvents)
+      .where(
+        and(
+          eq(usageEvents.tenantId, tenant.id),
+          eq(usageEvents.actionType, "outreach_angle_rebuild"),
+        ),
+      );
+    expect(usageRows).toHaveLength(0);
+  });
+
+  it("blocks insufficient tenant credit balance with an audit event and no debit", async () => {
+    const tenant = await seedTenant();
+    await db.insert(tenantUsers).values({
+      tenantId: tenant.id,
+      hubspotUserId: "u-1",
+      appRole: "rep",
+      monthlyCreditCap: 100,
+    });
+    await db.insert(creditLedger).values({
+      tenantId: tenant.id,
+      hubspotUserId: "u-1",
+      actionType: "topup",
+      entityRef: "billing:test",
+      deltaCredits: 8,
+      balanceAfter: 8,
+    });
+    await db.insert(outreachAngles).values({
+      tenantId: tenant.id,
+      angleKey: "interview",
+      name: "Interview",
+      goal: "Invite feedback.",
+      channels: ["email"],
+      frameworks: ["problem_interview"],
+      enabled: true,
+      enabledForReps: true,
+    });
+
+    const app = buildRouteOnlyApp(tenant.id);
+    const res = await app.request("/api/outreach/co-123/angle-rebuild/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        currentAngleKey: "direct",
+        nextAngleKey: "interview",
+        includedPeopleCount: 2,
+      }),
+    });
+
+    expect(res.status).toBe(402);
+    expect(await res.json()).toMatchObject({
+      error: "insufficient_credits",
+      currentBalance: 8,
+    });
+
+    const debitRows = await db
+      .select()
+      .from(creditLedger)
+      .where(
+        and(
+          eq(creditLedger.tenantId, tenant.id),
+          eq(creditLedger.actionType, "outreach_angle_rebuild"),
+        ),
+      );
+    expect(debitRows).toHaveLength(0);
+
+    const usageRows = await db
+      .select()
+      .from(usageEvents)
+      .where(
+        and(
+          eq(usageEvents.tenantId, tenant.id),
+          eq(usageEvents.actionType, "outreach_angle_rebuild"),
+        ),
+      );
+    expect(usageRows).toHaveLength(1);
+    expect(usageRows[0]?.credits).toBe(0);
+    expect(usageRows[0]?.projectedCredits).toBe(16);
+    expect(usageRows[0]?.result).toBe("insufficient_credits");
+  });
+
+  it("blocks rep cap overages with an audit event and no debit", async () => {
+    const tenant = await seedTenant();
+    await db.insert(tenantUsers).values({
+      tenantId: tenant.id,
+      hubspotUserId: "u-1",
+      appRole: "rep",
+      dailyCreditCap: 8,
+      weeklyCreditCap: 100,
+      monthlyCreditCap: 100,
+    });
+    await db.insert(creditLedger).values({
+      tenantId: tenant.id,
+      hubspotUserId: "u-1",
+      actionType: "topup",
+      entityRef: "billing:test",
+      deltaCredits: 100,
+      balanceAfter: 100,
+    });
+    await db.insert(outreachAngles).values({
+      tenantId: tenant.id,
+      angleKey: "interview",
+      name: "Interview",
+      goal: "Invite feedback.",
+      channels: ["email"],
+      frameworks: ["problem_interview"],
+      enabled: true,
+      enabledForReps: true,
+    });
+
+    const app = buildRouteOnlyApp(tenant.id);
+    const res = await app.request("/api/outreach/co-123/angle-rebuild/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        currentAngleKey: "direct",
+        nextAngleKey: "interview",
+        includedPeopleCount: 2,
+      }),
+    });
+
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({
+      error: "rep_credit_cap_exceeded",
+      detail: "daily credit cap exceeded",
+    });
+
+    const debitRows = await db
+      .select()
+      .from(creditLedger)
+      .where(
+        and(
+          eq(creditLedger.tenantId, tenant.id),
+          eq(creditLedger.actionType, "outreach_angle_rebuild"),
+        ),
+      );
+    expect(debitRows).toHaveLength(0);
+
+    const usageRows = await db
+      .select()
+      .from(usageEvents)
+      .where(
+        and(
+          eq(usageEvents.tenantId, tenant.id),
+          eq(usageEvents.actionType, "outreach_angle_rebuild"),
+        ),
+      );
+    expect(usageRows).toHaveLength(1);
+    expect(usageRows[0]?.credits).toBe(0);
+    expect(usageRows[0]?.projectedCredits).toBe(16);
+    expect(usageRows[0]?.result).toBe("rep_credit_cap_exceeded");
+  });
 });
