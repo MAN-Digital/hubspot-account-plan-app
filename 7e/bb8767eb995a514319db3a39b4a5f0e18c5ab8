@@ -1,0 +1,41 @@
+planning/chatprd/PRICING_AND_PACKAGING.md
+  s_c47fd3cb9ef010::t_d76cce9c5d5841 9,26,47-51,80-81
+  s_c47fd3cb9ef010::t_4990f8a3b85cbc 75
+  s_c47fd3cb9ef010::t_88d63f11096fc5 45
+  s_c47fd3cb9ef010::t_d1443c2dd58dc8 46
+planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md
+  s_c47fd3cb9ef010::t_c835b663fadc6a 110-111
+  s_c47fd3cb9ef010::t_ffdda8aaf30236 9,150-164,170-171
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c47fd3cb9ef010::t_55246629972283 500-502,982-983
+  s_c47fd3cb9ef010::t_cdbd8dc8a09c9e 288-290,298-299
+  s_c47fd3cb9ef010::t_20fe46a0a7b14e 3-4,35-38,56,652-715,783-793,857-872,874-880,888-889,900-905,919-921,943-944,988-997
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c47fd3cb9ef010::t_a7ec2b3c3d24de 1027-1029,1034-1040,1060-1063,1072-1077
+  s_c47fd3cb9ef010::t_392be6e85aa930 795-798,803-828,858-861,883-887,889-900
+  s_c47fd3cb9ef010::t_3c81d997264da5 194,246-251
+  s_c47fd3cb9ef010::t_a623bc708b6de7 316-318,372,374,378-381,927-928,1048-1049,1155-1156,1170-1172
+  s_c47fd3cb9ef010::t_ffd9e774af8d56 993-998
+docs/HANDOFF.md
+  s_c47fd3cb9ef010::t_48da9af25b5ab7 120-121,164
+  s_c47fd3cb9ef010::t_98bbc13f3516c8 71,116,191-201,219,225-226,237,239-242,256,266,276-279,289-290,300-302
+  s_c47fd3cb9ef010::t_ce3c58ba3de487 72-73
+PLANNING_INDEX.md
+  s_c47fd3cb9ef010::t_8687a7e9f04642 29,35-37,83,175-176
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7ebb8767eb995a514319db3a39b4a5f0e18c5ab8",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
