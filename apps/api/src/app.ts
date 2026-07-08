@@ -15,6 +15,7 @@ import { createTrigifyPollHandler } from "./routes/admin/trigify-poll.js";
 import { lifecycleWebhookRoutes } from "./routes/lifecycle.js";
 import { createOAuthRoutes } from "./routes/oauth.js";
 import { outreachRoutes } from "./routes/outreach.js";
+import { createPeopleProspectingRoutes } from "./routes/people-prospecting.js";
 import { settingsRoutes } from "./routes/settings.js";
 import { createSettingsTrigifyRoute } from "./routes/settings-trigify.js";
 import { snapshotRoutes } from "./routes/snapshot.js";
@@ -241,6 +242,7 @@ app.use("/api/*", nonceMiddleware());
 app.route("/api/settings", settingsRoutes);
 app.route("/api/settings/trigify", createSettingsTrigifyRoute());
 app.route("/api/snapshot", snapshotRoutes);
+app.route("/api/people", createPeopleProspectingRoutes());
 app.route("/api/outreach", outreachRoutes);
 
 export default app;

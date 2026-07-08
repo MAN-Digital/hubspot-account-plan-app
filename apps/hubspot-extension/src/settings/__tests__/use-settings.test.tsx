@@ -11,6 +11,9 @@ const VALID_SETTINGS = {
     exa: { enabled: true, hasApiKey: true },
     hubspotEnrichment: { enabled: true, hasApiKey: false },
     trigify: { enabled: false, hasApiKey: false },
+    apollo: { enabled: false, hasApiKey: false },
+    harvest: { enabled: false, hasApiKey: false },
+    woodpecker: { enabled: false, hasApiKey: false },
   },
   llm: {
     provider: "openai" as const,

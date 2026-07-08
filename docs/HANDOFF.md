@@ -56,6 +56,32 @@ fully specified, build not started except Stage A).
   Actions `trigify-poll.yml` (repo secret `CRON_SECRET` is SET, workflow verified live).
 - **main is push-protected** — every change lands via PR (docs changes included).
 
+### Branch implementation note — 2026-07-08
+
+Branch `codex/chatprd-rounds-8-9-sync` adds the first backend + HubSpot UI-extension
+wiring for round-16/17 items:
+
+- Settings API/config now has encrypted provider-key slots for Apollo, HarvestAPI, and
+  Woodpecker in addition to Exa, HubSpot enrichment, Trigify, and LLM settings.
+- Record-tab card has compact People prospecting controls for no-people/empty states and a
+  reuse-first Woodpecker campaign picker that asks the backend for existing campaigns before
+  adding a person.
+- Backend routes added:
+  - `POST /api/people/:companyId/prospect/preview`
+  - `POST /api/people/:companyId/prospect/accept`
+  - `POST /api/outreach/:companyId/woodpecker/campaigns/suggestions`
+  - `POST /api/outreach/:companyId/woodpecker/campaign-members`
+- Mintlify docs scaffold lives under `docs/mintlify`, including install, legal links,
+  provider-key operations, People prospecting API, and Woodpecker outreach API pages.
+- Local verification on 2026-07-08: `pnpm lint`, `pnpm build`, and full `pnpm test`
+  passed (133 files / 1225 tests).
+
+Not yet live-verified: Apollo, HarvestAPI, and Woodpecker vendor calls need tenant provider
+keys configured in Settings. HubSpot project upload is still blocked in this local worktree
+until a real `hubspot.config.yml` / `hsprofile.<profile>.json` and CLI-authenticated account
+are available. The Vercel backend root may return 404; the test surface is `/health` plus the
+HubSpot `crm.record.tab` and app settings extension.
+
 ### Open items from Stage A
 
 - ONE authorized live Trigify monitor subscribe (1 credit) still UNUSED — do it via the

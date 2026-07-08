@@ -1,0 +1,22 @@
+---
+title: API overview
+description: Backend API surfaces used by the HubSpot app.
+---
+
+The backend API is tenant-scoped through the HubSpot app request context and tenant middleware.
+
+Do not call the backend as a standalone web app. The user-facing surface is the HubSpot UI extension.
+
+## Current API groups
+
+- Snapshot: account reason, people, evidence, and explicit empty states.
+- Settings: provider toggles, LLM configuration, thresholds, and connection checks.
+- People prospecting: Apollo/Harvest preview and accepted-contact debit.
+- Outreach: angle rebuild quote/confirm and Woodpecker campaign reuse.
+- Trigify admin poll: scheduled observed-signal ingestion.
+
+## Credit rules
+
+Previewing provider searches costs 0 app credits.
+
+Credit debits happen only after accepted usable contacts, generated outreach, account research output, or another saved/generated output. HubSpot-source reads cost 0 credits.

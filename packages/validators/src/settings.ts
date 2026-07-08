@@ -18,6 +18,9 @@ export const settingsSignalProviderNameSchema = z.enum([
   "exa",
   "hubspot-enrichment",
   "trigify",
+  "apollo",
+  "harvest",
+  "woodpecker",
 ]) satisfies z.ZodType<SettingsSignalProviderName>;
 
 export const settingsProviderStateSchema = z
@@ -35,6 +38,9 @@ export const settingsResponseSchema = z
         exa: settingsProviderStateSchema,
         hubspotEnrichment: settingsProviderStateSchema,
         trigify: settingsProviderStateSchema,
+        apollo: settingsProviderStateSchema,
+        harvest: settingsProviderStateSchema,
+        woodpecker: settingsProviderStateSchema,
       })
       .strict(),
     llm: z
@@ -193,6 +199,9 @@ export const settingsUpdateSchema = z
         hubspotEnrichment: hubspotEnrichmentUpdateSchema.optional(),
         // Same shape/schema as exa — a real user-entered/rotatable key.
         trigify: providerUpdateSchema.optional(),
+        apollo: providerUpdateSchema.optional(),
+        harvest: providerUpdateSchema.optional(),
+        woodpecker: providerUpdateSchema.optional(),
       })
       .strict()
       .optional(),

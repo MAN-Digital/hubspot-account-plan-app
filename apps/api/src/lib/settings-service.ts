@@ -26,6 +26,9 @@ const MANAGED_SIGNAL_PROVIDERS = [
   { key: "exa", providerName: "exa" },
   { key: "hubspotEnrichment", providerName: "hubspot-enrichment" },
   { key: "trigify", providerName: "trigify" },
+  { key: "apollo", providerName: "apollo" },
+  { key: "harvest", providerName: "harvest" },
+  { key: "woodpecker", providerName: "woodpecker" },
 ] as const;
 
 const HUBSPOT_PROVIDER_NAME = "hubspot";
@@ -163,6 +166,18 @@ export async function readSettings(deps: SettingsServiceDeps): Promise<SettingsR
       trigify: {
         enabled: rowByProvider.get("trigify")?.enabled ?? false,
         hasApiKey: !!rowByProvider.get("trigify")?.apiKeyEncrypted,
+      },
+      apollo: {
+        enabled: rowByProvider.get("apollo")?.enabled ?? false,
+        hasApiKey: !!rowByProvider.get("apollo")?.apiKeyEncrypted,
+      },
+      harvest: {
+        enabled: rowByProvider.get("harvest")?.enabled ?? false,
+        hasApiKey: !!rowByProvider.get("harvest")?.apiKeyEncrypted,
+      },
+      woodpecker: {
+        enabled: rowByProvider.get("woodpecker")?.enabled ?? false,
+        hasApiKey: !!rowByProvider.get("woodpecker")?.apiKeyEncrypted,
       },
     },
     llm: {
@@ -329,6 +344,29 @@ export async function updateSettings(
             ? null
             : trigifyPatch.apiKey
               ? encryptProviderKey(tenantId, trigifyPatch.apiKey)
+              : (existing?.apiKeyEncrypted ?? null),
+          thresholds: {
+            ...DEFAULT_THRESHOLDS,
+            ...parseThresholds(existing?.thresholds),
+            ...update.thresholds,
+          },
+        });
+      }
+
+      const apiKeyProviderPatches = [
+        { providerName: "apollo", patch: update.signalProviders.apollo },
+        { providerName: "harvest", patch: update.signalProviders.harvest },
+        { providerName: "woodpecker", patch: update.signalProviders.woodpecker },
+      ] as const;
+      for (const { providerName, patch } of apiKeyProviderPatches) {
+        if (!patch) continue;
+        const existing = providerByName.get(providerName);
+        await upsertSignalProvider(txDb, tenantId, providerName, {
+          enabled: patch.enabled ?? existing?.enabled ?? false,
+          apiKeyEncrypted: patch.clearApiKey
+            ? null
+            : patch.apiKey
+              ? encryptProviderKey(tenantId, patch.apiKey)
               : (existing?.apiKeyEncrypted ?? null),
           thresholds: {
             ...DEFAULT_THRESHOLDS,

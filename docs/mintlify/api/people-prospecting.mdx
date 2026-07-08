@@ -1,0 +1,38 @@
+---
+title: People prospecting API
+description: Apollo and HarvestAPI prospecting routes for the People tab.
+---
+
+People prospecting lives in the People tab. Buying Group maps real HubSpot/People records after they exist.
+
+## Preview
+
+`POST /api/people/{companyId}/prospect/preview`
+
+Preview normalizes the People modal payload into provider requests:
+
+- Apollo People API Search for structured people search.
+- HarvestAPI LinkedIn profile search for LinkedIn candidate and evidence context.
+- HubSpot-first dedupe and existing contact context.
+
+Preview creates a prospecting run and candidate drafts, but debits 0 app credits.
+
+If Apollo or HarvestAPI keys are not configured for the tenant, preview returns provider blockers instead of consuming credits.
+
+## Accept
+
+`POST /api/people/{companyId}/prospect/accept`
+
+Accept persists the selected candidate rows as accepted and debits only accepted usable contacts.
+
+Current credit policy: `accepted usable contacts * 4 credits`.
+
+Accept is blocked by tenant balance and the requesting rep's daily, weekly, and monthly caps.
+
+## Provider documentation
+
+- [Apollo People API Search](https://docs.apollo.io/reference/people-api-search)
+- [Apollo People Enrichment](https://docs.apollo.io/reference/people-enrichment)
+- [Apollo Bulk People Enrichment](https://docs.apollo.io/reference/bulk-people-enrichment)
+- [HarvestAPI profile search](https://docs.harvestapi.io/linkedin-api-reference/profile/search)
+- [HarvestAPI post search](https://docs.harvestapi.io/linkedin-api-reference/post/company-posts)

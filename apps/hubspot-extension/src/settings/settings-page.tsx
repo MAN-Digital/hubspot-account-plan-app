@@ -44,6 +44,15 @@ type DraftState = {
     trigifyEnabled: boolean;
     trigifyApiKey: string;
     trigifyClearKey: boolean;
+    apolloEnabled: boolean;
+    apolloApiKey: string;
+    apolloClearKey: boolean;
+    harvestEnabled: boolean;
+    harvestApiKey: string;
+    harvestClearKey: boolean;
+    woodpeckerEnabled: boolean;
+    woodpeckerApiKey: string;
+    woodpeckerClearKey: boolean;
   };
   llm: {
     provider: ProviderSelection;
@@ -136,6 +145,15 @@ function buildDraft(settings: SettingsResponse): DraftState {
       trigifyEnabled: settings.signalProviders.trigify.enabled,
       trigifyApiKey: "",
       trigifyClearKey: false,
+      apolloEnabled: settings.signalProviders.apollo.enabled,
+      apolloApiKey: "",
+      apolloClearKey: false,
+      harvestEnabled: settings.signalProviders.harvest.enabled,
+      harvestApiKey: "",
+      harvestClearKey: false,
+      woodpeckerEnabled: settings.signalProviders.woodpecker.enabled,
+      woodpeckerApiKey: "",
+      woodpeckerClearKey: false,
     },
     llm: {
       provider,
@@ -277,6 +295,39 @@ export function HubSpotSettingsPage({
           : {}),
     };
 
+    const apolloLeaf: SettingsUpdate["signalProviders"] extends infer _T
+      ? NonNullable<SettingsUpdate["signalProviders"]>["apollo"]
+      : never = {
+      enabled: current.signalProviders.apolloEnabled,
+      ...(current.signalProviders.apolloClearKey
+        ? { clearApiKey: true }
+        : current.signalProviders.apolloApiKey.trim().length > 0
+          ? { apiKey: current.signalProviders.apolloApiKey.trim() }
+          : {}),
+    };
+
+    const harvestLeaf: SettingsUpdate["signalProviders"] extends infer _T
+      ? NonNullable<SettingsUpdate["signalProviders"]>["harvest"]
+      : never = {
+      enabled: current.signalProviders.harvestEnabled,
+      ...(current.signalProviders.harvestClearKey
+        ? { clearApiKey: true }
+        : current.signalProviders.harvestApiKey.trim().length > 0
+          ? { apiKey: current.signalProviders.harvestApiKey.trim() }
+          : {}),
+    };
+
+    const woodpeckerLeaf: SettingsUpdate["signalProviders"] extends infer _T
+      ? NonNullable<SettingsUpdate["signalProviders"]>["woodpecker"]
+      : never = {
+      enabled: current.signalProviders.woodpeckerEnabled,
+      ...(current.signalProviders.woodpeckerClearKey
+        ? { clearApiKey: true }
+        : current.signalProviders.woodpeckerApiKey.trim().length > 0
+          ? { apiKey: current.signalProviders.woodpeckerApiKey.trim() }
+          : {}),
+    };
+
     const update: SettingsUpdate = {
       signalProviders: {
         exa: exaLeaf,
@@ -284,6 +335,9 @@ export function HubSpotSettingsPage({
           enabled: current.signalProviders.hubspotEnrichmentEnabled,
         },
         trigify: trigifyLeaf,
+        apollo: apolloLeaf,
+        harvest: harvestLeaf,
+        woodpecker: woodpeckerLeaf,
       },
       llm:
         current.llm.provider === "none"
@@ -318,6 +372,9 @@ export function HubSpotSettingsPage({
   const exaHasStoredKey = state.settings.signalProviders.exa.hasApiKey;
   const llmHasStoredKey = state.settings.llm.hasApiKey;
   const trigifyHasStoredKey = state.settings.signalProviders.trigify.hasApiKey;
+  const apolloHasStoredKey = state.settings.signalProviders.apollo.hasApiKey;
+  const harvestHasStoredKey = state.settings.signalProviders.harvest.hasApiKey;
+  const woodpeckerHasStoredKey = state.settings.signalProviders.woodpecker.hasApiKey;
 
   const exaDraftHasKey = draft.signalProviders.exaApiKey.trim().length > 0;
   const exaTestDisabled = !exaDraftHasKey && !exaHasStoredKey;
@@ -505,6 +562,197 @@ export function HubSpotSettingsPage({
       <Text variant="microcopy">
         Trigify powers social buying-intent signals. Manage monitors below after saving a key.
       </Text>
+
+      <Heading>Apollo people data</Heading>
+      <Toggle
+        name="apolloEnabled"
+        label="Enable Apollo"
+        checked={draft.signalProviders.apolloEnabled}
+        onChange={(checked) =>
+          setDraft((current) =>
+            current
+              ? {
+                  ...current,
+                  signalProviders: { ...current.signalProviders, apolloEnabled: checked },
+                }
+              : current,
+          )
+        }
+      />
+      {apolloHasStoredKey ? <Text>Stored key on file</Text> : null}
+      <Flex direction="row" gap="sm" align="end">
+        <Input
+          name="apolloApiKey"
+          label="Apollo API key"
+          type="password"
+          value={draft.signalProviders.apolloApiKey}
+          onChange={(value) =>
+            setDraft((current) =>
+              current
+                ? {
+                    ...current,
+                    signalProviders: {
+                      ...current.signalProviders,
+                      apolloApiKey: value,
+                      apolloClearKey:
+                        value.trim().length > 0 ? false : current.signalProviders.apolloClearKey,
+                    },
+                  }
+                : current,
+            )
+          }
+        />
+        {apolloHasStoredKey ? (
+          <Button
+            testId="clearApolloApiKey"
+            variant="destructive"
+            onClick={() =>
+              setDraft((current) =>
+                current
+                  ? {
+                      ...current,
+                      signalProviders: {
+                        ...current.signalProviders,
+                        apolloClearKey: true,
+                        apolloApiKey: "",
+                      },
+                    }
+                  : current,
+              )
+            }
+          >
+            Clear key
+          </Button>
+        ) : null}
+      </Flex>
+
+      <Heading>Harvest LinkedIn data</Heading>
+      <Toggle
+        name="harvestEnabled"
+        label="Enable Harvest"
+        checked={draft.signalProviders.harvestEnabled}
+        onChange={(checked) =>
+          setDraft((current) =>
+            current
+              ? {
+                  ...current,
+                  signalProviders: { ...current.signalProviders, harvestEnabled: checked },
+                }
+              : current,
+          )
+        }
+      />
+      {harvestHasStoredKey ? <Text>Stored key on file</Text> : null}
+      <Flex direction="row" gap="sm" align="end">
+        <Input
+          name="harvestApiKey"
+          label="Harvest API key"
+          type="password"
+          value={draft.signalProviders.harvestApiKey}
+          onChange={(value) =>
+            setDraft((current) =>
+              current
+                ? {
+                    ...current,
+                    signalProviders: {
+                      ...current.signalProviders,
+                      harvestApiKey: value,
+                      harvestClearKey:
+                        value.trim().length > 0 ? false : current.signalProviders.harvestClearKey,
+                    },
+                  }
+                : current,
+            )
+          }
+        />
+        {harvestHasStoredKey ? (
+          <Button
+            testId="clearHarvestApiKey"
+            variant="destructive"
+            onClick={() =>
+              setDraft((current) =>
+                current
+                  ? {
+                      ...current,
+                      signalProviders: {
+                        ...current.signalProviders,
+                        harvestClearKey: true,
+                        harvestApiKey: "",
+                      },
+                    }
+                  : current,
+              )
+            }
+          >
+            Clear key
+          </Button>
+        ) : null}
+      </Flex>
+
+      <Heading>Woodpecker outreach</Heading>
+      <Toggle
+        name="woodpeckerEnabled"
+        label="Enable Woodpecker"
+        checked={draft.signalProviders.woodpeckerEnabled}
+        onChange={(checked) =>
+          setDraft((current) =>
+            current
+              ? {
+                  ...current,
+                  signalProviders: { ...current.signalProviders, woodpeckerEnabled: checked },
+                }
+              : current,
+          )
+        }
+      />
+      {woodpeckerHasStoredKey ? <Text>Stored key on file</Text> : null}
+      <Flex direction="row" gap="sm" align="end">
+        <Input
+          name="woodpeckerApiKey"
+          label="Woodpecker API key"
+          type="password"
+          value={draft.signalProviders.woodpeckerApiKey}
+          onChange={(value) =>
+            setDraft((current) =>
+              current
+                ? {
+                    ...current,
+                    signalProviders: {
+                      ...current.signalProviders,
+                      woodpeckerApiKey: value,
+                      woodpeckerClearKey:
+                        value.trim().length > 0
+                          ? false
+                          : current.signalProviders.woodpeckerClearKey,
+                    },
+                  }
+                : current,
+            )
+          }
+        />
+        {woodpeckerHasStoredKey ? (
+          <Button
+            testId="clearWoodpeckerApiKey"
+            variant="destructive"
+            onClick={() =>
+              setDraft((current) =>
+                current
+                  ? {
+                      ...current,
+                      signalProviders: {
+                        ...current.signalProviders,
+                        woodpeckerClearKey: true,
+                        woodpeckerApiKey: "",
+                      },
+                    }
+                  : current,
+              )
+            }
+          >
+            Clear key
+          </Button>
+        ) : null}
+      </Flex>
 
       <Divider />
       <Heading>LLM Settings</Heading>

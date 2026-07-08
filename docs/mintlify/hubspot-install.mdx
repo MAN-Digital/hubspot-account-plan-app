@@ -1,0 +1,31 @@
+---
+title: HubSpot install
+description: How the HubSpot Project app, UI extension, and backend API fit together.
+---
+
+The HubSpot app is uploaded through HubSpot Projects from `apps/hubspot-project`.
+
+The backend is not the user-facing app. It is the API origin that the HubSpot UI extension calls through `hubspot.fetch()`. A bare Vercel root URL returning `404` is not an app failure; validate the backend with `/health` and validate the product inside HubSpot.
+
+## Upload flow
+
+1. Build the API and extension bundle.
+2. Ensure `apps/hubspot-project/hsprofile.<profile>.json` exists with:
+   - `API_ORIGIN`
+   - `OAUTH_INSTALL_URI`
+   - `OAUTH_REDIRECT_URI`
+3. Run `pnpm tsx scripts/hs-project-upload.ts --profile <profile>`.
+4. Open the app inside HubSpot Development and install it into the target portal.
+5. Test from a HubSpot company record, not from the backend root URL.
+
+## Required CRM surface
+
+The card is configured as a HubSpot UI extension at `crm.record.tab` for company records.
+
+The app must not silently write to CRM. CRM writes, if introduced, need explicit user action and audit logging.
+
+## Support
+
+- Support: [MAN Digital contact](https://www.man.digital/contact)
+- Privacy: [MAN Digital Privacy Policy](https://www.man.digital/privacy-policy)
+- Terms: [MAN Digital Terms of Service](https://www.man.digital/terms-of-service)

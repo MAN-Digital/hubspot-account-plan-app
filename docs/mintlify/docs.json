@@ -1,0 +1,31 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "HAP Signal Workspace",
+  "description": "HubSpot-native signal-first account workspace for account planning and outreach.",
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#000FC4",
+    "light": "#F7F7FF",
+    "dark": "#000A3D"
+  },
+  "logo": {
+    "light": "/logo-light.svg",
+    "dark": "/logo-dark.svg"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get started",
+        "pages": ["index", "hubspot-install", "privacy-and-terms"]
+      },
+      {
+        "group": "API",
+        "pages": ["api/overview", "api/people-prospecting", "api/outreach-woodpecker"]
+      },
+      {
+        "group": "Operations",
+        "pages": ["operations/provider-keys", "operations/credits-and-budgets"]
+      }
+    ]
+  }
+}

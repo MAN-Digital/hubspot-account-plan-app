@@ -245,7 +245,13 @@ export type TenantConfig = {
  * `provider_config` row that `TrigifyStoreAdapter` and `services/trigify/poller.ts`
  * resolve at read/poll time.
  */
-export type SettingsSignalProviderName = "exa" | "hubspot-enrichment" | "trigify";
+export type SettingsSignalProviderName =
+  | "exa"
+  | "hubspot-enrichment"
+  | "trigify"
+  | "apollo"
+  | "harvest"
+  | "woodpecker";
 
 /**
  * Presence-only provider settings state returned by the settings API.
@@ -268,6 +274,9 @@ export type SettingsSignalProviders = {
   exa: SettingsProviderState;
   hubspotEnrichment: SettingsProviderState;
   trigify: SettingsProviderState;
+  apollo: SettingsProviderState;
+  harvest: SettingsProviderState;
+  woodpecker: SettingsProviderState;
 };
 
 /**
@@ -314,6 +323,12 @@ export type SettingsSignalProviderUpdates = {
   hubspotEnrichment?: SettingsHubspotEnrichmentUpdate;
   /** Same shape as `exa` — trigify is a real user-entered/rotatable API key. */
   trigify?: SettingsProviderUpdate;
+  /** Apollo powers contact search/enrichment. */
+  apollo?: SettingsProviderUpdate;
+  /** Harvest powers LinkedIn profile/post enrichment. */
+  harvest?: SettingsProviderUpdate;
+  /** Woodpecker powers campaign membership sync. */
+  woodpecker?: SettingsProviderUpdate;
 };
 
 /**
