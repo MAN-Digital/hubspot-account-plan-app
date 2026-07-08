@@ -1,7 +1,7 @@
 # V2 Expansion PRD Delta — Account Workspace UI + Outreach Engine + Monitoring
 
-**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 13 on
-2026-07-07 via the authenticated `chatprd` MCP.
+**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 14 on
+2026-07-08 via the authenticated `chatprd` MCP.
 **ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
 **Sync record (2026-07-06):** every section below has been applied to its target ChatPRD
 document. §1/§2/§7 and the feature-plan/repo-checklist/security/QA deltas landed in the
@@ -32,6 +32,10 @@ filters, and HubSpot-defined signal rules were synced with marker
 `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`.
 The round 13 HubSpot intent correction was synced with marker
 `ChatPRD sync correction — round 13 HubSpot recent intent property — 2026-07-07`.
+Round 14 settings interactions, Settings Overview, themes, budgets, BYOA scenarios,
+top-up checkout, extensive outreach-angle editing, and API-backed notification settings
+were synced with marker
+`ChatPRD sync addendum — round 14 settings interactions and API-backed admin UX — 2026-07-08`.
 
 ---
 
@@ -49,7 +53,7 @@ engine**, porting proven logic from the OpenClaw outreach-engine
    `.claude/tasks/trigify-signals-into-account-planning.md`, tasks 1–12).
 2. **Account workspace UI** — the Magic Patterns design
    (https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35, editor id
-   `xmdzva7bxdn4ubmtrbvs35`, active artifact `5b159270-7872-46a2-ac4d-9c8cff78ec13`,
+   `xmdzva7bxdn4ubmtrbvs35`, active artifact `3231eeab-547b-4c7b-8a8c-db9a9255f096`,
    use the **v2/** components)
    becomes the canonical screen-by-screen UI reference: 8 tabs — Overview, People,
    Buying Group, Signals, Outreach, Data Gaps, Plan, Context.
@@ -281,8 +285,9 @@ it renders **HubSpot `@hubspot/ui-extensions` components only** (no Tailwind, no
 no arbitrary HTML). The Magic Patterns code is the visual/IA reference to TRANSLATE
 (Tile/Table/Tag/StatusTag/Flex/Heading/Statistics/etc.), not code to copy. Component
 availability (e.g. tabs pattern) must be verified against current HubSpot docs at build
-time. The **hosted settings app** (see §4) is a normal React web app and MAY reuse the
-Magic Patterns styling (Tailwind, HubSpot-like palette) directly.
+time. The native HubSpot **app settings page** also uses `@hubspot/ui-extensions`; Magic
+Patterns is the interaction/IA reference to translate. A hosted settings web app is
+fallback only if a documented settings-page limitation blocks the native page.
 
 ## 2b. Pricing & Packaging (NEW ChatPRD document, round 6 — 2026-07-07)
 
@@ -290,8 +295,8 @@ Create a NEW ChatPRD doc "Pricing & Packaging". Content: two supply models (mana
 w/ credits vs BYO keys) on one credits system; credit-metered actions (research runs,
 buying-group generation, outreach generation per person, Apollo enrichment per contact,
 Trigify monitor creates, Exa-heavy research, warm-intro scoring) with config-driven
-costs + per-tenant credit_ledger; tiers — Free trial ~30 credits (sized to research 1-2
-accounts end to end) / Pro from $99/mo (we manage Exa+Apollo+Trigify+LLM keys, customer
+costs + per-tenant credit_ledger; tiers — Free trial 100 credits (sized for several
+light account workspaces or one heavier prospecting/outreach workspace) / Pro from $99/mo (we manage Exa+Apollo+Trigify+LLM keys, customer
 brings ONLY Woodpecker; monthly allowance + top-ups; margins over researched provider
 costs; cheapest-good LLM default pending GPT-vs-Gemini cost research) / Enterprise
 custom (BYO APIs + custom cards + optional full-service: we run signals+outreach, train
@@ -492,8 +497,9 @@ Correction synced with marker
    updates remain explicit user actions.
 5. **Credits are rep-facing at the point of action.** The product should not assume a
    superadmin preselects all target accounts. A rep with app access can generate a plan
-   ad hoc on a company record as long as tenant credits and that rep's monthly cap allow
-   it. Every credit-metered CTA shows projected cost, remaining personal credits, and
+   ad hoc on a company record as long as tenant credits and that rep's daily/weekly/
+   monthly caps allow it. Every credit-metered CTA shows projected cost, remaining
+   personal credits, and
    remaining tenant credits before debit. The debit path logs the acting HubSpot user,
    account/contact target, action type, credits, and result. Settings still let a
    superadmin/admin set caps and view usage, but the workspace itself must make the
@@ -643,6 +649,70 @@ with marker
     because Trigify has recurring credits and plan lookback limits. All values remain
     config-driven and observable in Usage & logs.
 
+## 2j. Round 14 feedback (2026-07-08 — Settings interactions, themes, budgets, BYOA, and API-backed admin UX)
+
+**ChatPRD sync:** synced 2026-07-08 to Specs for the AI prototype, Product Brief,
+Feature Implementation Spec, Technical Design Document, Database Schema, Pricing &
+Packaging, Credit Economics & Sizing, QA & Verification Plan, and Engineering Handoff
+with marker
+`ChatPRD sync addendum — round 14 settings interactions and API-backed admin UX — 2026-07-08`.
+
+1. **Settings needs an Overview, not only settings tabs.** The native HubSpot app
+   settings page starts with **Settings Overview** and then shows Plan & Billing, Team
+   Budgets, Providers, Themes, HubSpot Signals, Outreach Angles, and Notifications.
+   Settings Overview summarizes current plan, credits, provider setup, budget health,
+   active themes, signal-rule health, notification status, and next admin actions. The
+   in-record gear deep-links to this Connected-Apps settings page; settings must not be
+   hidden inside the CRM record tab as production-only UI.
+2. **No dead buttons in the settings prototype or shipped UI.** Clicking **New Rule**
+   opens a real signal-rule create form/panel and saving it creates a tenant-scoped
+   `hubspot_signal_rules` row through the settings API/serverless path. Clicking
+   **Buy Top-Up Credits** opens a package/checkout flow and then creates a checkout
+   session through billing infrastructure. Every visible CTA has either a working state,
+   a disabled reason, or a documented fallback.
+3. **Tabs must not create a horizontal scrollbar.** Settings tabs wrap or render as a
+   responsive grid/segmented layout. A horizontal scrolling settings nav is rejected UX.
+4. **Themes are configurable.** Admins can create, edit, and apply workspace themes
+   containing design tokens such as primary color, accent color, background/surface, and
+   status colors. Themes are tenant-scoped, persisted, audited, and consumed by the
+   settings page and CRM extension through config-driven tokens. The default theme remains
+   HubSpot-native; custom themes never bypass accessibility contrast checks.
+5. **Per-rep budgets need daily, weekly, and monthly caps.** Team Budgets lets
+   superadmins edit app access, role, daily cap, weekly cap, monthly cap, and optional
+   uncapped status per rep. The debit path enforces all configured windows at spend time
+   and writes blocked attempts to usage/audit logs.
+6. **Plan scenarios must include Free trial, Pro, and Enterprise/custom BYOA.** Trial gets
+   **100 credits** with managed providers and no card requirement. Pro remains managed
+   providers except Woodpecker. Enterprise/custom exposes BYOA inputs for Exa, Apollo,
+   Harvest, Trigify, and LLM provider keys plus custom service notes. Plan gates are
+   rendered in Settings and enforced server-side on every key-write and billing action.
+7. **Top-up checkout must be real.** Plan & Billing shows credit balance, monthly
+   allowance, rollover/top-ups, and top-up packages. Production creates checkout sessions
+   through our billing API (Stripe unless later replaced), records pending/paid/failed
+   status, and credits the ledger only after verified payment. HubSpot Marketplace does
+   not provide the billing flow for this app; it is an installation/distribution surface.
+8. **Outreach angles need extensive admin editing.** Settings must support creating and
+   editing any angle, including name, goal, enabled state, target personas, channels,
+   frameworks, tone, claim guardrails, disallowed claims, QA additions, default
+   cadence/template skeleton, and rep visibility. Saved angles are API-backed and
+   server-enforced in the outreach pipeline; the rep picker only shows enabled angles.
+9. **Notifications settings are API-backed.** Admins can edit property-write opt-in,
+   HubSpot task creation, digest cadence, notify threshold, webhook URL, and channel
+   preferences. Saving writes `notification_settings` through the settings API/serverless
+   path and creates a settings audit event. Plain-English UI copy remains mandatory.
+10. **Documented API backing is required for every UX item.** Prototype-only elements must
+    still map to a planned API route/serverless function, schema row, or explicit
+    disabled/future state. Current HubSpot docs checked through Context7 confirm:
+    native app settings pages are supported as UI-extension settings components; settings
+    components can call serverless functions; UI extensions can fetch CRM properties and
+    refresh subscribed CRM data; overlays/panels/forms are valid UI patterns; and
+    `createRenderer('settings')` exists for testing settings extensions. Implementation
+    docs to cite:
+    - https://developers.hubspot.com/docs/apps/developer-platform/add-features/ui-extensions/extension-points/create-a-settings-page
+    - https://developers.hubspot.com/docs/apps/developer-platform/add-features/serverless-functions/reference
+    - https://developers.hubspot.com/docs/apps/developer-platform/add-features/ui-extensions/fetching-data
+    - https://developers.hubspot.com/docs/apps/developer-platform/add-features/ui-extensions/tools/testing/reference
+
 ## 3. Technical Design Document
 
 **Apply — new subsystems (all tenant-isolated, config-driven, BYO keys):**
@@ -710,9 +780,17 @@ with marker
    expiration/lookback, enabled state, and audit metadata. Ingestion writes timestamped
    HubSpot-source signal rows with provenance and zero credit debit.
 8. **Two UI surfaces** — (a) `crm.record.tab` extension (HubSpot components);
-   (b) hosted settings web app (our stack) for install-time and ongoing configuration:
-   providers/keys, Trigify monitors (spend-gated), outreach config (positioning,
-   vocabulary, frameworks, sender identity), notification toggles + recipes, plan/usage.
+   (b) the native HubSpot **app settings page** (`src/app/settings`, settings
+   UI-extension component) for install-time and ongoing configuration: Settings Overview,
+   Plan & Billing, Team Budgets, Providers, Themes, HubSpot Signals, Outreach Angles, and
+   Notifications. A hosted settings web app remains fallback only if a concrete
+   HubSpot-settings limitation blocks the native page and is documented.
+9. **Settings API/serverless layer** — settings UI actions call server-authorized routes
+   or HubSpot serverless functions for: signal-rule create/update/delete, top-up checkout
+   session creation, theme create/apply, rep cap updates, provider key writes,
+   outreach-angle create/update, and notification settings save. Every write verifies the
+   acting HubSpot user, app role, tenant, plan gate, and audit metadata server-side.
+   Client state changes are optimistic only after the API returns success.
 
 ## 4. Data Schema Design
 
@@ -776,8 +854,30 @@ with marker
   `hs_recent_intent_signals`, `rule_id` may be null and provenance should identify the
   HubSpot property read. Feeds `signals` as HubSpot-source, zero-credit observed/internal
   signals.
+- `tenant_users` — tenant_id, hubspot_user_id, email, app_role, app_access_enabled,
+  daily_credit_cap, weekly_credit_cap, monthly_credit_cap, uncapped, cap_period_state
+  (jsonb), created_at, updated_at. Caps are enforced at debit time; blocked attempts go
+  to usage/audit logs.
+- `tenant_themes` — id, tenant_id, name, tokens (jsonb: colors/status/surface tokens),
+  is_active, created_by_hubspot_user_id, created_at, updated_at. Only one active theme per
+  tenant unless later scoped per team.
+- `credit_topups` / `billing_checkout_sessions` — id, tenant_id,
+  requested_by_hubspot_user_id, pack_key, credits, amount, currency, provider,
+  checkout_session_id, checkout_url, status (pending/paid/failed/expired), ledger_ref?,
+  created_at, updated_at. Credits are added only after verified payment webhook.
+- `outreach_angles` (or normalized rows backing `outreach_config.angles[]`) — id,
+  tenant_id, name, goal, enabled, target_personas (jsonb), channels (jsonb), frameworks
+  (jsonb), tone, guardrails (jsonb), disallowed_claims (jsonb), qa_rules (jsonb),
+  cadence_template (jsonb), enabled_for_reps (jsonb), created_by_hubspot_user_id,
+  updated_at. Server-side enforcement prevents rep use of disabled angles.
 - `notification_settings` — tenant_id, enabled (bool), property_writes_enabled (bool),
-  min_tier (A/B/C), updated_at. (May fold into tenant settings jsonb.)
+  hubspot_task_enabled (bool), digest_cadence, min_tier (A/B/C), webhook_url?,
+  channels (jsonb), updated_by_hubspot_user_id, updated_at. (May fold into tenant
+  settings jsonb.)
+- `settings_audit_events` — tenant_id, hubspot_user_id, action_type, target_type,
+  target_id, before (jsonb), after (jsonb), result, created_at. Covers sensitive settings
+  writes: budgets, provider keys, signal rules, themes, billing/top-ups, angles, and
+  notifications.
 
 ## 5. Feature Implementation Plan
 
@@ -785,8 +885,8 @@ with marker
 
 - **Phase A (in flight):** Trigify signal substrate — tasks 1–12 of
   `.claude/tasks/trigify-signals-into-account-planning.md`.
-- **Phase B:** Account workspace UI (8-tab translation to HubSpot components) + hosted
-  settings app shell.
+- **Phase B:** Account workspace UI (8-tab translation to HubSpot components) + native
+  HubSpot app settings page shell.
 - **Phase C:** Account research generator (+ Context tab rendering) and outreach engine
   (envelope/cadence/copy/qa + Draft Outreach + approval + export adapters).
 - **Phase D:** Notifications (property propagation + recipes) + custom workflow action.
@@ -797,10 +897,12 @@ with marker
 
 **Apply — additions:** `apps/api/src/services/research/`, `apps/api/src/services/outreach/`
 (envelope.ts, cadence.ts, copywriter.ts, copy-qa.ts, pipeline.ts), `apps/api/src/routes/
-{research,outreach,workflow-action}.ts`, `apps/settings-web/` (hosted settings app),
-extension tab components per Magic Patterns IA, new schema files per §4, HubSpot app
-manifest changes (scopes: `automation`, sequences scope for enrollment, company property
-write scope; workflow action definition), Vercel project for settings app.
+{research,outreach,workflow-action,settings,billing}.ts`, `src/app/settings/` settings
+UI-extension component + hsmeta, extension tab components per Magic Patterns IA, new
+schema files per §4, HubSpot app manifest changes (scopes: `automation`, sequences scope
+for enrollment, company property read/write, users/owners read for budgets; workflow
+action definition), serverless/settings route tests. Only add `apps/settings-web/` if the
+native settings page is proven insufficient.
 
 **Documentation (added 2026-07-06):** customer-facing docs on **Mintlify** in the
 separate repo `https://github.com/romeoman/mintlify-docs` (Mintlify GitHub app deploys
@@ -814,8 +916,9 @@ troubleshooting. Every claim must match shipped behavior.
 
 **Apply — additions (rules, not restatements):**
 
-- In-CRM UI uses `@hubspot/ui-extensions` components exclusively; hosted settings app may
-  use Tailwind. Never ship raw HTML/CSS into the extension bundle.
+- In-CRM UI and the native app settings page use `@hubspot/ui-extensions` components
+  exclusively. Magic Patterns is the IA/visual reference to translate, not bundle
+  directly. A hosted settings fallback may use Tailwind only if separately approved.
 - Outreach engine: DRAFT-only invariant is enforced in code and tests — no code path may
   transmit copy to a third-party send system without an explicit approved status AND an
   explicit user action. Every factual claim in generated copy must carry an evidence ref
@@ -837,7 +940,8 @@ troubleshooting. Every claim must match shipped behavior.
   restricted-evidence zero-leak rule extends to envelopes and generated copy (a
   restricted source can never appear in copy or research).
 - Spend gates: Trigify subscribe (existing), Woodpecker export (explicit confirm),
-  research generation (per-tenant rate limit + optional monthly cap in settings).
+  research generation (per-tenant rate limit + daily/weekly/monthly per-rep caps in
+  settings), and top-up checkout (credit grant only after verified payment).
 - Notification property writes are opt-in, namespaced, and reversible (documented
   uninstall/cleanup path).
 - Scopes added to the app: automation (workflow actions), company property read/write —
@@ -875,12 +979,22 @@ troubleshooting. Every claim must match shipped behavior.
   Fixture a tracked company with an empty value and a not-tracked company with an empty
   value; only the latter may show the tracking-required state. Do not require a custom
   signal rule for the built-in property path.
-  Runs block cleanly when tenant credits, rep monthly cap, or provider setup are
-  insufficient; writes usage/audit events for success and blocked attempts.
+  Runs block cleanly when tenant credits, rep daily/weekly/monthly caps, or provider
+  setup are insufficient; writes usage/audit events for success and blocked attempts.
 - HubSpot signal rules: superadmin can create a property/list/custom-event/workflow rule;
   matching events render as HubSpot-source company/contact signals with timestamps,
   visible provenance, expiration behavior, and 0-credit usage events. Disabled or expired
   rules do not create active signals.
+- Settings interactions: `createRenderer('settings')` tests cover the native settings
+  page. Clicking **New Rule** opens the create form and API success adds a rule row.
+  Clicking **Buy Top-Up Credits** opens package selection and calls checkout-session
+  creation; payment success is simulated by webhook/test helper before ledger credit is
+  granted. Settings tabs wrap/grid without horizontal scrollbars at narrow widths. Theme
+  create/apply persists tokens and updates preview state. Team Budgets persists daily,
+  weekly, and monthly caps and enforces them in debit tests. Enterprise/custom scenario
+  shows BYOA fields; Trial/Pro do not. Outreach-angle create/edit persists full angle
+  definitions and disabled angles are rejected by the server. Notification settings save
+  through the API and write audit events.
 - Plan-aware lookback: limits API mocked at 14d and 30d → feed/query windows clamp
   accordingly; UI states the active window.
 

@@ -6,6 +6,7 @@
 - `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
 - `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`
 - `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`
+- `ChatPRD sync addendum — round 14 settings interactions and API-backed admin UX — 2026-07-08`
 
 **Researched 2026-07-07** (official vendor pages; re-verify quarterly — LLM/vendor
 rates move fast). Full research brief in session history; key numbers below.
@@ -22,7 +23,7 @@ rates move fast). Full research brief in session history; key numbers below.
 
 | Tier       | Price           | Credits            | Keys                      | Notes                                                                                                                    |
 | ---------- | --------------- | ------------------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Free trial | $0              | **30 credits**     | managed                   | Enough for 1-2 light account workspaces when the rep selects only needed modules; output-based debit prevents wasting credits on empty results |
+| Free trial | $0              | **100 credits**    | managed                   | Enough for several light account workspaces or one heavier prospecting/outreach workspace when the rep selects only needed modules; output-based debit prevents wasting credits on empty results |
 | Pro        | **from $99/mo** | **500 credits/mo** | managed except Woodpecker | Launch allowance is provisional: ~4–6 actively worked new accounts/mo plus light monitoring if monitors stay in-pool; usage logs set the GA number |
 | Enterprise | custom          | custom             | BYO everything            | + custom cards/views + optional full-service (we run signals+outreach, train team) — retainer                            |
 
@@ -41,7 +42,13 @@ rates move fast). Full research brief in session history; key numbers below.
 
 **CONFIRMED (Romeo, round 8, 2026-07-07):** Pro = 500 credits/mo **plus top-up
 purchases**; top-up credits never expire. Settings UI (Plan & Billing) shows the
-balance with a "Buy top-up credits" action.
+balance with a working **Buy Top-Up Credits** action.
+
+**CONFIRMED (Romeo, round 14, 2026-07-08):** Free trial starts with **100 credits**. The
+**Buy Top-Up Credits** action must open package selection and create a billing checkout
+session through our billing API; it must not be a dead button. Ledger credits are granted
+only after verified payment status. HubSpot Marketplace is the distribution/install
+surface, not the billing processor for these credits.
 
 ## Per-contact pricing logic (round 8 — the "Manage by app" contact math)
 
@@ -65,12 +72,13 @@ COGS scales per contact (Apollo 1–8 credits/contact; Trigify person-enrich 4):
 The primary usage journey is now **ad hoc from a company record**, not only a superadmin
 preselecting target accounts in settings or workflows. A rep with app access opens
 **Build this account workspace**, chooses exactly which modules to run, and proceeds only
-when tenant credits and that rep's monthly cap allow it.
+when tenant credits and that rep's configured daily, weekly, and monthly caps allow it.
 
 Every credit-metered CTA must show, before the run:
 
 - projected action cost or range;
-- current rep's used / cap / remaining monthly credits;
+- current rep's used / cap / remaining daily, weekly, and monthly credits where caps are
+  configured;
 - tenant pool remaining;
 - whether any provider/setup blocker prevents the run.
 

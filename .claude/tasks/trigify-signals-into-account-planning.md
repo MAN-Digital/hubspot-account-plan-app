@@ -191,7 +191,7 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 > Canonical UI for the V2 workspace: Magic Patterns design
 > https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35 (editor id
 > `xmdzva7bxdn4ubmtrbvs35`; active artifact
-> `5b159270-7872-46a2-ac4d-9c8cff78ec13`; use the **`v2/*` components** — v1 files are an earlier
+> `3231eeab-547b-4c7b-8a8c-db9a9255f096`; use the **`v2/*` components** — v1 files are an earlier
 > iteration). Read via the Magic Patterns MCP (`get_artifact` → `read_artifact_files`).
 
 ### Layout Patterns
@@ -243,12 +243,12 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 - `v2/PeopleTabV2.tsx` → person card anatomy. `v2/PlanTabV2.tsx` → timeline + messaging
   guidance. `v2/ContextTabV2.tsx` → research layout.
 
-**Hard constraint:** the in-CRM tab renders `@hubspot/ui-extensions` components ONLY (no
-Tailwind/lucide/raw HTML). The Magic Patterns code is the IA/visual reference to
-TRANSLATE (Tile, Table, Tag, StatusTag, Statistics, Flex, Heading, Button, etc.); verify
-a tabs-like component exists in the current SDK (fallback: ToggleGroup-driven sections).
-The **hosted settings app** is a normal React app and may reuse the Magic Patterns
-styling directly.
+**Hard constraint:** the in-CRM tab and native HubSpot app settings page render
+`@hubspot/ui-extensions` components ONLY (no Tailwind/lucide/raw HTML in the extension
+bundle). The Magic Patterns code is the IA/visual reference to TRANSLATE (Tile, Table,
+Tag, StatusTag, Statistics, Flex, Heading, Button, etc.); verify a tabs-like component
+exists in the current SDK (fallback: ToggleGroup-driven/wrapped sections). A hosted
+settings app is fallback only if a documented HubSpot settings-page limitation blocks us.
 
 ## Relevant Files
 
@@ -313,7 +313,9 @@ styling directly.
 - `packages/db/src/schema/{account-research,outreach-drafts,outreach-config,notification-settings}.ts` + migration.
 - `apps/api/src/services/research/*`, `apps/api/src/services/outreach/{envelope,cadence,copywriter,copy-qa,pipeline}.ts`.
 - `apps/api/src/routes/{research,outreach,workflow-action}.ts`.
-- `apps/settings-web/*` — hosted settings app (own Vercel project).
+- `apps/hubspot-extension/src/app/settings/*` — native HubSpot app settings page
+  components/serverless wiring; `apps/settings-web/*` only if a documented settings-page
+  limitation forces a fallback.
 - `apps/hubspot-extension/src/` tab components per the Source UI/UX Reference.
 - `docs/notifications/*.md` — native-workflow notification recipes.
 
@@ -367,16 +369,16 @@ Monitor management, settings, frontend, end-to-end validation on a real test por
   exercise strong-evidence, fewer-than-3-contacts, empty, stale, degraded, low-confidence,
   ineligible, and restricted states, then validate end to end.
 
-### Phase 5 (Stage B): Account workspace UI + hosted settings app
+### Phase 5 (Stage B): Account workspace UI + native app settings page
 
-- Translate the Magic Patterns 5-tab design (see Source UI/UX Reference) into
+- Translate the Magic Patterns 8-tab design (see Source UI/UX Reference) into
   `@hubspot/ui-extensions` components on `crm.record.tab`; wire Overview/People/Signals
   to real snapshot + signal-store data; Plan/Context render explicit empty states until
   their data sources exist.
-- Stand up `apps/settings-web` (hosted React settings app, Magic Patterns styling):
-  provider keys (LLM/Exa/Trigify), Trigify monitors (spend-gated UI), outreach config
-  (positioning/vocabulary/frameworks), notification toggles, plan/usage. The
-  install-time experience routes here.
+- Stand up the native HubSpot app settings page (`src/app/settings/`): Settings Overview,
+  Plan & Billing, Team Budgets, Providers, Themes, HubSpot Signals, Outreach Angles, and
+  Notifications. Settings actions call server-authorized API/serverless paths; no dead
+  CTAs.
 
 ### Phase 6 (Stage B): Account research + outreach engine
 
@@ -790,11 +792,40 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   5. **AI model** — managed default GPT-5-mini-class; provider choice on BYO plans.
 - **Plan-gating of key fields (config-driven):** BYO API-key inputs (Exa/Apollo/Harvest/Trigify/LLM) are visible ONLY on Enterprise/BYO plans; Trial + Pro show "Managed by app" chips with usage info and NO key fields (Woodpecker key field always visible). The plan determines the whole settings shape — one settings page, plan-aware rendering, server-side plan checks on key-write endpoints.
 - **REMOVED:** the manual "Add monitor by LinkedIn URL" form/footnote — monitor creation is exclusively contextual (Track signals / Track company on cards); settings keeps only the monitor admin LIST (pause/delete/usage).
-- Retained scope: outreach config (positioning/vocabulary/frameworks), angle governance section (task 17b), Plan & Billing (task 17d), notification toggles, plan/usage.
+- Retained scope: Settings Overview, Plan & Billing, Team Budgets, Providers, Themes,
+  HubSpot Signals, Outreach Angles, Notifications, outreach config
+  (positioning/vocabulary/frameworks), angle governance section (task 17b),
+  Plan & Billing/top-ups (task 17d), notification toggles, plan/usage.
 - **Round 8 settings fixes (Romeo, 2026-07-07):**
   (a) **Toggle component bug** — every toggle in the design renders its knob OUTSIDE the pill when ON/green; fix the geometry once in a single shared Toggle component and reuse it everywhere (includes the Exa people-research toggle, which currently looks broken).
   (b) **Notifications tab plain English** — NO `hap_*`/underscore/asterisk property jargon in UI copy. The property-writes opt-in reads: label "Add signal updates to the company record", description "When a strong new signal qualifies, the app writes a short summary into a few app-managed fields on the company so lists and workflows can use it. Off by default." Tier threshold worded plainly ("Notify for: Hot signals only / Hot + warm / All qualifying").
   (c) **REMOVE from Notifications:** the "View workflow recipes" element and other technical/production items — recipes live in the docs site, not settings.
+- **Round 14 settings corrections (Romeo, 2026-07-08):**
+  (a) **Settings Overview is required** — the app settings page starts with Settings
+  Overview, then Plan & Billing, Team Budgets, Providers, Themes, HubSpot Signals,
+  Outreach Angles, Notifications. Overview summarizes plan/credits/provider setup/budgets/
+  theme/signal/notification health and next admin actions.
+  (b) **No dead settings CTAs** — New Rule opens a create form and saves through the
+  settings API/serverless path; Buy Top-Up Credits opens package/checkout session
+  creation. Every visible CTA has a working state, disabled reason, or documented future
+  state.
+  (c) **No horizontal tab scrollbar** — settings tabs wrap/grid responsively.
+  (d) **Themes** — admins can create/apply tenant themes with tokens, persisted and
+  audited; extension consumes them config-driven.
+  (e) **Budgets** — superadmins edit daily, weekly, and monthly caps per rep, plus app
+  access/role/uncapped state; debit path enforces every configured window.
+  (f) **Plan scenarios** — Free trial = 100 credits, Pro = managed providers except
+  Woodpecker, Enterprise/custom = BYOA fields for Exa/Apollo/Harvest/Trigify/LLM and
+  custom service notes.
+  (g) **Outreach angles** — extensive create/edit UI for any angle: goal, personas,
+  channels, frameworks, tone, guardrails, disallowed claims, QA additions, cadence/template
+  skeleton, rep visibility; server enforces disabled/unauthorized angles.
+  (h) **Notifications API-backed** — property writes, HubSpot task creation, digest
+  cadence, notify threshold, webhook URL, and channels save through an API/serverless path
+  and write audit events.
+  (i) **Docs backing** — implementation must cite current HubSpot docs for settings pages,
+  serverless calls from UI extensions, CRM property fetch/refresh, and settings tests with
+  `createRenderer('settings')`.
 
 ### 15d. HubSpot signal-rule settings (round 13, 2026-07-07)
 
@@ -824,6 +855,10 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   intent for that company. The app must distinguish tracked-empty from not-tracked/unknown.
   If not tracked, Signals shows a tracking-required state/action; do not interpret the
   empty property as proof there is no buyer intent.
+- **Round 14 interaction requirement:** clicking **New Rule** in Settings must create a
+  rule. UI opens a form/panel, validates object/source/condition/label/strength/lookback,
+  saves through a server-authorized settings route or HubSpot serverless function, appends
+  the created row, and logs the actor. A rule button that only toggles local UI is a bug.
 - Feasibility docs-check required before implementation: HubSpot Properties API, Lists
   API, Webhooks property-change subscriptions, Custom Events definitions/occurrences, and
   Workflow custom-code/webhook behavior. If a portal lacks a property/list/event, show a
@@ -845,10 +880,24 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   - **Rate limits:** OAuth apps = 100 req / 10 s per installing account. Prefer the list endpoints (`/settings/v3/users`, `/crm/v3/owners`) over `POST /crm/v3/objects/users/search` (separately capped at 4 req/s). Handle `429` + `X-HubSpot-RateLimit-*` headers.
   - Sources: HubSpot public API spec catalog `api.hubspot.com/public/api/spec/v1/specs` (User Provisioning release 22213/v3, Owners release 22153/v3); scopes + UI-extensions context cross-checked (rendered docs are login-gated).
 - **App roles (on top of HubSpot perms):** superadmin > admin > rep. superadmin = billing + provider keys + angle governance + roles/budgets + logs; admin = settings + logs (no billing/roles); rep = workspace use only, sees own usage. EVERY role/budget/log route enforces the role SERVER-SIDE, tenant-scoped by RLS. This is the same governance ladder already used for angle governance (17b) — unify it.
-- **Per-rep credit budgets:** each user row carries an optional monthly `credit_cap`. Enforce at DEBIT TIME in the credit-ledger path (17d): proceed only if tenant-has-credits AND rep-under-cap; else fail-closed with "budget exceeded" (logged as a blocked event). Admins/superadmin may be uncapped. Caps are config/per-tenant, never hardcoded.
+- **Per-rep credit budgets:** each user row carries optional daily, weekly, and monthly
+  credit caps. Enforce at DEBIT TIME in the credit-ledger path (17d): proceed only if
+  tenant-has-credits AND rep is under every configured cap; else fail-closed with
+  "budget exceeded" (logged as a blocked event). Admins/superadmin may be uncapped. Caps
+  are config/per-tenant, never hardcoded.
 - **Usage & logs (new settings tab, admin/superadmin only):** (a) per-rep rollup (used/cap/remaining/last-active); (b) tenant total vs allowance; (c) activity log — timestamp, user, action, target, credits, result — filterable by rep/action/date. Feeds the credit-sizing decision (see `CREDIT_ECONOMICS_AND_SIZING.md`).
-- **Data model (extend task 13 Stage B schema):** `tenant_users` (tenant_id, hubspot_user_id, email, app_role, app_access_enabled, credit_cap, period_start) and `usage_events` (tenant_id, hubspot_user_id, action_type, entity_ref, credits, result, metadata jsonb, created_at) — both tenant-scoped RLS + FORCE, hap_app write policy. `usage_events` is the human-readable audit view over the same debits the `credit_ledger` records (or unify them — one append-only table with actor + action_type + credits + result). NEVER expose another tenant's users or logs (cross-tenant leakage test mandatory).
-- **Magic Patterns:** two new internal settings tabs — "Team & access" (users table: role select, app-access toggle, per-rep budget field, used-bar) and "Usage & logs" (per-rep summary + tenant total + filterable activity log). Round-9 design pass (artifact after v9). Reuse the round-8 shared Toggle (no knob-escapes-pill bug).
+- **Data model (extend task 13 Stage B schema):** `tenant_users` (tenant_id,
+  hubspot_user_id, email, app_role, app_access_enabled, daily_credit_cap,
+  weekly_credit_cap, monthly_credit_cap, uncapped, cap_period_state) and `usage_events`
+  (tenant_id, hubspot_user_id, action_type, entity_ref, projected_credits, credits,
+  result, metadata jsonb, created_at) — both tenant-scoped RLS + FORCE, hap_app write
+  policy. `usage_events` is the human-readable audit view over the same debits the
+  `credit_ledger` records (or unify them — one append-only table with actor + action_type
+  + credits + result). NEVER expose another tenant's users or logs (cross-tenant leakage
+  test mandatory).
+- **Magic Patterns:** Team Budgets/Usage surfaces show users table: role select,
+  app-access toggle, daily/weekly/monthly cap fields, used-bars, and tenant total +
+  filterable activity log. Reuse the round-8 shared Toggle (no knob-escapes-pill bug).
 - **Security/permissions doc:** capture the role matrix + HubSpot-scope caveat in `docs/security/` and the handoff (round 9 permissions model).
 
 ### 15-old. (superseded) Hosted settings app
@@ -875,7 +924,8 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - TDD. `services/research/` + `POST /api/research/:companyId`: gather CRM context + signal store + tenant-Exa retrieval → tenant-LLM synthesis into structured sections with per-section source provenance → persist to `account_research` (history kept). Degraded providers → explicit degraded/empty sections, never fabricated content. Rate-limited per tenant. Render in the Context tab (with `tab-frontend`).
 - Round 11 extension, revised round 13: account research is one selectable module inside
   **Build this account workspace**, not the whole first-run bundle. Before running, return
-  projected-cost ranges and blockers (tenant credits, rep monthly cap, provider setup).
+  projected-cost ranges and blockers (tenant credits, rep daily/weekly/monthly caps,
+  provider setup).
   Clicking generate does not debit; debit only when research output is saved. When the
   research module is selected, create `account_generation_runs` + line-item audit rows,
   generate research/context, seed the editable account plan if selected, refresh
@@ -940,6 +990,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Rebuild lockout (round 5, 2026-07-07):** whenever the angle changes (or a plan edit triggers regeneration), the affected cadence/copy/export surfaces are DISABLED — grayed out with a visible "Rebuilding sequences for the new angle…" progress state — until the rebuild completes. No reviewing, approving, or exporting a stale sequence; per-person status returns to Building during the rebuild.
 - **Angle governance (round 5, 2026-07-07 — admin-gated to avoid rep chaos):** angle CREATION and EDITING (including editing the presets — e.g. adding tenant-specific information, adjusting goal/tone/frameworks/QA rules) lives in SETTINGS under a **superadmin permission**, NOT in the rep-facing picker. The superadmin controls exactly what each angle does and which angles are enabled for reps. Reps see a read-only picker containing ONLY admin-enabled angles (+ a "managed by your admin" hint). The prompt-to-angle creation flow moves into the settings angle manager. Enforcement is SERVER-SIDE (angle-write endpoints check the admin role; the picker filtering is cosmetic on top) — app-level role stored per tenant (installer defaults to superadmin; can grant others), not inferred from UI.
 - **Custom angles (prompt-to-angle):** the user prompts a new angle → the pipeline runs RESEARCH on the tenant's LLM+Exa (what email/LinkedIn frameworks & best practices fit this angle) → generates a structured angle definition (goal, tone, allowed claims, frameworks, per-touch template skeletons, QA additions) → user reviews → saved to tenant config, reusable like presets.
+- **Round 14 settings editor requirement:** the Settings angle manager must let a
+  superadmin extensively create/edit any angle: name, goal, enabled state, target
+  personas, channels, frameworks, tone, claim guardrails, disallowed claims, QA additions,
+  default cadence/template skeleton, and rep visibility. Save goes through an API/serverless
+  route and writes audit metadata; the outreach pipeline rejects disabled or unauthorized
+  angles server-side.
 - **Architecture:** angle definitions live in `outreach_config.angles[]` (jsonb); the campaign envelope carries `campaign.angle`; cadence-strategist + copywriter + copy-QA all consume it; **QA enforces angle fidelity as a hard failure** (e.g. any pitch inside an Interview-angle sequence blocks). Maps onto the engine's config-driven `messaging_vocabulary` (frameworks {id,label,era}, angle families) — the campaign angle filters/extends the vocabulary. Author preset templates/frameworks at build time (research round per preset). Woodpecker campaign identity is also angle-aware: the reuse key is account/company + angle + primary signal/channel, with Angle + Signal naming for pitch/direct motions. Multi-person personalization belongs in snippets/custom fields, while the campaign remains shared.
 - **Engine re-audit (2026-07-07):** OpenClaw engine landed 177929a — 'The Breakup' retired in favor of a signal-led final touch, LinkedIn frameworks/steps added — and campaign-angle work is in progress there; port against the engine's CURRENT state and mirror its angle model where it exists.
 
@@ -968,12 +1024,20 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Two supply models, one credits system:** (A) **Managed keys** — we own the provider API keys (Exa, Apollo, Trigify, LLM), customer consumes CREDITS; (B) **BYO keys** — tenant brings their own keys (current architecture, unchanged). BOTH modes meter usage in credits (BYO for visibility/limits, managed for billing).
 - **Credit-metered actions** (each debits a configured credit cost, per-tenant ledger, audit-logged): account research run, buying-group generation/regenerate, outreach cadence+copy generation (per person), copy-QA re-runs beyond N, Apollo enrichment (per contact), Trigify monitor create (maps to Trigify credit), Exa-heavy research, warm-intro enrichment/scoring run. Credit costs live in CONFIG (not code); a per-tenant `credit_ledger` table records every debit/credit with action + reference.
 - **Tier draft (final numbers gated on the pricing research → Pricing & Packaging PRD):**
-  1. **Free trial** — ~30 credits, everything unlocked, no card; sized so a user can research 1-2 accounts end to end (validate against researched credit costs).
+  1. **Free trial** — 100 credits, everything unlocked, no card; sized so a user can
+     research several light account workspaces or one heavier prospecting/outreach
+     workspace without wasting credits on empty results.
   2. **Pro — from $99/mo** — WE manage all provider keys (Exa/Apollo/Trigify/LLM; cheapest-good LLM default, e.g. Gemini Flash-class pending research); customer brings ONLY their Woodpecker API key (sending stays under their identity/deliverability); monthly credit allowance + top-ups; margins priced over Apollo/Trigify/Exa/LLM/server costs.
   3. **Enterprise — custom** — BYO all APIs, custom development (custom cards/views), and optionally the SERVICE tier: we run signals + outreach for them, train the team, set up all connections (agency-style retainer on top).
 - **Selling point (Product Brief):** our buying group + org chart works on ANY HubSpot tier — enterprise-grade features (buying groups need Sales Hub Enterprise natively) without the Enterprise license.
 - **Apollo (promoted from V2.5):** Apollo.io becomes the people prospecting/enrichment provider (replacing the Harvest plan) — proven in OpenClaw (`signals_source.py`, `web_visitor_qualify.py`, apollo-api skill). Provider-adapter pattern, works in both managed and BYO modes.
-- **Admin settings page (extends v2-settings-app):** Plan & Billing section — current tier card, credits balance + monthly allowance, usage breakdown by action category, top-up/upgrade CTA, per-provider key mode indicator ("Managed by app" vs "Your key"), roles management (superadmin grants), invoice history placeholder. Roles: superadmin (billing + angles + keys + roles) > admin (settings) > rep (use).
+- **Admin settings page (extends native settings page):** Plan & Billing section —
+  current tier card, credits balance + monthly allowance, usage breakdown by action
+  category, working top-up/upgrade CTA, per-provider key mode indicator ("Managed by app"
+  vs "Your key"), roles management (superadmin grants), invoice history placeholder.
+  Clicking **Buy Top-Up Credits** opens package selection and creates a checkout session
+  through the billing API; ledger credits are granted only after verified payment. Roles:
+  superadmin (billing + angles + keys + roles) > admin (settings) > rep (use).
 - **Open decision (flag in ChatPRD):** transparency of underlying API sources on managed tier — recommendation: SHOW sources always (consistent with the verify-everything trust principle; provenance chains already name Exa/Trigify), white-labeling deferred unless a strong sales reason emerges.
 - **Billing rails:** research HubSpot marketplace billing vs own Stripe (pricing PRD decides).
 - **Round 8 confirmations (Romeo, 2026-07-07):** Pro = **500 credits/mo + top-up purchases** (top-ups never expire) — approved. **Per-contact pricing logic** is part of the model (not UI guesswork): enrichment charges per contact (`contacts × 4` credits), cadence generation charges per person, buying-group generation covers a config-capped candidate pool; UI always shows projected credit cost BEFORE contact-based runs and confirms above a config threshold. Full math in `planning/chatprd/PRICING_AND_PACKAGING.md` ("Per-contact pricing logic").
@@ -981,7 +1045,8 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Round 11 credit journey (Romeo, 2026-07-07, revised by round 13):** generation is
   rep-initiated and ad hoc from the company record, not only preselected target-account
   automation. A rep with app access can run **Build this account workspace** selected
-  modules if tenant credits and their monthly `credit_cap` allow it. Every credit-metered
+  modules if tenant credits and their daily/weekly/monthly caps allow it. Every
+  credit-metered
   CTA must show projected range, remaining personal credits, and remaining tenant credits
   before running; blocked attempts write usage/audit events with result `blocked_budget`
   or `blocked_provider_setup`.
@@ -992,6 +1057,10 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   and HubSpot signal-rule events = 0 credits. Apollo/prospecting/enrichment debits only
   per returned usable contact. Outreach debits per generated stakeholder draft/cadence.
   Trigify monitor/fetch costs remain separate because monitors are the recurring risk.
+- **Round 14 billing/budget update:** Settings must expose Free trial = 100 credits,
+  editable daily/weekly/monthly rep caps, and real top-up checkout session creation. Plan
+  scenarios must render Trial, Pro, and Enterprise/custom BYOA states differently and
+  enforce them server-side.
 
 ### 18. Notifications + plan-aware monitoring
 
@@ -1000,7 +1069,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Assigned To**: `signal-backend`
 - **Agent Type**: backend-engineer
 - **Parallel**: true
-- TDD. Poller emits opt-in `hap_*` company-property writes on new qualifying signals (gated on `notification_settings.property_writes_enabled` + min-tier; every write logged; documented uninstall cleanup). Author 2–3 native-workflow notification recipes in `docs/`. Verify the recipe end to end on the test portal.
+- TDD. Poller emits opt-in `hap_*` company-property writes on new qualifying signals
+  (gated on `notification_settings.property_writes_enabled` + min-tier; every write
+  logged; documented uninstall cleanup). Settings lets admins edit property-write opt-in,
+  HubSpot task creation, digest cadence, notify threshold, webhook URL, and channels
+  through an API/serverless-backed save path with audit events. Author 2–3 native-workflow
+  notification recipes in `docs/`. Verify the recipe end to end on the test portal.
 
 ### 19. Custom workflow action
 
@@ -1078,7 +1152,8 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 
 **Stage B acceptance criteria:**
 
-- The tab renders the Magic Patterns IA (5 tabs) using only `@hubspot/ui-extensions`
+- The tab renders the Magic Patterns IA (8 workspace tabs) using only
+  `@hubspot/ui-extensions`
   components; Overview/Signals/People are live-data; all V1 states still render.
 - "Generate account research" produces a persisted, source-attributed research doc using
   ONLY the tenant's own keys; degraded providers yield explicit degraded sections.
@@ -1092,8 +1167,9 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   and returns usable output fields in a company-based workflow.
 - Signals tab displays the plan-clamped lookback window (30d vs 14d verified with mocked
   limits).
-- Settings app covers install-time setup end to end (keys → monitors → outreach config →
-  notifications) with spend-gated confirms, including the outreach export-channel picker
+- Native app settings covers install-time setup end to end (Settings Overview → Plan &
+  Billing/top-ups → Team Budgets → Providers → Themes → HubSpot Signals → Outreach Angles
+  → Notifications) with spend-gated confirms, including the outreach export-channel picker
   (HubSpot Sequences / Woodpecker email / Woodpecker email+LinkedIn) with tooltips; the
   Sequences option surfaces the Pro/Enterprise-seat requirement and enroll-only
   limitation.

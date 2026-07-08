@@ -6,6 +6,7 @@
 - `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
 - `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`
 - `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`
+- `ChatPRD sync addendum — round 14 settings interactions and API-backed admin UX — 2026-07-08`
 
 **Written 2026-07-07 (round 9, Romeo asked: "think about this 500 credits… is it enough
 to use that or not, and how do we do it").** This doc answers three questions: (1) does
@@ -106,7 +107,8 @@ We should NOT hard-lock 500 from a spreadsheet. Instead:
 
 Romeo clarified that generation should be **rep-initiated ad hoc from the company record**,
 not primarily a superadmin-curated target-account batch. Pricing/credits UX therefore must
-show the rep's personal monthly cap and remaining credits at the point of action:
+show the rep's personal daily/weekly/monthly cap state and remaining credits at the point
+of action:
 
 - blank/no-data account → **Build this account workspace** shows selectable modules and
   itemized projected credit ranges before running;
@@ -145,10 +147,25 @@ mapping can cost ~2-3 credits; a prospecting-heavy run with 10 returned contacts
 primarily a COGS risk, but we need Usage & logs to learn real per-rep behavior and tune
 default caps.
 
+## Round 14 update — trial credits, top-ups, and cap windows
+
+Romeo clarified that the Free trial should start with **100 credits** and that settings
+must let superadmins edit **daily, weekly, and monthly** caps per rep, not only one
+monthly cap. The credit model therefore uses three spend windows:
+
+- daily cap: protects against one accidental heavy run or bad automation day;
+- weekly cap: limits campaign bursts while still letting a rep work several accounts;
+- monthly cap: controls the overall tenant allowance split.
+
+The debit path checks tenant balance and all configured rep caps before running. Blocked
+attempts are logged with the acting HubSpot user, action, target, projected credits, and
+which cap blocked it. Top-up purchases must be a real checkout-session flow from Plan &
+Billing; credits enter the ledger only after verified payment status.
+
 ## Open questions to resolve before GA pricing lock
 
 1. Monitor metering model (separate allowance vs in-pool cheaper) — **needs decision**.
 2. Real credits-per-account from trial data — **needs instrumentation** (round-9 logs).
 3. Top-up pack sizes + price (e.g. +250 / +1000) — draft from COGS + 30% Clay-style premium.
-4. Per-rep default budget (e.g. Pro = pooled with optional per-rep caps; Enterprise = caps
-   standard) — **needs decision**.
+4. Per-rep default daily/weekly/monthly budgets (e.g. Pro = pooled with optional caps;
+   Enterprise = caps standard) — **needs decision**.
