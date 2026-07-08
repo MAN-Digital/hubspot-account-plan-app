@@ -1,8 +1,8 @@
 {
   "accountId": 12345678,
   "variables": {
-    "OAUTH_INSTALL_URI": "https://hap-signal-workspace.vercel.app/oauth/install",
-    "OAUTH_REDIRECT_URI": "https://hap-signal-workspace.vercel.app/oauth/callback",
-    "API_ORIGIN": "https://hap-signal-workspace.vercel.app"
+    "OAUTH_INSTALL_URI": "https://hap.mandigital.dev/oauth/install",
+    "OAUTH_REDIRECT_URI": "https://hap.mandigital.dev/oauth/callback",
+    "API_ORIGIN": "https://hap.mandigital.dev"
   }
 }

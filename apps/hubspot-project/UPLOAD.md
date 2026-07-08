@@ -87,6 +87,28 @@ cd "$TMP" && hs project upload --profile staging
 
 `@todo Slice 3` — file an issue against `@hubspot/cli` reproducing the worktree upload failure with a minimal repro, and remove this indirection if/when the CLI handles worktrees correctly.
 
+## CLI version status (upgraded 2026-07-03)
+
+The global CLI was upgraded 5.1.3 → **8.9.1** (`npm i -g @hubspot/cli@latest`;
+the workflow above was originally diagnosed against 8.4.0). Verified on 8.9.1:
+
+- `hs account list` — auth config (`~/.hscli/config.yml`) survived the upgrade.
+- `hs project validate --profile local` — **profiles must live under `src/`**;
+  a root-level-only `hsprofile.<name>.json` still fails with "Failed to load
+  profile". The `mirrorProfileIntoSrc` workaround in
+  `scripts/hs-project-upload.ts` is therefore still required on 8.9.1. For
+  CLI-direct commands (`validate`, `dev`), keep a copy of the real profile at
+  `src/hsprofile.<name>.json` (gitignored) alongside the root-level canonical
+  one.
+- With the profile in `src/`, validation passes: "Project hap-signal-workspace
+  is valid and ready to upload".
+
+Still untested on 8.9.1: the worktree upload bug. On the next real upload, try
+`hs project upload --profile local` directly from
+`.worktrees/<branch>/apps/hubspot-project/`. If the build no longer reports
+`*.tsx not found`, the temp-dir wrapper indirection in
+`scripts/hs-project-upload.ts` can be removed (see the Slice 3 follow-up).
+
 ## Current Slice 5 production contract
 
 The app is already on the OAuth marketplace model. The remaining production

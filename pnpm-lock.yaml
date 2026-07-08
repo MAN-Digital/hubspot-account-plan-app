@@ -76,8 +76,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/validators
       '@hubspot/ui-extensions':
-        specifier: ^0.13.0
-        version: 0.13.0(@remote-ui/react@5.0.8(react-reconciler@0.29.2(react@18.3.1))(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
+        specifier: ^0.15.0
+        version: 0.15.0(@remote-ui/react@5.0.8(react-reconciler@0.29.2(react@18.3.1))(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -761,8 +761,8 @@ packages:
     peerDependencies:
       hono: ^4
 
-  '@hubspot/ui-extensions@0.13.0':
-    resolution: {integrity: sha512-dXtlrWKqy8uP650/i81iiWdGs+REm9WPKYDocJ4p/d7A8/XXWvTbx0OqdyoV/IYmpiz4J8ja/9Z3qPGsf8XeWg==}
+  '@hubspot/ui-extensions@0.15.0':
+    resolution: {integrity: sha512-aAdbcsLcsT12C+pHDuLw85l8iuQjeCKLNomPsMPJL+rLU5MvrB6+KQYm1xzEmVvlfjI5BmGM0/uc1itlosA6ew==}
     engines: {node: '>=16'}
     peerDependencies:
       '@remote-ui/react': ^5.0.0
@@ -2258,7 +2258,7 @@ snapshots:
     dependencies:
       hono: 4.12.12
 
-  '@hubspot/ui-extensions@0.13.0(@remote-ui/react@5.0.8(react-reconciler@0.29.2(react@18.3.1))(react@18.3.1))(react@18.3.1)(typescript@5.9.3)':
+  '@hubspot/ui-extensions@0.15.0(@remote-ui/react@5.0.8(react-reconciler@0.29.2(react@18.3.1))(react@18.3.1))(react@18.3.1)(typescript@5.9.3)':
     dependencies:
       '@remote-ui/core': 2.2.7
       '@remote-ui/react': 5.0.8(react-reconciler@0.29.2(react@18.3.1))(react@18.3.1)

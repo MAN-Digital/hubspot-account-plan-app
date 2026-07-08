@@ -83,6 +83,8 @@ supabase/.temp
 apps/hubspot-project/hsprofile.*.json
 apps/hubspot-project/src/hsprofile.*.json
 !apps/hubspot-project/hsprofile.*.example.json
+# CLI ≥8.4 loads profiles from src/ — real profiles get mirrored there too
+apps/hubspot-project/src/hsprofile.*.json
 apps/hubspot-project/local.json
 
 # Claude Code
@@ -99,3 +101,6 @@ apps/hubspot-project/local.json
 # Temporary
 *.tmp
 *.temp
+
+# Temp bundle output from scripts/bundle-hubspot-card.ts
+.bundle-artifacts/

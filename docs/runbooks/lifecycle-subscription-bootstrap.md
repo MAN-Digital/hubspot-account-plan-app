@@ -184,6 +184,26 @@ Operational consequence:
   HubSpot (not the bootstrap env) — the env is a label, the app config is
   the source of truth.
 
+### 8.1 Caution: push delivery is not what the docs describe (checked 2026-07-02)
+
+HubSpot's current webhooks-journal documentation states that journal
+subscriptions (including `APP_LIFECYCLE_EVENT`) are consumed by **polling the
+journal** (3-day retention) and that they "don't work with the feature
+component functionality" — i.e. the docs do not promise delivery to the
+webhooks component's `targetUrl`.
+
+Empirically, push delivery to `${API_ORIGIN}/webhooks/hubspot/lifecycle` DOES
+work — verified against portal 146425426 during Slice 12 Wave D
+(`docs/slice-12-preflight-notes.md`, `docs/qa/slice-12-wave-d-walkthrough.md`).
+We rely on that observed behavior, but it is undocumented. Consequences:
+
+- Re-verify install + uninstall push delivery (the §11 dev first run) after
+  any HubSpot platform-version migration or CLI major upgrade.
+- If push delivery ever stops, the documented fallback is polling
+  `GET /webhooks-journal/journal/2026-03` with the same client-credentials
+  token; the Slice 6 oauth-refresh-failure fallback also still covers
+  uninstall detection (`docs/runbooks/tenant-offboarding.md`).
+
 ## 9. Troubleshooting
 
 | Symptom                                                           | Likely cause                                                    | Next step                                                                                                                                                                                |

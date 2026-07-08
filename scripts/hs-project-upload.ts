@@ -65,6 +65,23 @@ export function mirrorProfileIntoSrc(
   return targetPath;
 }
 
+/**
+ * Copy-filter predicate for the temp-dir project copy.
+ *
+ * Excludes dependency/build metadata (`node_modules`, `*.tsbuildinfo`) and
+ * macOS Finder duplicate files ("index 2.js", "Settings 3.tsx", …), which
+ * would otherwise ship junk into the `hs project upload` payload. Project
+ * filenames are convention-driven and never contain a space followed by
+ * digits, so the duplicate pattern is safe to exclude wholesale.
+ */
+export function shouldCopyProjectFile(path: string): boolean {
+  if (path.includes("node_modules")) return false;
+  if (path.endsWith(".tsbuildinfo")) return false;
+  const basename = path.split("/").at(-1) ?? path;
+  if (/ \d+(\.[^.]*)?$/.test(basename)) return false;
+  return true;
+}
+
 export interface UploadDeps {
   repoRoot(): string;
   makeTempDir(): string;
@@ -147,7 +164,7 @@ export function main(args = process.argv.slice(2)): number {
     copyProject: (src, tmp) => {
       cpSync(src, tmp, {
         recursive: true,
-        filter: (file) => !file.includes("node_modules") && !file.endsWith(".tsbuildinfo"),
+        filter: shouldCopyProjectFile,
       });
     },
     runBundle,
