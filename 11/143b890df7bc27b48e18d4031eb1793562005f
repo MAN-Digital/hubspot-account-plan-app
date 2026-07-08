@@ -1,0 +1,25 @@
+apps/api/src/routes/__tests__/outreach.test.ts
+  s_c47fd3cb9ef010::t_410f79747bacdd 294-489
+vitest.globalSetup.ts
+  s_c47fd3cb9ef010::t_9b36ce791bc8c6 32
+apps/api/src/adapters/signal/__tests__/factory.test.ts
+  s_c47fd3cb9ef010::t_3902ba88acb6f4 153-157,161
+apps/api/src/lib/__tests__/hubspot-subscription-bootstrap.test.ts
+  s_c47fd3cb9ef010::t_eccd6585fb1060 98-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "11143b890df7bc27b48e18d4031eb1793562005f",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
