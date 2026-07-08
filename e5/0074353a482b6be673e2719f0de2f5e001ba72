@@ -1,0 +1,97 @@
+apps/hubspot-extension/src/features/snapshot/hooks/__tests__/action-api-fetcher.test.ts
+  s_c47fd3cb9ef010::t_51c63cab4cb702 1-2,6-123
+  s_c47fd3cb9ef010::t_dd92d0ce96a0b9 3-5
+docs/mintlify/api/outreach-woodpecker.mdx
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-27,36-39
+  s_c47fd3cb9ef010::t_842146fb3fca7b 28-35
+docs/mintlify/privacy-and-terms.mdx
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-21
+apps/hubspot-extension/src/settings/__tests__/settings-page-trigify-key.test.tsx
+  s_c47fd3cb9ef010::t_d488255187d496 16-18,31-33
+apps/hubspot-extension/src/settings/__tests__/settings-page-trigify.test.tsx
+  s_c47fd3cb9ef010::t_0b2a7894171eef 13-15
+apps/hubspot-extension/src/settings/__tests__/use-settings.test.tsx
+  s_c47fd3cb9ef010::t_ad669d546bae38 14-16
+docs/mintlify/operations/provider-keys.mdx
+  s_c47fd3cb9ef010::t_94429ec055b704 8-9,25
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-7,10-24
+apps/api/src/routes/__tests__/people-prospecting.test.ts
+  s_c47fd3cb9ef010::t_fcbf533034f5d5 1-260
+apps/hubspot-extension/src/features/snapshot/components/__tests__/account-actions.test.tsx
+  s_c47fd3cb9ef010::t_cd1a78beda99a3 1-125
+  s_c47fd3cb9ef010::t_4a943317243486 126-128
+apps/api/src/routes/__tests__/outreach-woodpecker.test.ts
+  s_c47fd3cb9ef010::t_fcbf533034f5d5 1-208
+apps/hubspot-extension/src/features/snapshot/components/snapshot-state-renderer.tsx
+  s_c47fd3cb9ef010::t_cd463413ef5264 3,40-45
+docs/mintlify/hubspot-install.mdx
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-31
+docs/mintlify/operations/credits-and-budgets.mdx
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-24
+packages/validators/src/settings.ts
+  s_c47fd3cb9ef010::t_ee8a81b913b4a6 21-23,41-43,202-204
+docs/mintlify/index.mdx
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-28
+docs/mintlify/api/overview.mdx
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-22
+docs/mintlify/docs.json
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-31
+apps/hubspot-extension/src/features/snapshot/components/eligible-view.tsx
+  s_c47fd3cb9ef010::t_7ed472eb03010e 4,65-68,72
+docs/mintlify/api/people-prospecting.mdx
+  s_c47fd3cb9ef010::t_bbb3e6128efff1 20-21,29-30
+  s_c47fd3cb9ef010::t_a85d126c104baa 1-19,22-28,31-38
+apps/api/src/app.ts
+  s_c47fd3cb9ef010::t_b8f7186a974aef 18,245
+apps/hubspot-extension/src/settings/__tests__/settings-page.test.tsx
+  s_c47fd3cb9ef010::t_50f243412a201f 114-173
+  s_c47fd3cb9ef010::t_9447a7602bec89 29-31
+  s_c47fd3cb9ef010::t_54451c084a0926 379-381,486-488,583-585
+apps/hubspot-extension/src/features/snapshot/components/account-actions.tsx
+  s_c47fd3cb9ef010::t_9befeff75748ca 1-232
+packages/config/src/domain-types.ts
+  s_c47fd3cb9ef010::t_ccaaad001428d7 248-254,277-279,326-331
+apps/api/src/routes/__tests__/settings.test.ts
+  s_c47fd3cb9ef010::t_12b4c145c65f38 126-128
+apps/api/src/lib/settings-service.ts
+  s_c47fd3cb9ef010::t_084158d07d8181 29-31,170-181,356-369
+  s_c47fd3cb9ef010::t_fa8a397c972162 370-372
+  s_c47fd3cb9ef010::t_516aacaac04111 373-378
+apps/api/src/routes/people-prospecting.ts
+  s_c47fd3cb9ef010::t_b8f7186a974aef 1-726
+  s_c47fd3cb9ef010::t_c755590943df40 727-732
+apps/api/src/lib/__tests__/settings-service.test.ts
+  s_c47fd3cb9ef010::t_6dc4d98a8bd0ef 66-68,374-437,440
+  s_c47fd3cb9ef010::t_f1db21ecfb4928 438-439,441
+apps/hubspot-extension/src/features/snapshot/hooks/action-api-fetcher.ts
+  s_c47fd3cb9ef010::t_a9c91f2d21c5d7 1-171
+  s_c47fd3cb9ef010::t_8a98829708b724 172-174
+docs/HANDOFF.md
+  s_c47fd3cb9ef010::t_0baa9e15eb3acd 59-84
+apps/hubspot-extension/src/settings/settings-page.tsx
+  s_c47fd3cb9ef010::t_c8dd2b3d384324 47-55,148-156,298-330,338-340,375-377,566-755
+  s_c47fd3cb9ef010::t_480ee18b3b67c1 756
+apps/hubspot-project/src/app/app-hsmeta.json
+  s_c47fd3cb9ef010::t_a85d126c104baa 22-24
+apps/api/src/routes/outreach.ts
+  s_c47fd3cb9ef010::t_b8f7186a974aef 2-10,29-45,67-82,109-188,220-240,348-389,391-394,401-502
+  s_c47fd3cb9ef010::t_3472d3e33c6c2a 390,395-400
+packages/validators/src/__tests__/settings.test.ts
+  s_c47fd3cb9ef010::t_bdaab23e0c5c1f 19-21,48-50,177-191,264-266
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e50074353a482b6be673e2719f0de2f5e001ba72",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
