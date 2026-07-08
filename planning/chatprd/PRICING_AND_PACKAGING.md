@@ -7,6 +7,8 @@
 - `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`
 - `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`
 - `ChatPRD sync addendum — round 14 settings interactions and API-backed admin UX — 2026-07-08`
+- `ChatPRD sync addendum — round 16 Apollo/Harvest prospecting filters — 2026-07-08`
+- `ChatPRD sync correction — round 17 signal cleanup and angle rebuild credits — 2026-07-08`
 
 **Researched 2026-07-07** (official vendor pages; re-verify quarterly — LLM/vendor
 rates move fast). Full research brief in session history; key numbers below.
@@ -34,7 +36,7 @@ rates move fast). Full research brief in session history; key numbers below.
 | Account research run (Exa + LLM synthesis)                                             | low; Exa search/content + small LLM | 1-2     |
 | Buying-group generation/regenerate                                                     | ~$0.03                   | 1       |
 | Outreach cadence gen (5 touches + QA)                                                  | ~$0.09                   | 8       |
-| Apollo prospecting/enrichment / returned usable contact                                | $0.02-0.16 (PROVISIONAL) | 4       |
+| People prospecting / accepted usable contact (Apollo search/enrichment + Harvest LinkedIn lead/evidence where enabled) | $0.02-0.16 (PROVISIONAL) | 4       |
 | Trigify monitor (recurring, per account/mo)                                            | ~$0.20–0.40/mo           | 18/mo   |
 | Standalone deep-research dossier                                                       | ~$0.15                   | 10      |
 | Overage: top-ups at ~30% premium (Clay pattern); rollover: generous (up to 2x monthly) |
@@ -52,17 +54,25 @@ surface, not the billing processor for these credits.
 
 ## Per-contact pricing logic (round 8 — the "Manage by app" contact math)
 
-Contact-based actions are charged **per contact touched**, not per run, because vendor
-COGS scales per contact (Apollo 1–8 credits/contact; Trigify person-enrich 4):
+Contact-based actions are charged **per accepted usable contact**, not per broad preview
+run, because vendor COGS and product value scale with usable contacts:
 
-- **Enrichment** (Apollo/Harvest): `credits = contacts_enriched × 4` — the UI shows the
-  count and the projected credit cost BEFORE the run and asks confirm above a
-  config-driven threshold (default 10 contacts).
+- **People prospecting/enrichment**: `credits = accepted_usable_contacts × 4` — the UI
+  shows max contacts and projected credit range BEFORE the run and asks confirm above a
+  config-driven threshold (default 10 contacts). Apollo People Search preview does not
+  return email/phone and does not consume Apollo credits; Apollo People/Bulk Enrichment is
+  the explicit shortlisted-contact reveal step. HarvestAPI can add LinkedIn lead-search
+  candidates and LinkedIn profile/post evidence, but it is not treated as a silent CRM
+  write or a replacement source of truth.
 - **Buying-group generation** (3 credits flat) covers up to a config cap of candidate
   contacts read from HubSpot (default 25); beyond the cap the UI proposes narrowing or
   confirms the extra per-contact enrichment cost.
 - **Outreach cadence** (8 credits) is per PERSON in the cadence — 3 stakeholders =
   3 cadences = 24 credits; the Outreach tab shows the total before Generate.
+- **Campaign angle change after drafts exist** uses the same per-person outreach cadence
+  generation price because it regenerates copy and QA. Formula:
+  `included_people x 8 credits` by the current table. Selecting the current angle costs
+  0 and must not trigger a rebuild.
 - Warm-intro scoring rides on research credits (no separate per-connection charge).
   All multipliers/caps/thresholds live in the config-driven credit table (per-tenant
   overridable on Enterprise), never hardcoded in UI.
@@ -90,12 +100,14 @@ useful output is returned/saved:
 - HubSpot Recent Intent Signals (`hs_recent_intent_signals`) reads: **0 credits** when
   HubSpot is already tracking the company; if tracking is off, the UI shows a
   tracking-required state rather than spending app credits.
-- Custom HubSpot signal rules from properties, lists, object changes, workflows/webhooks,
-  or custom events also remain **0 credits** because they use CRM-owned data.
+- Custom HubSpot signal rules from fetched properties, lists, behavioral events, or
+  record-created events also remain **0 credits** because they use CRM-owned data.
 - Account research: low-cost Context output (1-2 credits by default) when saved.
 - Buying-group mapping/regenerate: low cost (1 credit by default; 0.5 only if fractional
   credits are later supported).
-- Apollo prospecting/enrichment: per returned usable contact, not per search click.
+- People prospecting/enrichment: per accepted returned usable contact, not per search or
+  preview click. Apollo is the structured people-search/enrichment path; HarvestAPI is the
+  LinkedIn lead-search/evidence path.
 - Outreach: per generated stakeholder draft/cadence.
 - Trigify signal monitoring/fetching: separate from account research because it is the
   recurring spend driver.
@@ -107,7 +119,7 @@ Default example:
 | -------------------------------------- | ------- |
 | Account research run                   | 1-2     |
 | Buying-group mapping/regenerate        | 1       |
-| Apollo/people enrichment (up to 5 contacts) | 0-20 |
+| People prospecting/enrichment (up to 5 accepted contacts) | 0-20 |
 | Outreach draft for 3 stakeholders      | 24      |
 | Optional company + 2 person monitors   | 54/mo   |
 | **One-time subtotal without monitors** | **2-47** |
@@ -134,6 +146,8 @@ HubSpot Marketplace: NO listing fee, NO rev share; apps run their own billing �
 ## Vendor cost anchors (official, 2026-07-07)
 
 - Apollo: $49–149/seat/mo; ~$25/1k extra credits; enrichment 1–8 credits/contact.
+- HarvestAPI: LinkedIn lead/profile/post endpoints are plan/vendor-metered; verify live
+  unit costs before GA and keep provider-cost table config-driven.
 - Trigify: Starter $40/mo (4k credits) / Max $199/mo (40k) / $0.012 overage;
   per-action: person enrich 4, company enrich 10, post 1, copywriter 5.
 - Exa: search $7/1k, deep $12/1k, contents $1/1k pages, monitors $15/1k, 20k free/mo.

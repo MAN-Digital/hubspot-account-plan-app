@@ -1,7 +1,8 @@
 # V2 Expansion PRD Delta — Account Workspace UI + Outreach Engine + Monitoring
 
-**Status:** SYNCED to ChatPRD — authored 2026-07-06; synced through round 15 on
-2026-07-08 via the authenticated `chatprd` MCP.
+**Status:** LOCAL MIRROR UPDATED — authored 2026-07-06; synced through round 15 on
+2026-07-08 via the authenticated `chatprd` MCP; rounds 16-17 local mirror updates added
+2026-07-08 and must be synced to ChatPRD cloud if this file is ahead of the remote docs.
 **ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
 **Sync record (2026-07-06):** every section below has been applied to its target ChatPRD
 document. §1/§2/§7 and the feature-plan/repo-checklist/security/QA deltas landed in the
@@ -40,6 +41,12 @@ Round 15 removes notification/webhook settings from the active scope, corrects H
 signal rules to fetched event/property/list definitions, and separates scenario variants
 from the main Magic Patterns design with marker
 `ChatPRD sync addendum — round 15 scenario-separated prototypes and corrected HubSpot signal rules — 2026-07-08`.
+Round 16 adds the API-aligned People prospecting modal and provider contract for Apollo
+and HarvestAPI with local marker
+`ChatPRD sync addendum — round 16 Apollo/Harvest prospecting filters — 2026-07-08`.
+Round 17 removes Signal-tab explanatory clutter and makes campaign-angle rebuilds credit
+metered with local marker
+`ChatPRD sync correction — round 17 signal cleanup and angle rebuild credits — 2026-07-08`.
 
 ---
 
@@ -57,7 +64,7 @@ engine**, porting proven logic from the OpenClaw outreach-engine
    `.claude/tasks/trigify-signals-into-account-planning.md`, tasks 1–12).
 2. **Account workspace UI** — the Magic Patterns design
    (https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35, editor id
-   `xmdzva7bxdn4ubmtrbvs35`, active artifact `5d47932b-9346-44da-82c7-4ac197e6dda9`,
+   `xmdzva7bxdn4ubmtrbvs35`, active artifact `cabc6dbd-2310-4332-bd37-e34d5e134a0f`,
    use the **v2/** components)
    becomes the canonical screen-by-screen UI reference: 8 tabs — Overview, People,
    Buying Group, Signals, Outreach, Data Gaps, Plan, Context.
@@ -160,6 +167,12 @@ journeys and avoids one Frankenstein screen containing every state.
   the contact's LinkedIn URL (two-step spend confirm); the header/Overview carries
   "Track company" for a company-level monitor. Monitor creation is contextual on the
   card — settings only holds key/budget/defaults/monitor-list admin.
+  **Prospect more people (round 16):** Prospecting lives only in People. The modal is a
+  compact provider-aware filter builder, inspired by Apollo's People Search/filter UI and
+  Clay's LinkedIn people-finder modal on Mobbin. It has grouped filters for Provider
+  route, Role & title, Location, Contact data, Company fit, Harvest search, and LinkedIn
+  evidence. Buying Group must not contain prospecting controls; it only maps real
+  HubSpot/People contacts after they exist.
 - **Signals** (`v2/SignalsTabV2.tsx`): filterable list by **signal level** (Company /
   Contact), **signal type**, and search. Source is visible in provenance/source badges
   but is not the primary filter. Each signal row shows headline, level, type, source,
@@ -627,7 +640,8 @@ with marker
 10. **Apollo enrichment is usually a data/system event, not a buying signal.** "Two new
     verified contacts returned" can resolve People/Buying Group/Data Gaps, but should not
     be ranked as observed market intent unless there is a separate observable external or
-    CRM behavior signal. Store/show it as a data event by default.
+    CRM behavior signal. Store it for audit/data-gap resolution; do not show it as a
+    Signal-tab card or heat input by default.
 11. **Superadmin-defined HubSpot signals are feasible and should be in Settings.** The app
     can let a superadmin create internal HubSpot signal rules from fetched HubSpot
     properties, lists/memberships, behavioral event definitions, and record-created
@@ -771,6 +785,86 @@ marker
    daily/weekly/monthly caps, Outreach Angles add/save, and no visible notification,
    webhook, internal property-key, production-build, scenario-switch, or strength copy.
 
+## 2l. Round 16 feedback (2026-07-08 — Apollo/Harvest prospecting filters)
+
+**ChatPRD sync:** local mirror update added 2026-07-08 with marker
+`ChatPRD sync addendum — round 16 Apollo/Harvest prospecting filters — 2026-07-08`.
+Sync to the ChatPRD cloud docs if this marker is absent remotely.
+
+1. **Prospecting stays in People.** The only CTA for external prospecting is the People
+   tab empty/populated state: **Prospect people / Prospect more**. Buying Group has no
+   prospecting module and no "save buying group to HubSpot" action. Buying Group maps
+   real contacts/prospects and fetched HubSpot association labels; any missing role is an
+   unfilled slot or Data Gap, not an invented person.
+2. **Apollo is the structured people-search and enrichment path.** The People modal maps
+   to Apollo People API Search first, then Apollo People Enrichment/Bulk People
+   Enrichment only for shortlisted/accepted candidates. Search filters include job titles,
+   similar-title toggle, keywords, person location, person seniority, employer HQ
+   location, company domain, Apollo organization id when available, email status, employee
+   range, revenue range, technologies, and hiring-title/job-posting context. Apollo People
+   Search preview does not consume Apollo credits and does not return email/phone; contact
+   reveal/enrichment is a separate accepted-output step.
+   - Docs: https://docs.apollo.io/reference/people-api-search
+   - Docs: https://docs.apollo.io/docs/find-people-using-filters
+   - Docs: https://docs.apollo.io/reference/people-enrichment
+   - Docs: https://docs.apollo.io/reference/bulk-people-enrichment
+3. **HarvestAPI is a LinkedIn lead-search and evidence path, not a generic CRM source of
+   truth.** HarvestAPI controls map to LinkedIn Lead Search/Profile Search/Post APIs:
+   search query, current/past companies, locations/GeoIDs, current/past job titles,
+   include/exclude locations, include/exclude titles, industry ids, seniority ids,
+   function ids, company headcount, company HQ location, recently changed jobs, posted on
+   LinkedIn, Sales Navigator URL override, page/session controls, profile posts, company
+   posts, and keyword post search. Harvest results must be deduped against HubSpot and
+   converted into People drafts before being used in Buying Group or Outreach.
+   - Docs: https://docs.harvestapi.io/linkedin-api-reference/leads/search-leads
+   - Docs: https://docs.harvestapi.io/linkedin-api-reference/profile/search
+   - Docs: https://docs.harvestapi.io/linkedin-api-reference/profile/profile-posts
+   - Docs: https://docs.harvestapi.io/linkedin-api-reference/post/company-posts
+4. **Credit/debit semantics are output-based.** Previewing searches, validating provider
+   setup, and reading HubSpot contacts/properties cost 0 app credits. External prospecting
+   debits only for accepted usable returned contacts saved into People. Contact enrichment
+   is explicit and only runs for shortlisted people; optional phone reveal stays off unless
+   the rep selects it. Provider billing/rate-limit/key blockers are Settings blockers,
+   not Data Gaps.
+5. **Filter UX direction from Mobbin.** Use Apollo's dense People Search/filter screen and
+   filter-contact modal as the pattern for grouped filters, result preview, saved-search
+   density, and one-line actions. Use Clay's "Find people using LinkedIn" modal pattern
+   for a compact left filter rail, central filter body, and preview/submit footer. Mobbin
+   references:
+   - https://mobbin.com/screens/d1a8ee2d-354b-488a-9583-0065ec6db572
+   - https://mobbin.com/screens/add30426-d767-4142-bed5-f154ed83c84d
+   - https://mobbin.com/screens/88512f99-0c8e-4d6b-858c-93b6e1b25540
+   - https://mobbin.com/screens/a9d8c8d4-67e9-4bed-817d-86caa3ea1923
+   - https://mobbin.com/screens/543a580d-44bf-4f29-b772-b2d9cbf8685c
+6. **Acceptance for the Magic Patterns People modal.** Clicking Prospect more opens the
+   modal. All filter groups are reachable without horizontal page scroll. Buttons remain
+   one-line. Provider route supports Apollo + Harvest, Apollo only, Harvest only, and
+   HubSpot-first modes. Request preview shows HubSpot dedupe, Apollo people search,
+   Harvest lead search, Apollo enrichment, and Harvest evidence ranking. Footer actions
+   are Cancel, Preview, Find people. Empty People has the same modal CTA. Buying Group has
+   only Open People / assign-label flows.
+
+## 2m. Round 17 correction (2026-07-08 — signal cleanup and angle rebuild credits)
+
+**ChatPRD sync:** local mirror update added 2026-07-08 with marker
+`ChatPRD sync correction — round 17 signal cleanup and angle rebuild credits — 2026-07-08`.
+Sync to the ChatPRD cloud docs if this marker is absent remotely.
+
+1. **Signals tab stays focused on observed signals.** Remove explanatory implementation
+   cards from the active UI. Do not show a separate "data events" panel for Apollo contact
+   returns, do not show default HubSpot signal-read explanation cards, and do not add
+   generic evidence-policy footers. Data events can still resolve People/Buying Group/Data
+   Gaps in the backend and audit log, but they do not appear as signal heat.
+2. **Signal heat badges must stay one-line.** Tier/heat labels render compactly as `A/88`,
+   `B/79`, etc. with no wrap or split-line layout.
+3. **Changing campaign angle is a credit-metered rebuild.** Selecting a different enabled
+   campaign angle after drafts exist regenerates the copy set and QA for the currently
+   included people. Cost uses the same configured outreach cadence generation price:
+   `included_people x outreach_cadence_credit_cost` (current table: 8 credits/person).
+   The angle picker shows the projected cost before apply, selecting the current angle
+   costs 0, and confirmed changes write a usage/audit event with the acting HubSpot user,
+   company/contact scope, old angle, new angle, included people count, and debited credits.
+
 ## 3. Technical Design Document
 
 **Apply — new subsystems (all tenant-isolated, config-driven, BYO keys):**
@@ -787,7 +881,16 @@ marker
    when requested, and supports no-open-deal/no-data records explicitly. The credit path
    is output-based: preview estimated ranges, then debit only saved/generated outputs or
    returned usable contacts.
-3. **Data-gap engine** — evaluates company/contact/research/signal completeness against a
+3. **People prospecting adapter/orchestrator** — `POST /api/people/prospect/preview` and
+   `POST /api/people/prospect/accept` (route names illustrative) normalize the People
+   modal payload into provider-specific requests. Apollo adapter supports People API
+   Search plus People/Bulk People Enrichment. Harvest adapter supports LinkedIn lead
+   search/profile search/profile posts/post search. The preview endpoint returns
+   deduped candidate drafts, provider blockers, projected accepted-output credit range,
+   and field-completeness status. The accept endpoint persists selected candidates into
+   People/contact draft storage and optionally creates/updates HubSpot contacts only after
+   explicit user confirmation and server-side permission checks.
+4. **Data-gap engine** — evaluates company/contact/research/signal completeness against a
    configurable required-property manifest and writes tenant-scoped `account_data_gaps`:
    object type, property key/label or coverage category, gap type, severity, impact,
    suggested fix, actual owner HubSpot user/name, status, source, projected credits, and
@@ -796,7 +899,7 @@ marker
    Update CRM and task creation are explicit actions. Deal absence, provider setup,
    Woodpecker connection state, and credit blockers are account/settings blockers, not
    Data Gaps.
-4. **Outreach pipeline** — TS port of the OpenClaw envelope model:
+5. **Outreach pipeline** — TS port of the OpenClaw envelope model:
    `outreach_envelope` (company + people + signals + positioning + vocabulary) →
    `cadence` step (strategist prompt: fit-grade contacts, one funnel stage, 5+ signal-led
    touches ~12 days, framework + angle per touch) → `copy` step (per-touch, per-contact
@@ -812,17 +915,17 @@ marker
    search existing tenant campaigns, recommend matches by account + angle + signal/channel
    (Angle + Signal for pitch/direct motions), and add the person to the selected existing
    campaign unless the user explicitly chooses to create a new one.
-5. **Notification propagation removed from active V2** — no notification/webhook settings,
+6. **Notification propagation removed from active V2** — no notification/webhook settings,
    workflow recipe entry point, or app-namespaced notification property writes ship in the
    current V2 scope. If notification behavior is re-approved later, it must be specified
    as a separate feature with its own UI, API, docs, and QA plan.
-6. **Custom workflow action** — registered via Automation API v4
+7. **Custom workflow action** — registered via Automation API v4
      (`POST /automation/actions/2026-03/{appId}`), `objectTypes: ["COMPANY"]`, actionUrl →
      our API; action "Generate Account Snapshot/Research" with input fields (depth,
      regenerate?) and output fields (state, priority label, reason headline) usable in later
    workflow steps. actionUrl endpoint verifies HubSpot signature; async completion
    supported for long research runs.
-7. **HubSpot-defined signal rules** — settings/admin subsystem for superadmins to define
+8. **HubSpot-defined signal rules** — settings/admin subsystem for superadmins to define
    CRM-native signals from HubSpot data. Baseline ingestion should first read HubSpot's
    built-in company signal property for tracked companies and normalize its 30-day rolling
    unique signal types into HubSpot-source company-level signal rows with provenance and
@@ -834,13 +937,13 @@ marker
    level (company/contact), expiration/lookback, enabled state, and audit metadata.
    Ingestion writes timestamped HubSpot-source signal rows with provenance and zero credit
    debit.
-8. **Two UI surfaces** — (a) `crm.record.tab` extension (HubSpot components);
+9. **Two UI surfaces** — (a) `crm.record.tab` extension (HubSpot components);
    (b) the native HubSpot **app settings page** (`src/app/settings`, settings
    UI-extension component) for install-time and ongoing configuration: Settings Overview,
    Plan & Billing, Team Budgets, Providers, Themes, HubSpot Signals, and Outreach Angles.
    A hosted settings web app remains fallback only if a concrete
    HubSpot-settings limitation blocks the native page and is documented.
-9. **Settings API/serverless layer** — settings UI actions call server-authorized routes
+10. **Settings API/serverless layer** — settings UI actions call server-authorized routes
    or HubSpot serverless functions for: signal-rule create/update/delete, top-up checkout
    session creation, theme create/apply, rep cap updates, provider key writes,
    and outreach-angle create/update. Every write verifies the acting HubSpot user, app
@@ -874,6 +977,18 @@ marker
   projected_credit_min, projected_credit_max, debited_credits, output_ref, output_count,
   provider_ref, created_at, completed_at. This is the line-item ledger explaining why the
   final debit can be lower than the estimate.
+- `people_prospecting_runs` — id, tenant_id, company_id, requested_by_hubspot_user_id,
+  source_mode (apollo_harvest/apollo_only/harvest_only/hubspot_first), max_contacts,
+  filters (jsonb), provider_requests (jsonb), status, projected_credit_min,
+  projected_credit_max, debited_credits, blocker_state (jsonb), created_at, completed_at.
+  Stores the preview/accept audit trail for People prospecting without silently creating
+  HubSpot contacts.
+- `people_prospecting_candidates` — id, tenant_id, run_id, provider, provider_person_id?,
+  hubspot_contact_id?, first_name, last_name, title, company, location, linkedin_url,
+  email_status, required_field_completeness (jsonb), evidence_refs (jsonb),
+  duplicate_match (jsonb), status (previewed/accepted/rejected/enriched), accepted_at,
+  created_at. Accepted rows can feed People, Buying Group assignment, and Outreach after
+  dedupe; rejected rows are not used.
 - `outreach_drafts` — id, tenant_id, company_id, snapshot_id?, envelope (jsonb), cadence
   (jsonb), copy (jsonb), qa (jsonb), status (draft/qa_passed/approved/exported/rejected),
   approved_by, created_at, updated_at.
@@ -1021,6 +1136,12 @@ must match shipped behavior.
   modules, set people prospecting max contacts/roles, and see output-based projected
   ranges before running. Clicking generate does not debit by itself; final debit matches
   saved outputs/usable returned contacts. HubSpot-source reads/fixes debit 0 credits.
+- People prospecting: **Prospect more** opens the People modal; all Apollo and Harvest
+  filter groups are reachable; Preview calls the prospecting preview endpoint and returns
+  deduped candidate drafts without app-credit debit; Accept persists only selected usable
+  contacts and debits the configured per-contact amount; optional email/phone enrichment
+  only runs for shortlisted people; HubSpot duplicates are shown before acceptance; Buying
+  Group cannot prospect and cannot show candidates not present in People/HubSpot.
 - HubSpot recent intent: fixture a company with Recent Intent Signals populated and
     assert the Signals tab renders HubSpot-source company-level signal types at 0 credits.
   Fixture a tracked company with an empty value and a not-tracked company with an empty
@@ -1066,5 +1187,7 @@ must match shipped behavior.
 3. Timeline/app events (new dev platform, needs HubSpot approval) — OPEN; no active V2
    notification scope.
 4. `outreach_config` — **DECIDED (Romeo, 2026-07-06): its own table** (see §4).
-5. Prospecting providers (Apollo / HarvestAPI / Icypeas) — DECIDED: deferred to V2.5;
-   V2 keeps people sourced from CRM + Trigify person-signals only (scope control).
+5. Prospecting providers — **DECIDED (round 16, 2026-07-08):** V2 includes Apollo and
+   HarvestAPI in the People tab prospecting flow. Apollo is the structured people-search
+   and enrichment provider; HarvestAPI is the LinkedIn lead-search/profile/post evidence
+   provider. Icypeas remains out of current scope unless separately approved.

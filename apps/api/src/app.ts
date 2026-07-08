@@ -14,13 +14,15 @@ import { createLifecycleBootstrapRoute } from "./routes/admin/lifecycle-bootstra
 import { createTrigifyPollHandler } from "./routes/admin/trigify-poll.js";
 import { lifecycleWebhookRoutes } from "./routes/lifecycle.js";
 import { createOAuthRoutes } from "./routes/oauth.js";
+import { outreachRoutes } from "./routes/outreach.js";
 import { settingsRoutes } from "./routes/settings.js";
 import { createSettingsTrigifyRoute } from "./routes/settings-trigify.js";
 import { snapshotRoutes } from "./routes/snapshot.js";
 import { createDbPollAllTenantsDeps } from "./services/trigify/poll-deps.js";
 import { pollAllTenants } from "./services/trigify/poller.js";
 
-type AppVars = TenantVariables & CorrelationVariables & { portalId?: string; rawBody?: string };
+type AppVars = TenantVariables &
+  CorrelationVariables & { portalId?: string; userId?: string; rawBody?: string };
 
 /**
  * Resolve the allowed CORS origin for a given request origin.
@@ -239,5 +241,6 @@ app.use("/api/*", nonceMiddleware());
 app.route("/api/settings", settingsRoutes);
 app.route("/api/settings/trigify", createSettingsTrigifyRoute());
 app.route("/api/snapshot", snapshotRoutes);
+app.route("/api/outreach", outreachRoutes);
 
 export default app;

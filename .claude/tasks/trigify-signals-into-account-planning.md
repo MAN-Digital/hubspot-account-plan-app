@@ -192,8 +192,10 @@ be selected (belt-and-braces with the `extractDominantSignal` guard).
 > Canonical UI for the V2 workspace: Magic Patterns design
 > https://www.magicpatterns.com/c/xmdzva7bxdn4ubmtrbvs35 (editor id
 > `xmdzva7bxdn4ubmtrbvs35`; active artifact
-> `5d47932b-9346-44da-82c7-4ac197e6dda9`; use the **`v2/*` components** — v1 files are an earlier
+> `cabc6dbd-2310-4332-bd37-e34d5e134a0f`; use the **`v2/*` components** — v1 files are an earlier
 > iteration). Read via the Magic Patterns MCP (`get_artifact` → `read_artifact_files`).
+> Round 17 published artifact removes Signal-tab explanatory clutter and adds
+> angle-change rebuild credits.
 > Round 15 prototype rule: the active artifact is one coherent Pro managed / populated
 > account state. No-data, no-deal, Trial, and Enterprise/BYOA variants live in separate
 > prototype flows/artifacts or named scenario specs, not as scenario switchers inside the
@@ -695,16 +697,18 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   bundled "Generate full account plan" behavior with a **Build this account workspace**
   module picker. Reps choose account research, buying-group mapping/regenerate, people
   prospecting/enrichment, outreach drafts, and/or signal fetching. People prospecting
-  requires target roles/personas plus max contacts.
+  requires target roles/personas plus max contacts and is configured in the People module,
+  not inside Buying Group.
   (s) **Output-based credits:** clicking Generate never debits credits by itself. Debit
   only for saved outputs or usable returned data. HubSpot-source reads/fixes and internal
   HubSpot signal rules cost 0 credits. People prospecting/enrichment is the main spend
-  driver and debits per returned usable contact. Account research and buying-group
+  driver and debits per accepted returned usable contact. Account research and buying-group
   regenerate are low-cost.
   (t) **Buying-group flexibility:** empty/no-people states show available HubSpot contacts,
-  manual role-slot creation, and a prospecting request form. Reps can add multiple
-  champions, blockers, influencers, budget holders, or decision makers, but named role
-  occupants must still come from real People-tab/prospected/HubSpot contacts.
+  manual role-slot creation, and an Open People CTA if more people are needed. Reps can
+  add multiple champions, blockers, influencers, budget holders, or decision makers, but
+  named role occupants must still come from real People-tab/prospected/HubSpot contacts.
+  Buying Group never contains the external prospecting module.
   (u) **Signals filter/provenance cleanup:** Signals filters must actually change the
   list. Filter by company/contact signal level and signal type; do not make source the
   main filter. Every signal needs timestamp and visible provenance; CRM engagement
@@ -724,6 +728,14 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   each type appears once with the most recent occurrence. It only works for companies that
   HubSpot is tracking for intent. Empty property + not tracked = tracking-required state,
   not "no intent." Custom signal rules remain as the advanced admin extension.
+  (x) **People prospecting provider alignment (round 16, Romeo 2026-07-08):** Prospect
+  more people opens a People-tab modal with grouped filters aligned to Apollo People
+  Search/People Enrichment and HarvestAPI LinkedIn Lead Search/Profile Search/Profile
+  Posts/Post Search. Supported filter groups: provider route, role/title, location,
+  contact data, company fit, Harvest lead search, and LinkedIn evidence. Preview/dedupe
+  costs 0 app credits; accepted usable contacts debit; optional email/phone reveal runs
+  only for shortlisted people. Provider/key/rate-limit/vendor billing blockers are
+  Settings blockers, not Data Gaps.
 - TDD with `createRenderer('crm.record.tab')`. Translate the v2 Magic Patterns components
   (see Source UI/UX Reference) into HubSpot components: header, tab nav, Overview (state
   KPI strip, one top Executive Summary, separate Why-Now, Top Signals, This Outreach,
@@ -784,11 +796,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - Requested by Romeo 2026-07-07; layout REVISED same day to the OrgChartHub-style ORG CHART (see task 14 feedback round 2, item e).
 - **Editing requirements (round 4):** manual editing is first-class alongside AI regenerate: (a) **Replace person** on any card — picker synced with the REAL CRM contact list (company-associated contacts, same source as the People tab); (b) role + person editable in BOTH the org chart AND the roles-list view; (c) placeholder/gap cards are fillable by assigning a contact from the picker; (d) manual edits survive Regenerate (AI proposes, never clobbers rep edits without confirm). Verified facts: HubSpot's native Buying Groups is **Sales Hub Enterprise only**, list-based, manual, with NO public dedicated API. The underlying primitives ARE public: **associations v4 custom labels** (contact↔deal/company, `POST /crm/associations/2026-03/{from}/{to}/labels`, Pro+ tiers, 10 labels/pairing) + the `hs_buying_role` contact property.
 - Build OUR buying-group surface (works on all tiers, differentiator vs native): new "Buying Group" tab — AI-suggested role assignment (Economic Buyer / Decision Maker / Champion / Technical Evaluator / Blocker) grounded in signals + CRM activity with per-person evidence + AI-confidence, role-coverage bar with explicit gaps, EDITABLE from day one (add person, change role, regenerate; drag-between-roles may ship later), persisted per (tenant, company) — add `buying_groups` table (jsonb) to v2-schema. The role list/org chart must be generated from the same real associated/prospected people shown in the People tab; counts must stay synchronized. If People shows 3 people, Buying Group cannot show 7 named people. Show unfilled role slots or a Data Gap like "not enough prospects for the buying group" instead of fabricating role occupants.
-- **Round 13 flexibility/no-data updates:** if no buying group exists or no people are
-  prospected, render an empty state with available HubSpot contacts, manual role-slot
-  creation, and a prospecting request form for missing roles with max contacts. Reps can
-  add multiple slots for the same role family (champions, blockers, influencers, budget
-  holders, decision makers, etc.); unfilled slots are allowed, named fake people are not.
+- **Round 13 flexibility/no-data updates, revised round 16:** if no buying group exists
+  or no people are prospected, render an empty state with available HubSpot contacts,
+  manual role-slot creation, and an Open People CTA for missing roles. Prospecting itself
+  lives in People, where max contacts and provider filters are set. Reps can add multiple
+  slots for the same role family (champions, blockers, influencers, budget holders,
+  decision makers, etc.); unfilled slots are allowed, named fake people are not.
 - **Sync selected roles to HubSpot** = explicit user action (never automatic): writes
   selected association labels + buying-role property; logged, reversible, documented —
   same opt-in discipline as hap_* writes. Use a sync/write-style icon and copy, not an
@@ -1013,6 +1026,12 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   default cadence/template skeleton, and rep visibility. Save goes through an API/serverless
   route and writes audit metadata; the outreach pipeline rejects disabled or unauthorized
   angles server-side.
+- **Round 17 angle-change credit rule:** selecting a different enabled angle after drafts
+  exist regenerates the copy set and QA for the included people and debits outreach
+  generation credits (`included_people x outreach_cadence_credit_cost`; current default
+  8 credits/person). The rep picker must show the projected cost before apply; selecting
+  the current angle costs 0 and must not trigger rebuild. Debit/audit rows include actor,
+  account/contact scope, old angle, new angle, included people count, and credits used.
 - **Architecture:** angle definitions live in `outreach_config.angles[]` (jsonb); the campaign envelope carries `campaign.angle`; cadence-strategist + copywriter + copy-QA all consume it; **QA enforces angle fidelity as a hard failure** (e.g. any pitch inside an Interview-angle sequence blocks). Maps onto the engine's config-driven `messaging_vocabulary` (frameworks {id,label,era}, angle families) — the campaign angle filters/extends the vocabulary. Author preset templates/frameworks at build time (research round per preset). Woodpecker campaign identity is also angle-aware: the reuse key is account/company + angle + primary signal/channel, with Angle + Signal naming for pitch/direct motions. Multi-person personalization belongs in snippets/custom fields, while the campaign remains shared.
 - **Engine re-audit (2026-07-07):** OpenClaw engine landed 177929a — 'The Breakup' retired in favor of a signal-led final touch, LinkedIn frameworks/steps added — and campaign-angle work is in progress there; port against the engine's CURRENT state and mirror its angle model where it exists.
 
@@ -1039,7 +1058,11 @@ port would slot into the same `signals`/`company_signal_map` substrate.
 - **Depends On**: `v2-settings-app`
 - **Assigned To**: backend + settings UI (Stage B/C boundary — pricing PRD gates final numbers)
 - **Two supply models, one credits system:** (A) **Managed keys** — we own the provider API keys (Exa, Apollo, Trigify, LLM), customer consumes CREDITS; (B) **BYO keys** — tenant brings their own keys (current architecture, unchanged). BOTH modes meter usage in credits (BYO for visibility/limits, managed for billing).
-- **Credit-metered actions** (each debits a configured credit cost, per-tenant ledger, audit-logged): account research run, buying-group generation/regenerate, outreach cadence+copy generation (per person), copy-QA re-runs beyond N, Apollo enrichment (per contact), Trigify monitor create (maps to Trigify credit), Exa-heavy research, warm-intro enrichment/scoring run. Credit costs live in CONFIG (not code); a per-tenant `credit_ledger` table records every debit/credit with action + reference.
+- **Credit-metered actions** (each debits a configured credit cost, per-tenant ledger, audit-logged): account research run, buying-group generation/regenerate, outreach cadence+copy generation (per person), copy-QA re-runs beyond N, People prospecting/enrichment (per accepted usable contact), Trigify monitor create (maps to Trigify credit), Exa-heavy research, warm-intro enrichment/scoring run. Credit costs live in CONFIG (not code); a per-tenant `credit_ledger` table records every debit/credit with action + reference.
+- **Angle rebuild debit (round 17):** changing campaign angle after drafts exist is not a
+  free UI toggle. It redoes copy/QA and debits the same per-person outreach generation
+  price for included people. The UI calculates this before confirmation, and the backend
+  enforces the same debit path as a normal outreach generation job.
 - **Tier draft (final numbers gated on the pricing research → Pricing & Packaging PRD):**
   1. **Free trial** — 100 credits, everything unlocked, no card; sized so a user can
      research several light account workspaces or one heavier prospecting/outreach
@@ -1047,7 +1070,10 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   2. **Pro — from $99/mo** — WE manage all provider keys (Exa/Apollo/Trigify/LLM; cheapest-good LLM default, e.g. Gemini Flash-class pending research); customer brings ONLY their Woodpecker API key (sending stays under their identity/deliverability); monthly credit allowance + top-ups; margins priced over Apollo/Trigify/Exa/LLM/server costs.
   3. **Enterprise — custom** — BYO all APIs, custom development (custom cards/views), and optionally the SERVICE tier: we run signals + outreach for them, train the team, set up all connections (agency-style retainer on top).
 - **Selling point (Product Brief):** our buying group + org chart works on ANY HubSpot tier — enterprise-grade features (buying groups need Sales Hub Enterprise natively) without the Enterprise license.
-- **Apollo (promoted from V2.5):** Apollo.io becomes the people prospecting/enrichment provider (replacing the Harvest plan) — proven in OpenClaw (`signals_source.py`, `web_visitor_qualify.py`, apollo-api skill). Provider-adapter pattern, works in both managed and BYO modes.
+- **People prospecting providers (round 16):** Apollo.io is the structured people-search
+  and contact-enrichment provider; HarvestAPI is the LinkedIn lead-search/profile/post
+  evidence provider. Both live behind adapters and only the People tab exposes external
+  prospecting. Buying Group consumes accepted People/HubSpot contacts.
 - **Admin settings page (extends native settings page):** Plan & Billing section —
   current tier card, credits balance + monthly allowance, usage breakdown by action
   category, working top-up/upgrade CTA, per-provider key mode indicator ("Managed by app"
@@ -1057,7 +1083,14 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   superadmin (billing + angles + keys + roles) > admin (settings) > rep (use).
 - **Open decision (flag in ChatPRD):** transparency of underlying API sources on managed tier — recommendation: SHOW sources always (consistent with the verify-everything trust principle; provenance chains already name Exa/Trigify), white-labeling deferred unless a strong sales reason emerges.
 - **Billing rails:** research HubSpot marketplace billing vs own Stripe (pricing PRD decides).
-- **Round 8 confirmations (Romeo, 2026-07-07):** Pro = **500 credits/mo + top-up purchases** (top-ups never expire) — approved. **Per-contact pricing logic** is part of the model (not UI guesswork): enrichment charges per contact (`contacts × 4` credits), cadence generation charges per person, buying-group generation covers a config-capped candidate pool; UI always shows projected credit cost BEFORE contact-based runs and confirms above a config threshold. Full math in `planning/chatprd/PRICING_AND_PACKAGING.md` ("Per-contact pricing logic").
+- **Round 8 confirmations (Romeo, 2026-07-07; revised round 16):** Pro = **500
+  credits/mo + top-up purchases** (top-ups never expire) — approved. **Per-contact
+  pricing logic** is part of the model (not UI guesswork): People prospecting/enrichment
+  charges per accepted usable contact (`contacts × 4` credits), cadence generation
+  charges per person, buying-group generation covers a config-capped candidate pool; UI
+  always shows projected credit cost BEFORE contact-based acceptance and confirms above a
+  config threshold. Full math in `planning/chatprd/PRICING_AND_PACKAGING.md`
+  ("Per-contact pricing logic").
 - **Round 9 credit sizing (Romeo, 2026-07-07):** 500/mo is PROVISIONAL — validate against real usage from the round-9 Usage & logs before GA lock. Analysis in `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md`: margin is safe (80–93% GM at full burn); the binding constraint is RECURRING Trigify monitor credits (they accumulate and crowd out research/outreach). OPEN DECISION for pricing sign-off: decouple "tracked accounts" (monitors) into a separate per-tier allowance vs keep monitors in-pool at a lower per-monitor credit cost. Per-rep budgets (task 15c) cap individual spend. Credit debit path must attribute every debit to a `hubspot_user_id` + `action_type` so the logs can right-size the number.
 - **Round 11 credit journey (Romeo, 2026-07-07, revised by round 13):** generation is
   rep-initiated and ad hoc from the company record, not only preselected target-account
@@ -1071,8 +1104,8 @@ port would slot into the same `signals`/`company_signal_map` substrate.
   debit with selectable modules and output-based charging. Account research = low-cost
   Context output (default 1-2 credits). Buying-group map/regenerate = low-cost (default
   1 credit, or 0.5 only if fractional credits are supported). HubSpot-source reads/fixes
-  and HubSpot signal-rule events = 0 credits. Apollo/prospecting/enrichment debits only
-  per returned usable contact. Outreach debits per generated stakeholder draft/cadence.
+  and HubSpot signal-rule events = 0 credits. People prospecting/enrichment debits only
+  per accepted returned usable contact. Outreach debits per generated stakeholder draft/cadence.
   Trigify monitor/fetch costs remain separate because monitors are the recurring risk.
 - **Round 14/15 billing/budget update:** Settings must expose Free trial = 100 credits,
   editable daily/weekly/monthly rep caps, and real top-up checkout session creation.

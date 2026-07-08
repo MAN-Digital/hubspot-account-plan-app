@@ -7,6 +7,8 @@
 - `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`
 - `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`
 - `ChatPRD sync addendum — round 14 settings interactions and API-backed admin UX — 2026-07-08`
+- `ChatPRD sync addendum — round 16 Apollo/Harvest prospecting filters — 2026-07-08`
+- `ChatPRD sync correction — round 17 signal cleanup and angle rebuild credits — 2026-07-08`
 
 **Written 2026-07-07 (round 9, Romeo asked: "think about this 500 credits… is it enough
 to use that or not, and how do we do it").** This doc answers three questions: (1) does
@@ -38,8 +40,8 @@ we decide the number. Companion to `PRICING_AND_PACKAGING.md` (tiers + credit ta
 | ------------------------------------- | ------------- | ------------------------------------------ |
 | Account research run                  | 1-2           | low-cost Context output                    |
 | Buying-group mapping/regenerate       | 1             | low-cost, editable                         |
-| Apollo enrichment / prospecting       | 0-40+         | max contacts × 4; debit only returned data |
-| Outreach cadence (per person)         | 24            | 3 stakeholders × 8                         |
+| People prospecting / enrichment       | 0-40+         | accepted usable contacts × 4; preview/search is 0 app credits |
+| Outreach cadence / angle rebuild      | 8/person      | 3 stakeholders = 24; angle change after drafts regenerates included people |
 | **One-time subtotal, no monitors**    | **~2-67+**    | depends on selected modules and returns    |
 | Trigify monitors (company + 2 people) | **54 / mo**   | 3 × 18 — **RECURRING**                     |
 | **First-month total with monitors**   | **~56-121+**  | if monitors are selected                   |
@@ -134,18 +136,32 @@ workspace builder is configurable and the debit is output-based:
   HubSpot is tracking; if HubSpot is not tracking the company, the UI must show a
   tracking-required state rather than treating an empty property as no intent. This also
   includes superadmin-defined HubSpot signal rules;
-- people prospecting/enrichment is the main spend driver and debits per usable returned
-  contact, not per click;
+- people prospecting/enrichment is the main spend driver and debits per accepted usable
+  returned contact, not per search/preview click;
 - outreach draft generation remains per stakeholder/cadence;
 - Trigify monitor/fetch economics remain separate from account research because monitors
   can recur and crowd out the pool.
 
 The sizing model therefore shifts from one fixed "full account cycle" to a menu of
 selected modules. A light no-data account with only account research + buying-group
-mapping can cost ~2-3 credits; a prospecting-heavy run with 10 returned contacts can cost
-40+ credits before outreach. This reinforces the original conclusion: 500 credits is not
+mapping can cost ~2-3 credits; a prospecting-heavy run with 10 accepted usable contacts
+can cost 40+ credits before outreach. This reinforces the original conclusion: 500 credits is not
 primarily a COGS risk, but we need Usage & logs to learn real per-rep behavior and tune
 default caps.
+
+## Round 16 update — Apollo/Harvest prospecting preview
+
+Romeo clarified that the **Prospect more people** module needs more filters and must align
+with both Apollo and HarvestAPI. The cost model stays output-based:
+
+- Apollo People Search is the structured search preview path and should not debit app
+  credits; Apollo enrichment/reveal is only for shortlisted or accepted people.
+- HarvestAPI can contribute LinkedIn lead-search candidates and LinkedIn profile/post
+  evidence; it is provider-metered externally, but the app still debits only accepted
+  usable People outputs.
+- HubSpot dedupe and existing HubSpot contacts remain 0 credits.
+- Provider setup, BYO key, rate-limit, or vendor billing blockers are Settings blockers,
+  not Data Gaps.
 
 ## Round 14 update — trial credits, top-ups, and cap windows
 
