@@ -1,0 +1,103 @@
+packages/db/src/schema/credits.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 1-75
+  s_c47fd3cb9ef010::t_54ee76b9f570f6 76-84
+packages/db/src/schema/hubspot-signal-rules.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 1-33
+  s_c47fd3cb9ef010::t_b899668e306737 34-42
+planning/chatprd/PRICING_AND_PACKAGING.md
+  s_c47fd3cb9ef010::t_b51780f8fc6192 11,72-73,75
+  s_c47fd3cb9ef010::t_5a116c91662ce2 10,39,57-58,60-66,108-110,122,149-150
+  s_c47fd3cb9ef010::t_d6fc8f5ac9fe51 103-104
+  s_c47fd3cb9ef010::t_d0afc2853ecb78 74
+planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md
+  s_c47fd3cb9ef010::t_09d30e638ca3f0 10,43,139-140,147-148,152-164
+  s_c47fd3cb9ef010::t_b082cc89b9da9d 11,44
+  s_c47fd3cb9ef010::t_5c93652cc211a6 165
+packages/db/src/schema/warm-intros.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 1-19
+apps/api/src/routes/__tests__/outreach.test.ts
+  s_c47fd3cb9ef010::t_e50631a595c25d 1-276
+  s_c47fd3cb9ef010::t_04c9d76a92b114 277-294
+packages/db/src/schema/__tests__/v2-workspace-schema.test.ts
+  s_c47fd3cb9ef010::t_e50631a595c25d 1-358
+  s_c47fd3cb9ef010::t_f4fb4e9981560f 359-361
+packages/db/src/schema/__tests__/v2-workspace-rls.test.ts
+  s_c47fd3cb9ef010::t_e50631a595c25d 1-125
+.taskmaster/docs/prd.md
+  s_c47fd3cb9ef010::t_b7607ef4ebec2a 168-171,174-184
+  s_c47fd3cb9ef010::t_0ce9ec7b62728d 186-194
+  s_c47fd3cb9ef010::t_15b6f4ccee9b2a 185
+planning/local/TASKMASTER_EXECUTION_PRD.md
+  s_c47fd3cb9ef010::t_45761d9a788d15 186-194
+  s_c47fd3cb9ef010::t_e556bfc969ad5d 168-171,174-184
+  s_c47fd3cb9ef010::t_c69a402dad71b5 185
+packages/db/src/schema/account-research.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 1-107
+packages/db/src/schema/people-prospecting.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 1-64
+  s_c47fd3cb9ef010::t_198a3a58dee3ad 65-69
+packages/db/src/schema/outreach.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 1-137
+packages/db/src/schema/buying-groups.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 1-24
+packages/db/drizzle/0013_v2_workspace_foundation.sql
+  s_c47fd3cb9ef010::t_ee45bae4c67145 1-226,228-294,296-392,394-680
+  s_c47fd3cb9ef010::t_d78788651c1d9f 227,295,393
+packages/db/src/schema/tenant-users.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 1-29
+  s_c47fd3cb9ef010::t_f0d4408066c4ed 30-39
+packages/db/src/schema/index.ts
+  s_c47fd3cb9ef010::t_90c8e65ff8a44e 2-8,10,12,14-20,22,28,31,34-39,41,43,45-49,51-52,59,61-62,77-94,108-115
+  s_c47fd3cb9ef010::t_dc5bcb83a61774 116-125
+planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md
+  s_c47fd3cb9ef010::t_13a4948fa17e80 4-5,47-49,643-644,846-862,864-866
+  s_c47fd3cb9ef010::t_6c2db596506a23 3,44-46,170-175,788-845,867,884-893,902,918,922,928,940,946,980-991,1139-1144,1190-1193
+  s_c47fd3cb9ef010::t_73b1878a1a5b27 67,863
+.claude/tasks/trigify-signals-into-account-planning.md
+  s_c47fd3cb9ef010::t_5306a9d7daa8bc 1031
+  s_c47fd3cb9ef010::t_9fa760faf9365c 1061,1073-1076
+  s_c47fd3cb9ef010::t_7725ea3cff4cc2 1086-1093,1107-1108
+  s_c47fd3cb9ef010::t_116dc4cd67bcf2 1029-1030,1032-1034,1062-1065
+  s_c47fd3cb9ef010::t_f2ecf7f61ef3f9 195,197-198
+  s_c47fd3cb9ef010::t_e350a7616cc58c 700-701,705,708-711,731-738
+  s_c47fd3cb9ef010::t_5b5f07d0c678b6 799-804
+docs/HANDOFF.md
+  s_c47fd3cb9ef010::t_ecf1f320c4eb74 219-222
+  s_c47fd3cb9ef010::t_b0f3ee7da48dca 212-216,249-250,286,310,328-331
+  s_c47fd3cb9ef010::t_dab54b74824b02 217-218
+  s_c47fd3cb9ef010::t_c24e7d8de6dc1d 241-243,251-253,264,269-270,287,297
+  s_c47fd3cb9ef010::t_6ec72f1386237d 71-74,307-309,322
+  s_c47fd3cb9ef010::t_226736fa6cc317 75
+apps/api/src/app.ts
+  s_c47fd3cb9ef010::t_52e876e47c1b35 17,24
+  s_c47fd3cb9ef010::t_604e89e29645ca 25,244
+packages/db/drizzle/0014_v2_workspace_partial_schema_backfill.sql
+  s_c47fd3cb9ef010::t_2e58ff75d33a4f 1-25,40-50,77-80,95-117
+  s_c47fd3cb9ef010::t_c26e65ba67b236 26-39,51-76,81-94,118-134
+apps/api/src/routes/outreach.ts
+  s_c47fd3cb9ef010::t_2f16c2f331f2cc 58
+  s_c47fd3cb9ef010::t_52e876e47c1b35 1-57,59-311,313
+  s_c47fd3cb9ef010::t_b282414347f87b 312,314-322
+PLANNING_INDEX.md
+  s_c47fd3cb9ef010::t_3b0db04dc1e1e4 90-91
+  s_c47fd3cb9ef010::t_80bf5257a6d8c3 29,40-42,184,186
+  s_c47fd3cb9ef010::t_f6d8498a5cf49d 30,43-44,185
+packages/db/drizzle/meta/_journal.json
+  s_c47fd3cb9ef010::t_9b491927cd7af0 95-108,111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "024c98359e27092fa30e38398c135fc025a9bd68",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
