@@ -1,0 +1,29 @@
+package.json
+  s_c47fd3cb9ef010::t_c94e9029e93c8d 22
+apps/hubspot-project/UPLOAD.md
+  s_c47fd3cb9ef010::t_1bdd8a2d681fa6 99-121
+scripts/__tests__/enable-hubspot-app-cards.test.ts
+  s_c47fd3cb9ef010::t_131a7ce5a5c8c7 29-37
+  s_c47fd3cb9ef010::t_74b56c2d157291 1-28,38-122
+scripts/enable-hubspot-app-cards.ts
+  s_c47fd3cb9ef010::t_6cbd9ed3fbf697 62-64
+  s_c47fd3cb9ef010::t_ae2edd5dc72209 1-61,65-217
+.gitignore
+  s_c47fd3cb9ef010::t_cf21e013c0af97 102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a28959d4fd18a3cf695c599e6aa34cb463b40ba3",
+  "prompts": {},
+  "sessions": {
+    "s_c47fd3cb9ef010": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3d7a-0ce8-7001-b80b-499cf65284f0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "romeoman <romeo@man.digital>"
+    }
+  }
+}
