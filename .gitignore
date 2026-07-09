@@ -99,3 +99,4 @@ apps/hubspot-project/local.json
 # Temporary
 *.tmp
 *.temp
+.vercel

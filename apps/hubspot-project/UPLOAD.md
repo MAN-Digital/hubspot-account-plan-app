@@ -96,6 +96,29 @@ readiness contract is:
 - the selected HubSpot profile supplies `OAUTH_REDIRECT_URI` and `API_ORIGIN`
 - staging/production installs must use HTTPS callback URLs
 - the API-side `HUBSPOT_OAUTH_REDIRECT_URI` must match the active deployed origin
+- app cards must be released for the target portal before the CRM layout editor
+  can discover the deployed `CARD` component
+
+## App card visibility
+
+`hs project info --json` can show a deployed `CARD` component while the CRM
+layout editor still shows only HubSpot-native card templates. For marketplace
+OAuth apps, HubSpot can hide app cards behind the `hs-release-app-cards` app
+flag until the target portal is enabled.
+
+Enable the flag for a test portal with one of:
+
+```bash
+HUBSPOT_APP_MANAGEMENT_TOKEN=... pnpm hubspot:app-cards:release -- --app 37116835 --portal 147062576
+```
+
+```bash
+HUBSPOT_DEVELOPER_API_KEY=... pnpm hubspot:app-cards:release -- --app 37116835 --portal 147062576
+```
+
+Use `--dry-run` to verify the request shape without calling HubSpot. The normal
+HubSpot CLI `hs api` path uses PAK auth and is not enough for this endpoint; use
+an app-management OAuth token or a developer API key.
 
 Slice 10 closes the extension side of that contract: `hs-project-upload.ts`
 now threads the selected profile's `variables.API_ORIGIN` into the
