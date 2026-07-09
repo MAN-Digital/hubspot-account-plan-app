@@ -16,6 +16,9 @@ describe("settings schemas", () => {
           exa: { enabled: true, hasApiKey: true },
           hubspotEnrichment: { enabled: true, hasApiKey: false },
           trigify: { enabled: false, hasApiKey: false },
+          apollo: { enabled: false, hasApiKey: false },
+          harvest: { enabled: false, hasApiKey: false },
+          woodpecker: { enabled: false, hasApiKey: false },
         },
         llm: {
           provider: "openai",
@@ -42,6 +45,9 @@ describe("settings schemas", () => {
           exa: { enabled: false, hasApiKey: false },
           hubspotEnrichment: { enabled: false, hasApiKey: false },
           trigify: { enabled: true, hasApiKey: true },
+          apollo: { enabled: true, hasApiKey: true },
+          harvest: { enabled: true, hasApiKey: true },
+          woodpecker: { enabled: true, hasApiKey: true },
         },
         llm: {
           provider: "openai",
@@ -168,6 +174,21 @@ describe("settings schemas", () => {
     expect(result.data.signalProviders?.trigify?.enabled).toBe(true);
   });
 
+  it("accepts Apollo, Harvest, and Woodpecker provider key updates", () => {
+    const result = settingsUpdateSchema.safeParse({
+      signalProviders: {
+        apollo: { enabled: true, apiKey: "apollo-key-1" },
+        harvest: { enabled: true, apiKey: "harvest-key-1" },
+        woodpecker: { enabled: true, apiKey: "woodpecker-key-1" },
+      },
+    });
+    expect(result.success).toBe(true);
+    if (!result.success) throw result.error;
+    expect(result.data.signalProviders?.apollo?.apiKey).toBe("apollo-key-1");
+    expect(result.data.signalProviders?.harvest?.apiKey).toBe("harvest-key-1");
+    expect(result.data.signalProviders?.woodpecker?.apiKey).toBe("woodpecker-key-1");
+  });
+
   it("accepts a trigify key-rotation update (apiKey only, no enabled change)", () => {
     const result = settingsUpdateSchema.safeParse({
       signalProviders: {
@@ -240,6 +261,9 @@ describe("settings schemas", () => {
     expect(settingsSignalProviderNameSchema.safeParse("exa").success).toBe(true);
     expect(settingsSignalProviderNameSchema.safeParse("hubspot-enrichment").success).toBe(true);
     expect(settingsSignalProviderNameSchema.safeParse("trigify").success).toBe(true);
+    expect(settingsSignalProviderNameSchema.safeParse("apollo").success).toBe(true);
+    expect(settingsSignalProviderNameSchema.safeParse("harvest").success).toBe(true);
+    expect(settingsSignalProviderNameSchema.safeParse("woodpecker").success).toBe(true);
     expect(settingsSignalProviderNameSchema.safeParse("mock-signal").success).toBe(false);
   });
 });

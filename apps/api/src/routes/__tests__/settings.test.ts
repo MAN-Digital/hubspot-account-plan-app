@@ -123,6 +123,9 @@ describe("GET /api/settings", () => {
         exa: { enabled: false, hasApiKey: false },
         hubspotEnrichment: { enabled: false, hasApiKey: false },
         trigify: { enabled: false, hasApiKey: false },
+        apollo: { enabled: false, hasApiKey: false },
+        harvest: { enabled: false, hasApiKey: false },
+        woodpecker: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: null,

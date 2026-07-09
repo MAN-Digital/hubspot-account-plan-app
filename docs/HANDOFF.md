@@ -56,6 +56,32 @@ fully specified, build not started except Stage A).
   Actions `trigify-poll.yml` (repo secret `CRON_SECRET` is SET, workflow verified live).
 - **main is push-protected** — every change lands via PR (docs changes included).
 
+### Branch implementation note — 2026-07-08
+
+Branch `codex/chatprd-rounds-8-9-sync` adds the first backend + HubSpot UI-extension
+wiring for round-16/17 items:
+
+- Settings API/config now has encrypted provider-key slots for Apollo, HarvestAPI, and
+  Woodpecker in addition to Exa, HubSpot enrichment, Trigify, and LLM settings.
+- Record-tab card has compact People prospecting controls for no-people/empty states and a
+  reuse-first Woodpecker campaign picker that asks the backend for existing campaigns before
+  adding a person.
+- Backend routes added:
+  - `POST /api/people/:companyId/prospect/preview`
+  - `POST /api/people/:companyId/prospect/accept`
+  - `POST /api/outreach/:companyId/woodpecker/campaigns/suggestions`
+  - `POST /api/outreach/:companyId/woodpecker/campaign-members`
+- Mintlify docs scaffold lives under `docs/mintlify`, including install, legal links,
+  provider-key operations, People prospecting API, and Woodpecker outreach API pages.
+- Local verification on 2026-07-08: `pnpm lint`, `pnpm build`, and full `pnpm test`
+  passed (133 files / 1225 tests).
+
+Not yet live-verified: Apollo, HarvestAPI, and Woodpecker vendor calls need tenant provider
+keys configured in Settings. HubSpot project upload is still blocked in this local worktree
+until a real `hubspot.config.yml` / `hsprofile.<profile>.json` and CLI-authenticated account
+are available. The Vercel backend root may return 404; the test surface is `/health` plus the
+HubSpot `crm.record.tab` and app settings extension.
+
 ### Open items from Stage A
 
 - ONE authorized live Trigify monitor subscribe (1 credit) still UNUSED — do it via the
@@ -68,35 +94,61 @@ fully specified, build not started except Stage A).
 ### V2: fully specified, not built
 
 Plan: `.claude/tasks/trigify-signals-into-account-planning.md` — Stage B tasks 13–19c
-(+17a-d, 14b). Seven feedback rounds (2026-07-07) are recorded in the plan + delta +
-ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta):
+(+17a-d, 14b, 14c, 15d). Feedback through round 17 plus the HubSpot recent-intent
+correction, settings-interaction correction, and signal-cleanup/angle-credit correction
+is recorded in the plan, delta, repo-local ChatPRD mirrors, and Magic Patterns. Rounds
+16-17 still need cloud verification if the
+ChatPRD MCP is reachable. Key decisions (details in plan/delta):
 
-1. 7-tab UI: Overview / People / Buying Group / Signals / Outreach / Plan / Context.
+1. 8-tab UI: Overview / People / Buying Group / Signals / Outreach / Data Gaps / Plan /
+   Context.
 2. Buying Group = OrgChartHub-style org chart, AI-generated + fully editable (replace-
    person via CRM contact picker in BOTH views, placeholders, edits survive Regenerate);
    sync to HubSpot via associations-v4 labels (opt-in; native = Enterprise-only, no API).
-3. Plan tab = pure editable account plan; plan edits VISIBLY rebuild outreach.
-4. Outreach tab = AI-ranked targets, per-person cadence, status machine
+   The role list/org chart must use the same real people count as the People tab; if
+   People has 3 prospects, Buying Group cannot show 7 named role occupants.
+3. Overview = one top executive summary + separate Why Now + Top Signals + **This
+   Outreach** + Key People + **Blockers & Risks**. Top Signals stays above This Outreach;
+   blockers complement the outreach summary instead of replacing it. No-open-deal records
+   show account-development metrics instead of blank deal cards. No-data records show a
+   configurable **Build this account workspace** state where the rep selects modules and
+   sees output-based credit ranges before running.
+4. Data Gaps tab = working queue for missing/stale CRM properties, enrichment/research
+   outputs, and coverage inputs only. It replaces CRM Gap/Data Quality callouts in
+   Signals. Do **not** show account/business states ("no open deal"), Woodpecker/provider
+   setup, or credit-pool/rep-budget issues as Data Gaps; those are Overview/Settings
+   blockers. Valid examples: missing LinkedIn URL, outdated title, too few prospected
+   people, missing relevant procurement/legal contact, too few observed signals, missing
+   company firmographics/domain/website/LinkedIn/industry. Actions can research, enrich,
+   create HubSpot tasks, update CRM explicitly, or mark not needed. No silent CRM writes.
+5. Plan tab = pure editable account plan; plan edits VISIBLY rebuild outreach.
+6. Outreach tab = AI-ranked targets, per-person cadence, status machine
    Building→Draft→In review→Approved→Exported, approve-gate; REBUILD LOCKOUT (grayed +
    server rejects stale approve/export).
-5. THREADING invariant: follow-ups always reply in first email's thread (Woodpecker
+7. THREADING invariant: follow-ups always reply in first email's thread (Woodpecker
    subject:null steps 2+; QA hard-fails new subjects).
-6. Exports: HubSpot TASKS = default (one task per touch w/ approved copy; API cannot
+8. Exports: HubSpot TASKS = default (one task per touch w/ approved copy; API cannot
    inject copy into sequences — enrollment = {contactId,senderEmail,sequenceId} ONLY);
    sequences = template motions w/ mandatory disclaimer; Woodpecker = THE full-custom-
-   copy channel (LinkedIn steps: PROFILE_VISIT/CONNECTION_REQUEST/DIRECT_MESSAGE/INMAIL).
-7. Angles: campaign-level (Interview/Feedback/Event×3/Direct + prompt-to-angle w/
+   copy channel (LinkedIn steps: PROFILE_VISIT/CONNECTION_REQUEST/DIRECT_MESSAGE/INMAIL)
+   and is **campaign-reuse-first**: add people to an existing account/angle/signal
+   campaign by default; do not create one Woodpecker campaign per person.
+9. Angles: campaign-level (Interview/Feedback/Event×3/Direct + prompt-to-angle w/
    research); GOVERNANCE: create/edit in Settings behind superadmin, per-angle
    enabled-for-reps, server-side enforcement; QA hard-fails angle violations.
-8. Warm intro: manual mutual connections (min 3; each REQUIRES name + validated
+10. Warm intro: manual mutual connections (min 3; each REQUIRES name + validated
    LinkedIn URL), enrich (HubSpot/Apollo/research), score/rank, editable DM,
    "Open in LinkedIn + copy message" (compose deep link works; BODY PREFILL IMPOSSIBLE
    → clipboard). CTD.ai = optional V2.5 warm-path provider. Warm-paths chips in UI.
-9. Credits & tiers (round 6, numbers gated on pricing research): managed-keys vs BYO on
-   one credit-metering system (`credit_ledger`); Free trial ~30 credits / Pro from
+11. Credits & tiers (round 6, numbers gated on pricing research): managed-keys vs BYO on
+   one credit-metering system (`credit_ledger`); Free trial 100 credits / Pro from
    $99/mo (we manage keys EXCEPT Woodpecker) / Enterprise (BYO + custom + full-service).
-   Apollo PROMOTED to the prospecting/enrichment provider. Open decision: show
-   underlying API sources on managed tier (recommend yes).
+   Apollo PROMOTED to the prospecting/enrichment provider. Reps can generate full account
+   workspace outputs ad hoc from a company record if tenant credits and their personal
+   daily/weekly/monthly caps allow it; every credit CTA shows projected range + rep
+   remaining + tenant remaining. Clicking generate does not debit; debits happen only for saved outputs or
+   usable returned data. HubSpot-source reads/fixes cost 0 credits.
+   Open decision: show underlying API sources on managed tier (recommend yes).
    9b. Settings IA (round 7): native HubSpot app settings page (new-platform settings
    component) replaces the hosted settings app (now fallback); superadmin/admin-only
    w/ server-side role checks; provider taxonomy Signals/Research/People(Apollo+
@@ -109,9 +161,8 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    Sales-Hub-Enterprise note DELETED from Buying Group; **multi-stakeholder outreach
    must cross-reference colleagues' outreach** (engine coordinates roster-wide,
    "Cross-ref" chips per step, QA hard-fails missing/fabricated/out-of-order
-   references); settings: shared Toggle component fixed (knob escaped pill when ON),
-   Notifications in plain English (no `hap_*` jargon in UI; "Add signal updates to the
-   company record"), workflow-recipes/technical items removed from settings; pricing
+   references); settings: shared Toggle component fixed (knob escaped pill when ON);
+   notification/property-write controls were later removed from active V2; pricing
    CONFIRMED Pro 500 credits/mo + never-expiring top-ups, per-contact pricing logic in
    `planning/chatprd/PRICING_AND_PACKAGING.md`. Delta §2d is the canonical record.
    9d. Round 9 (2026-07-07): **Team & access RBAC** — the portal's users are fetched from
@@ -126,49 +177,123 @@ ChatPRD + Magic Patterns, all in lockstep. Key decisions (details in plan/delta)
    real constraint is recurring monitor credits; 500 stays PROVISIONAL pending
    real-usage data from the logs; open decision = decouple monitors from the credit
    pool. Delta §2e is canonical. Permissions model = §"App roles & permissions" below.
-10. Mintlify docs task 19b (repo `romeoman/mintlify-docs`, `mint` CLI, deploy on push).
+   9e. Round 10 (2026-07-07): **Woodpecker campaign reuse** — the Outreach UI/Magic
+   Patterns wireframe must prompt before creating campaigns. On Woodpecker export/add
+   person, suggest existing campaigns by account + angle + signal/channel (pitch/direct
+   can use Angle + Signal); primary CTA = Add to selected campaign, secondary =
+   Create new campaign, with View all campaigns search/filter. Personalization happens
+   through snippets/custom fields and per-prospect copy, not separate campaigns/sequences.
+   9f. Round 11 (2026-07-07): **Overview/Data Gaps/first-run credits** — Overview has one
+   top executive summary, a separate Why Now callout, Top Signals above This Outreach,
+   and Blockers & Risks without deleting the outreach mini-summary; Data Gaps is a new
+   tab between Outreach and Plan/Context; no-deal and no-data company records have
+   explicit wireframes; reps can generate a full account plan ad hoc with projected
+   credits and remaining daily/weekly/monthly caps shown before debit. Delta §2g is canonical.
+   9g. Round 12 (2026-07-07): **Data Gap property discipline** — Data Gaps must only
+   suggest missing/stale properties or coverage inputs that improve plan context.
+   Required contact fields: City, Country, Country Code, Employment Role, Employment
+   Seniority, Employment Sub Role, First Name, Job Title, Last Name, LinkedIn URL,
+   State/Region, State/Region Code. Required company fields: Annual revenue, City,
+   Company domain name, Company keywords, Company name, Country/Region, Country/Region
+   Code, Description, Employee range, Industry, LinkedIn company page, Number of
+   employees, Phone number, Revenue range, State/Region, State/Region Code, Street
+   Address, Web Technologies, Website URL, Year founded. Optional company fields: Total
+   Money Raised, X account handle. Use the "Hubspot Company Enrichment Taxonomy" Google
+   Sheet for revenue ranges, employee ranges, industries, keywords, and web technologies.
+   9h. Round 13 (2026-07-07): **Configurable generation + HubSpot signals** — no-data
+   first run is a module picker, not one full-plan bundle. Account research lives in
+   Context and is low-cost; buying-group regenerate is low-cost; people
+   prospecting/enrichment is the main output-based spend. Buying Group supports empty/
+   manual build states and multiple flexible role slots while preserving the real-people
+   count invariant. Sync to HubSpot is explicit only and uses sync/write copy/icons.
+   People cards show required contact fields. Signals filter by company/contact level and
+   type, show timestamps/provenance/CRM engagement summaries, remove Copy Link, and treat
+   Apollo enrichment as a data event unless paired with observable buying intent.
+   HubSpot's built-in company property **Recent Intent Signals** is the default zero-credit
+   HubSpot intent read path for companies that HubSpot is tracking; if HubSpot is not
+   tracking the company, show a tracking-required state instead of interpreting the empty
+   property as no intent. Settings adds superadmin custom HubSpot signal rules from fetched
+   properties, lists/memberships, behavioral event definitions, and record-created events;
+   these render as HubSpot-source 0-credit signals with expiration/lookback.
+   9i. Round 14 (2026-07-08): **Settings interactions + API-backed admin UX** — Settings
+   starts with a Settings Overview, then Plan & Billing, Team Budgets, Providers, Themes,
+   HubSpot Signals, and Outreach Angles. No horizontal settings-tab scrollbar.
+   **New Rule** must open a form and create a HubSpot signal rule through the settings
+   API/serverless path; **Buy Top-Up Credits** must open package selection and create a
+   checkout session. Themes are tenant-scoped and token-driven. Team Budgets edits
+   daily/weekly/monthly caps per rep and the debit path enforces every configured window.
+   Free trial = 100 credits. Enterprise/custom BYOA states must be specified and enforced
+   server-side. Outreach Angles has a full admin editor for any angle and server-side
+   enforcement.
+   9j. Round 15 (2026-07-08): **Scenario separation + corrected HubSpot signals** — the
+   active Magic artifact is one coherent Pro managed / populated account design. No-data,
+   no-deal, Trial, and Enterprise/BYOA are separate prototype flows/artifacts or named
+   specs, not scenario switchers inside the active UI. Notifications/webhooks are removed
+   from active Settings and V2 scope. HubSpot signal rules are event-based only:
+   Property Changed (object, property, operator, value), List Membership Changed (fetched
+   list + membership event), Behavioral Event Occurred (fetched event definition/property
+   + condition), and Record Created (object created). No workflow/webhook/custom-code
+   choices, no invented signal-strength field, no internal property keys or production
+   implementation copy in UI.
+   9k. Round 16 (2026-07-08): **People prospecting filters aligned to Apollo/Harvest** —
+   Prospect more lives only in People. The modal has grouped filters for provider route,
+   role/title, location, contact data, company fit, Harvest lead search, and LinkedIn
+   evidence. Apollo = structured people search and contact enrichment/reveal; HarvestAPI =
+   LinkedIn lead search/profile/post evidence. Preview/dedupe is 0 app credits; debit only
+   accepted usable contacts. Provider/key/rate-limit/vendor billing blockers are Settings
+   blockers, not Data Gaps. Buying Group has only mapping/Open People flows.
+   9l. Round 17 (2026-07-08): **Signal cleanup + angle rebuild credits** — Signal tab
+   explanatory cards/data-event panels/generic evidence footers are removed; heat badges
+   render one line (`A/88`); changing a campaign angle after drafts exist regenerates
+   copy/QA and debits included people x 8 credits by the current table.
+12. Mintlify docs task 19b (repo `romeoman/mintlify-docs`, `mint` CLI, deploy on push).
 
 **App roles & permissions (round 9):** three app roles layered on HubSpot's own perms —
 **superadmin** (billing, provider keys, angle governance, roles + per-rep budgets, view
 logs), **admin** (settings + logs; no billing/roles), **rep** (workspace use; own usage
 visible; no settings). All role/budget/log routes enforce the role SERVER-SIDE, tenant-
 scoped by RLS; the HubSpot user roster requires the users-read scope and degrades to an
-empty state if not granted. App scopes ≠ installer day-to-day visibility (CLAUDE.md rule). 11. OpenClaw engine port must track its CURRENT state — commits `177929a` (breakup
-retired, LinkedIn frameworks/steps) + F-series (15-key slot contract, signal_json
-contact identity, constant-time Woodpecker webhook compare).
+empty state if not granted. App scopes ≠ installer day-to-day visibility (CLAUDE.md rule).
+
+**OpenClaw engine port:** track its CURRENT state — commits `177929a` (breakup retired,
+LinkedIn frameworks/steps) + F-series (15-key slot contract, signal_json contact
+identity, constant-time Woodpecker webhook compare).
 
 ## 3. External surfaces & registries
 
 - **ChatPRD** (source-of-truth PRDs, project "Account Planning in HubSpot"):
   https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot —
-  **ROUNDS 8 & 9 SYNC ARE PENDING** (chatprd MCP was not reachable from the
-  non-interactive session on 2026-07-07 even after the connector reconnect — needs an
-  interactive `/mcp` session). Sync: delta §2d (round 8) + §2e (round 9), the
-  Pricing & Packaging per-contact/top-up additions, and the NEW
-  `CREDIT_ECONOMICS_AND_SIZING.md` doc. Repo docs are canonical until then.
-  ALL 9 docs synced through round 7 (7 core docs + NEW "Pricing & Packaging"
-  `0b2aae63-...` + NEW "Engineering Handoff" `b018a084-...` — the two new docs sit in
-  the drive ROOT pending a manual move into the project (+round 6/pricing/handoff docs pending at write
-  time). UUID registry in the plan's Notes. MCP: `chatprd` (HTTP, OAuth, flaps across
-  restarts — retry once, then ask user to re-auth).
+  **ROUNDS 8-15 SYNCED 2026-07-08** via direct authenticated ChatPRD MCP after the
+  Codex `mcp login chatprd` flow. **ROUNDS 16-17 LOCAL MIRROR ADDED 2026-07-08**;
+  verify/sync the new markers in ChatPRD cloud if absent. Existing docs were updated with
+  round markers including
+  `ChatPRD sync addendum — round 11 overview/data gaps/ad hoc credits — 2026-07-07`
+  `ChatPRD sync correction — round 11 single executive summary and This Outreach — 2026-07-07`,
+  `ChatPRD sync addendum — round 12 data-gap property discipline — 2026-07-07`,
+  `ChatPRD sync addendum — round 13 configurable generation and HubSpot signals — 2026-07-07`,
+  `ChatPRD sync correction — round 13 HubSpot recent intent property — 2026-07-07`,
+  `ChatPRD sync addendum — round 14 settings interactions and API-backed admin UX — 2026-07-08`,
+  `ChatPRD sync addendum — round 15 scenario-separated prototypes and corrected HubSpot signal rules — 2026-07-08`, and
+  the local markers
+  `ChatPRD sync addendum — round 16 Apollo/Harvest prospecting filters — 2026-07-08` and
+  `ChatPRD sync correction — round 17 signal cleanup and angle rebuild credits — 2026-07-08`;
+  Pricing was refreshed from
+  `planning/chatprd/PRICING_AND_PACKAGING.md`; the NEW "Credit Economics & Sizing"
+  doc was created as `faa0a41d-407b-4fe9-83b9-e7a6845a2a86`. The earlier 2026-07-06
+  export-settings/Mintlify pending re-sync was also resolved in Database, Technical
+  Design, and Repo Draft & Execution Checklist.
+  Remaining ChatPRD cleanup is UI-only: move root-level docs into the project if still
+  needed and archive duplicate QA docs (`f704414e`, `7aed1d8b`). MCP: `chatprd` (HTTP,
+  OAuth, can flap across restarts — retry once, then re-auth with `codex mcp login
+  chatprd` if needed).
 
-### ⚠️ ChatPRD sync — UNRESOLVED, ACTION REQUIRED (rounds 8 & 9)
+### ChatPRD sync — RESOLVED (rounds 8-15); ROUNDS 16-17 LOCAL MIRROR
 
-**Status:** rounds 8 and 9 are NOT in the ChatPRD cloud docs. Attempted 2026-07-07
-across multiple turns; the `chatprd` MCP tools do NOT resolve in this (non-interactive)
-session even after Romeo re-authorized the connector — the OAuth handshake can only run
-in an interactive context. **The repo docs below are the canonical source until synced.**
-
-**How to fix (Romeo / next agent):**
-
-1. Open an INTERACTIVE `claude` terminal (not this SDK/headless session).
-2. Run `/mcp`, then authorize/reconnect the `chatprd` server there.
-3. Confirm tools resolve: a normal session should expose `mcp__chatprd__search_documents`,
-   `mcp__chatprd__list_documents`, `mcp__chatprd__get_document`, `mcp__chatprd__update_document`,
-   `mcp__chatprd__create_document`. (Find docs via `search_documents`/`list_documents` —
-   `list_projects` returns no IDs; match `createdInThread.assistant.name`.)
-4. Push each repo doc into its ChatPRD target (mapping below), preserving V1 text and
-   appending round-8/9 sections.
+**Status:** rounds 8-15 are now in the ChatPRD cloud docs. Verification readbacks on
+2026-07-08 found the sync markers in each changed document, plus Pricing/Credit checks
+for Free trial 100 credits, output-based account generation, top-up checkout, and
+daily/weekly/monthly rep caps. Rounds 16-17 are recorded repo-locally and in Magic
+Patterns; sync/verify their markers in ChatPRD cloud if the MCP surface is available.
 
 **ChatPRD project:** https://app.chatprd.ai/drive/projects/1775585518010-account-planning-in-hubspot
 
@@ -178,36 +303,67 @@ in an interactive context. **The repo docs below are the canonical source until 
 | ------------------------------------------------------------------- | ----- | -------------------------------------------------------------- |
 | `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2d           | 8     | "Specs for the AI prototype" + "Feature Implementation Spec"   |
 | `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2e           | 9     | "Security & Permission Gates" + "Technical Design Document"    |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2f           | 10    | Prototype/feature/technical/database/QA/handoff docs            |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2g           | 11    | Prototype/product/feature/technical/database/pricing/QA/handoff |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2h           | 12    | Prototype/product/feature/technical/database/QA/handoff         |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2i           | 13    | Prototype/product/feature/technical/database/pricing/credit/QA/handoff |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2j           | 14    | Prototype/product/feature/technical/database/pricing/credit/QA/handoff |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2k           | 15    | Prototype/product/feature/technical/database/pricing/credit/QA/handoff |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2l           | 16    | Prototype/product/feature/technical/database/pricing/credit/QA/handoff |
+| `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md` §2m           | 17    | Prototype/product/feature/technical/database/pricing/credit/QA/handoff |
 | `planning/chatprd/PRICING_AND_PACKAGING.md` (per-contact + top-ups) | 8/9   | "Pricing & Packaging" (`0b2aae63-a4de-4ebe-bf13-41124843cf2b`) |
-| `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md` (NEW doc)         | 9     | create NEW ChatPRD doc "Credit Economics & Sizing"             |
+| `planning/chatprd/CREDIT_ECONOMICS_AND_SIZING.md` (NEW doc)         | 9     | "Credit Economics & Sizing" (`faa0a41d-407b-4fe9-83b9-e7a6845a2a86`) |
 | `tenant_users` + `usage_events` schema (delta §2e / plan task 15c)  | 9     | "Database Schema Design" (`8554b95a-...`)                      |
-| `docs/HANDOFF.md` (this file)                                       | 8/9   | "Engineering Handoff" (`b018a084-a75c-4d27-89ae-91db4f4be454`) |
+| `account_data_gaps` + `account_generation_runs` schema (delta §2g/§2h) | 11-12 | "Database Schema Design" (`8554b95a-...`)                      |
+| `docs/HANDOFF.md` (this file)                                       | 8-15  | "Engineering Handoff" (`b018a084-a75c-4d27-89ae-91db4f4be454`) |
 
 **Other repo paths a syncing agent needs:**
 
 - Execution plan (all rounds, tasks 13–19c incl. 15c RBAC): `.claude/tasks/trigify-signals-into-account-planning.md`
-- Round-by-round delta (§2a–§2e, PENDING headers per section): `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`
+- Round-by-round delta (§2a–§2m, synced through round 15; rounds 16-17 local mirror): `planning/chatprd/V2_OUTREACH_EXPANSION_PRD_DELTA.md`
 - Planning index (resolves any moved paths): `PLANNING_INDEX.md`
 
-**Also still pending in ChatPRD (pre-round-8, unchanged):** the two docs created in the
-drive ROOT — "Pricing & Packaging" (`0b2aae63-...`) and "Engineering Handoff"
-(`b018a084-...`) — must be MOVED into the project; and duplicate QA docs (`f704414e`,
-`7aed1d8b`) deleted. These are UI actions in ChatPRD, not MCP calls.
+**Remaining ChatPRD UI-only cleanup:** root-level docs — "Pricing & Packaging"
+(`0b2aae63-...`), "Engineering Handoff" (`b018a084-...`), and possibly "Credit Economics
+& Sizing" (`faa0a41d-...`) — should be moved into the project if still in the drive root;
+duplicate QA docs (`f704414e`, `7aed1d8b`) should be archived/deleted. These are UI
+actions in ChatPRD, not MCP calls.
 
 - **Magic Patterns** (canonical clickable UI): editor `xmdzva7bxdn4ubmtrbvs35`, active
-  artifact `495ee577-b08c-458c-bf28-dfe4db5d7e58` (v11, round 9 — Team & access +
-  Usage & logs settings tabs wired; built on v9/v10 round-8 Overview hub, ranked signals,
-  cross-ref outreach, toggle fix, plain-English notifications) —
+  artifact `cabc6dbd-2310-4332-bd37-e34d5e134a0f` (round 17 Signal cleanup and
+  campaign-angle rebuild credits, round 16 Apollo/Harvest People prospecting filters,
+  round 15 scenario separation, Notification/webhook removal,
+  corrected event-based HubSpot signal-rule builder,
+  Settings Overview, working New Rule/top-up CTAs, Themes, Team Budgets daily/weekly/
+  monthly caps, and extensive Outreach Angles editor; built on round 13 configurable generation,
+  output-based credits, flexible buying-group roles, real signal filters, and HubSpot
+  recent-intent/default signal-rule settings; built on v17 round-12 property-only Data Gaps, v16 round-11
+  Overview layout fix, v15 blocked-budget toggle, v14
+  Data Gaps/no-data empty state, v13 Woodpecker reuse-first modal, v11 round-9 Team
+  & access + Usage & logs settings tabs, and v9/v10 round-8 Overview hub/ranked
+  signals/cross-ref outreach/toggle cleanup) —
   the editor is collaborative, so always call `get_artifact` for the CURRENT active
   artifact instead of trusting a cached ID. `v2/*` files; `v2/AppV2.tsx` switches
-  between the workspace view (7 tabs) and the settings view (header settings button →
-  `AppSettingsChromeV2`, back link returns). **COMPLETE — published through
-  round 7b (2026-07-07), both app AND app settings verified live in v8:** all 7 workspace tabs, TrackSignalsModal, OutreachTab (angles
-  picker read-only for reps, warm intro w/ required LinkedIn URLs, rebuild lockout,
-  three-way export, thread badges, signal chips), org-chart BuyingGroupTab w/ contact
-  picker, and the app-settings page inside accurate Connected-Apps chrome
-  (AppSettingsChromeV2) with internal tabs Plan & Billing | Providers & integrations |
-  Outreach angles | Notifications. In-CRM surfaces TRANSLATE to
+  between the workspace view (8 tabs) and the settings view (header settings button →
+  `AppSettingsChromeV2`, back link returns). **COMPLETE — published through round 17
+  (2026-07-08):** all 8 workspace tabs incl. Data Gaps; Overview has one top Executive
+  Summary, separate Why Now, Top Signals above This Outreach, Blockers & Risks,
+  and account/settings/budget
+  blockers kept out of Data Gaps; DataGapsTab now only shows missing/stale CRM
+  properties, enrichment/research outputs, signal coverage, or prospect coverage;
+  PeopleTab has a Prospect more modal with grouped filters aligned to Apollo People
+  Search/Enrichment and HarvestAPI LinkedIn Lead/Profile/Post APIs, provider route,
+  request preview, HubSpot dedupe, output-based accepted-contact credits, and one-line
+  CTA buttons;
+  BuyingGroupTab uses the same 3 real People-tab contacts and shows unfilled roles as
+  gaps instead of inventing extra people; OutreachTab keeps angle picker read-only for
+  reps, warm intro w/ required LinkedIn URLs, rebuild lockout, three-way export, thread
+  badges, signal chips, and Woodpecker reuse-first campaign selection; and the
+  app-settings page inside accurate Connected-Apps chrome
+  (AppSettingsChromeV2) with internal tabs Settings Overview | Plan & Billing | Team
+  Budgets | Providers | Themes | HubSpot Signals | Outreach Angles. No-data/no-deal/Trial/
+  Enterprise/BYOA variants live as separate flows/specs, not in-product scenario controls.
+  In-CRM surfaces TRANSLATE to
   `@hubspot/ui-extensions`; the settings page is a native app settings component
   (src/app/settings/), NOT a hosted web app (that's fallback only).
 - **OpenClaw sources** (read-only reference, OrbStack VM): user says

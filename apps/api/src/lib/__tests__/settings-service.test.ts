@@ -63,6 +63,9 @@ describe("readSettings", () => {
         exa: { enabled: false, hasApiKey: false },
         hubspotEnrichment: { enabled: false, hasApiKey: false },
         trigify: { enabled: false, hasApiKey: false },
+        apollo: { enabled: false, hasApiKey: false },
+        harvest: { enabled: false, hasApiKey: false },
+        woodpecker: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: null,
@@ -366,6 +369,74 @@ describe("updateSettings", () => {
       enabled: true,
       hasApiKey: true,
     });
+  });
+
+  it("writes encrypted Apollo, Harvest, and Woodpecker keys and reflects them in settings", async () => {
+    const tenant = await seedTenant();
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          apollo: { enabled: true, apiKey: "apollo-secret-1" },
+          harvest: { enabled: true, apiKey: "harvest-secret-1" },
+          woodpecker: { enabled: true, apiKey: "woodpecker-secret-1" },
+        },
+      },
+    );
+
+    for (const [providerName, expectedKey] of [
+      ["apollo", "apollo-secret-1"],
+      ["harvest", "harvest-secret-1"],
+      ["woodpecker", "woodpecker-secret-1"],
+    ] as const) {
+      const [row] = await db
+        .select()
+        .from(providerConfig)
+        .where(
+          and(
+            eq(providerConfig.tenantId, tenant.id),
+            eq(providerConfig.providerName, providerName),
+          ),
+        );
+      expect(row?.enabled).toBe(true);
+      expect(row?.apiKeyEncrypted).toBeTruthy();
+      expect(decryptProviderKey(tenant.id, row?.apiKeyEncrypted ?? "")).toBe(expectedKey);
+    }
+
+    const settings = await readSettings({ db, tenantId: tenant.id });
+    expect(settings.signalProviders.apollo).toEqual({ enabled: true, hasApiKey: true });
+    expect(settings.signalProviders.harvest).toEqual({ enabled: true, hasApiKey: true });
+    expect(settings.signalProviders.woodpecker).toEqual({ enabled: true, hasApiKey: true });
+  });
+
+  it("clears a stored Woodpecker key without affecting Apollo or Harvest", async () => {
+    const tenant = await seedTenant();
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          apollo: { enabled: true, apiKey: "apollo-secret-keep" },
+          harvest: { enabled: true, apiKey: "harvest-secret-keep" },
+          woodpecker: { enabled: true, apiKey: "woodpecker-secret-clear" },
+        },
+      },
+    );
+
+    await updateSettings(
+      { db, tenantId: tenant.id },
+      {
+        signalProviders: {
+          woodpecker: { clearApiKey: true },
+        },
+      },
+    );
+
+    const settings = await readSettings({ db, tenantId: tenant.id });
+    expect(settings.signalProviders.apollo.hasApiKey).toBe(true);
+    expect(settings.signalProviders.harvest.hasApiKey).toBe(true);
+    expect(settings.signalProviders.woodpecker.hasApiKey).toBe(false);
   });
 
   it("rotates a trigify key: preserves the old key when apiKey is omitted, replaces it when present", async () => {

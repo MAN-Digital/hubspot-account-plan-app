@@ -1,5 +1,6 @@
 import type { Snapshot } from "@hap/config";
 import { Flex } from "@hubspot/ui-extensions";
+import { PeopleProspectingAction } from "./account-actions";
 import { EligibleView } from "./eligible-view";
 import { EmptyState, IneligibleState, RestrictedState, UnconfiguredState } from "./empty-states";
 import { DegradedWarning, LowConfidenceWarning, StaleWarning } from "./warning-states";
@@ -36,7 +37,12 @@ export default function SnapshotStateRenderer({ snapshot }: { snapshot: Snapshot
   }
 
   if (snapshot.stateFlags.empty) {
-    return <EmptyState />;
+    return (
+      <Flex direction="column" gap="md">
+        <EmptyState />
+        <PeopleProspectingAction companyId={snapshot.companyId} />
+      </Flex>
+    );
   }
 
   const { stateFlags } = snapshot;

@@ -95,9 +95,10 @@ describe("ensureLifecycleSubscriptions — all missing", () => {
     ]);
 
     expect(calls).toHaveLength(3);
-    const listCall = calls[0]!;
-    const createInstall = calls[1]!;
-    const createUninstall = calls[2]!;
+    const [listCall, createInstall, createUninstall] = calls;
+    if (!listCall || !createInstall || !createUninstall) {
+      throw new Error("Expected list, install create, and uninstall create calls");
+    }
     expect(listCall.url).toBe(HUBSPOT_SUBSCRIPTIONS_URL);
     expect(listCall.init?.method ?? "GET").toBe("GET");
     expect((listCall.init?.headers as Record<string, string> | undefined)?.Authorization).toBe(

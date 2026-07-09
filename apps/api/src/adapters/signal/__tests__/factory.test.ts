@@ -150,11 +150,15 @@ describe("createExaSignalAdapters", () => {
       fetch: fakeFetch,
     });
     expect(adapters).toHaveLength(2);
-    await adapters[0]!.fetchSignals("tenant-1", {
+    const [monitorAdapter, researchAdapter] = adapters;
+    if (!monitorAdapter || !researchAdapter) {
+      throw new Error("Expected Exa monitor and research adapters");
+    }
+    await monitorAdapter.fetchSignals("tenant-1", {
       companyId: "co-1",
       companyName: "Acme",
     });
-    await adapters[1]!.fetchSignals("tenant-1", {
+    await researchAdapter.fetchSignals("tenant-1", {
       companyId: "co-1",
       companyName: "Acme",
     });

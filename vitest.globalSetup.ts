@@ -29,7 +29,7 @@ import { config } from "dotenv";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const RUNBOOK = "docs/runbooks/local-test-database.md";
-const FIX = "run `pnpm test:db:up` (see " + RUNBOOK + ")";
+const FIX = `run \`pnpm test:db:up\` (see ${RUNBOOK})`;
 
 /** Mirror of vitest.setup.ts / drizzle.config.ts main-repo-root resolver. */
 function resolveMainRepoRoot(start: string): string {

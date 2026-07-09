@@ -26,6 +26,9 @@ const VALID_SETTINGS = {
     exa: { enabled: true, hasApiKey: true },
     hubspotEnrichment: { enabled: true, hasApiKey: false },
     trigify: { enabled: false, hasApiKey: false },
+    apollo: { enabled: false, hasApiKey: false },
+    harvest: { enabled: false, hasApiKey: false },
+    woodpecker: { enabled: false, hasApiKey: false },
   },
   llm: {
     provider: "openai" as const,
@@ -106,6 +109,66 @@ describe("HubSpotSettingsPage", () => {
       .map((node) => node.text ?? "")
       .join(" ");
     expect(allText).toMatch(/OAuth/i);
+  });
+
+  it("renders Apollo, Harvest, and Woodpecker provider key controls and saves rotations", async () => {
+    const renderer = createRenderer("settings");
+    const updateSettings = vi.fn(async () => ({
+      ...VALID_SETTINGS,
+      signalProviders: {
+        ...VALID_SETTINGS.signalProviders,
+        apollo: { enabled: true, hasApiKey: true },
+        harvest: { enabled: true, hasApiKey: true },
+        woodpecker: { enabled: true, hasApiKey: true },
+      },
+    }));
+
+    renderer.render(
+      <HubSpotSettingsPage
+        fetchSettings={vi.fn(async () => VALID_SETTINGS)}
+        updateSettings={updateSettings}
+      />,
+    );
+
+    await renderer.waitFor(() => {
+      expect(renderer.find(LoadingButton).props.loading).toBe(false);
+    });
+
+    triggerValue(renderer.find(Toggle, { name: "apolloEnabled" }), true);
+    triggerValue(renderer.find(Input, { name: "apolloApiKey" }), "apollo-secret");
+    triggerValue(renderer.find(Toggle, { name: "harvestEnabled" }), true);
+    triggerValue(renderer.find(Input, { name: "harvestApiKey" }), "harvest-secret");
+    triggerValue(renderer.find(Toggle, { name: "woodpeckerEnabled" }), true);
+    triggerValue(renderer.find(Input, { name: "woodpeckerApiKey" }), "woodpecker-secret");
+    renderer.find(LoadingButton).trigger("onClick");
+
+    await renderer.waitFor(() => {
+      expect(updateSettings).toHaveBeenCalledTimes(1);
+    });
+
+    const payload = (
+      updateSettings.mock.calls as unknown as [
+        {
+          signalProviders?: {
+            apollo?: { enabled?: boolean; apiKey?: string };
+            harvest?: { enabled?: boolean; apiKey?: string };
+            woodpecker?: { enabled?: boolean; apiKey?: string };
+          };
+        },
+      ][]
+    )[0]?.[0];
+    expect(payload?.signalProviders?.apollo).toEqual({
+      enabled: true,
+      apiKey: "apollo-secret",
+    });
+    expect(payload?.signalProviders?.harvest).toEqual({
+      enabled: true,
+      apiKey: "harvest-secret",
+    });
+    expect(payload?.signalProviders?.woodpecker).toEqual({
+      enabled: true,
+      apiKey: "woodpecker-secret",
+    });
   });
 
   it("hides the Endpoint URL input unless provider is 'custom'", async () => {
@@ -313,6 +376,9 @@ describe("HubSpotSettingsPage", () => {
         exa: { enabled: true, apiKey: "exa-rotated" },
         hubspotEnrichment: { enabled: true },
         trigify: { enabled: false },
+        apollo: { enabled: false },
+        harvest: { enabled: false },
+        woodpecker: { enabled: false },
       },
       llm: {
         provider: "custom",
@@ -417,6 +483,9 @@ describe("HubSpotSettingsPage", () => {
         exa: { enabled: true },
         hubspotEnrichment: { enabled: true },
         trigify: { enabled: false },
+        apollo: { enabled: false },
+        harvest: { enabled: false },
+        woodpecker: { enabled: false },
       },
       llm: {
         provider: null,
@@ -511,6 +580,9 @@ describe("HubSpotSettingsPage", () => {
         exa: { enabled: true, hasApiKey: false },
         hubspotEnrichment: { enabled: true, hasApiKey: false },
         trigify: { enabled: false, hasApiKey: false },
+        apollo: { enabled: false, hasApiKey: false },
+        harvest: { enabled: false, hasApiKey: false },
+        woodpecker: { enabled: false, hasApiKey: false },
       },
       llm: {
         provider: "openai" as const,

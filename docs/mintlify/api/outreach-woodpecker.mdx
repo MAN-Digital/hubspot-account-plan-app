@@ -1,0 +1,39 @@
+---
+title: Woodpecker outreach API
+description: Reuse-first Woodpecker campaign selection and campaign membership.
+---
+
+Woodpecker export is reuse-first. The app should not create one campaign per person.
+
+## Campaign suggestions
+
+`POST /api/outreach/{companyId}/woodpecker/campaigns/suggestions`
+
+The route ranks existing tenant-local Woodpecker campaigns for the same account by:
+
+- angle
+- signal
+- channel variant
+
+The response returns suggested campaigns and an all-campaigns list for the UI's “view all campaigns” path.
+
+## Add campaign member
+
+`POST /api/outreach/{companyId}/woodpecker/campaign-members`
+
+By default, the caller must pass a selected `campaignId`.
+
+Creating a new campaign requires explicit `createNewCampaign: true` and a `newCampaign` object. This keeps personalization in snippets/custom fields and avoids accidental person-per-campaign duplication.
+
+This route creates or updates a queued campaign-member row in the app database. A live Woodpecker add-to-campaign call requires:
+
+- tenant Woodpecker key configured in Settings,
+- selected campaign with a Woodpecker `externalCampaignId`,
+- enriched contact email for the person being exported.
+
+Do not mark the member as live-synced unless the Woodpecker prospect API confirms the add.
+
+## Provider documentation
+
+- [Woodpecker campaigns API](https://developers.woodpecker.co/docs/campaigns/)
+- [Woodpecker prospects API](https://developers.woodpecker.co/docs/prospects/)

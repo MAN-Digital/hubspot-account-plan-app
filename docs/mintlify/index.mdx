@@ -1,0 +1,28 @@
+---
+title: HAP Signal Workspace
+description: HubSpot-native account planning, buying-group context, and reuse-first outreach.
+---
+
+HAP Signal Workspace runs inside the HubSpot company record and keeps HubSpot as the CRM source of truth.
+
+The workspace is built around one operational rule: show a credible reason to act now, the real people attached to that account, the gaps that need better data, and the safest next outreach action.
+
+## Core surfaces
+
+- HubSpot `crm.record.tab` card for company records.
+- HubSpot app settings page for provider keys, budgets, themes, signal rules, and outreach angles.
+- Backend API hosted outside HubSpot and called by `hubspot.fetch()`.
+- Postgres-backed tenant data with no silent CRM writes.
+
+## Provider model
+
+- HubSpot reads and associations are source-of-truth CRM context.
+- Apollo powers structured People Search and accepted-contact enrichment.
+- HarvestAPI contributes LinkedIn profile and post evidence for prospecting context.
+- Trigify powers recurring observed signal monitoring.
+- Woodpecker is the custom-copy campaign delivery option and is reuse-first by design.
+
+## Legal
+
+- [MAN Digital Privacy Policy](https://www.man.digital/privacy-policy)
+- [MAN Digital Terms of Service](https://www.man.digital/terms-of-service)

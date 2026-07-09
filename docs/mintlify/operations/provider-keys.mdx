@@ -1,0 +1,25 @@
+---
+title: Provider keys
+description: Provider key and capability model for admins.
+---
+
+Provider configuration is tenant-scoped.
+
+Settings responses expose only `enabled` and `hasApiKey`. Plaintext keys are accepted only on save/test flows and are never returned to the UI.
+
+## Providers
+
+- Exa: account research and web evidence.
+- Trigify: observed signal monitoring.
+- Apollo: structured people search and enrichment.
+- HarvestAPI: LinkedIn profile and post evidence.
+- Woodpecker: outbound campaign delivery with tenant-owned key.
+- LLM provider: configurable by tenant.
+
+## Rules
+
+- Trial and Pro can use managed providers where the commercial model allows it.
+- Enterprise and BYOA plans expose provider key fields.
+- Woodpecker remains tenant-owned because deliverability and sending identity belong to the customer.
+- Provider setup blockers belong in Settings, not Data Gaps.
+- Apollo, HarvestAPI, and Woodpecker keys are stored in `provider_config` with the same encrypted-key flow as Exa and Trigify.

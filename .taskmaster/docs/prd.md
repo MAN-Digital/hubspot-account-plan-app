@@ -165,8 +165,32 @@ Only explicit user actions may write to CRM, if any write actions are added late
 
 ### Current provider assumptions
 - Exa is allowed as current V1 enrichment source
-- Harvest may be integrated later / selectively
+- V2 People prospecting uses Apollo and HarvestAPI behind modular adapters:
+  - Apollo is the structured people-search and contact-enrichment path.
+  - HarvestAPI is the LinkedIn lead-search/profile/post evidence path.
+  - HubSpot dedupe and existing HubSpot contacts run first and cost 0 app credits.
 - future providers must be addable without re-architecting the wedge
+
+### V2 People prospecting constraints
+- prospecting controls live in the People tab only; Buying Group maps real HubSpot/People
+  contacts and fetched HubSpot association labels after people exist
+- the People prospecting preview maps filters to Apollo People Search and HarvestAPI
+  LinkedIn Lead Search/Profile Search/Post APIs
+- Apollo search preview and HubSpot reads do not debit app credits
+- contact reveal/enrichment only runs for shortlisted or accepted people
+- app credits debit only for accepted usable returned contacts, not for clicking Preview
+  or running a broad search
+- provider setup, BYO key, rate-limit, or vendor billing blockers are settings blockers,
+  not data gaps
+
+### V2 outreach generation and angle-change credits
+- outreach cadence/copy generation debits per generated stakeholder cadence
+- changing a campaign angle after drafts exist regenerates copy and QA for the currently
+  included people and debits the same per-person outreach generation price
+- selecting the current angle costs 0 and must not trigger rebuild or debit
+- the angle picker must show the projected credit cost before applying a different angle
+  and the debit path must audit actor, account/contact scope, old angle, new angle,
+  included people count, and credits used
 
 ### Provider data minimization
 - send only minimum required fields to external providers

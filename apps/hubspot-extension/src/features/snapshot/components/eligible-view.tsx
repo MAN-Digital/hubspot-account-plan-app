@@ -1,6 +1,7 @@
 import type { Snapshot } from "@hap/config";
 import { Button, Flex, Heading, Text } from "@hubspot/ui-extensions";
 import { useCallback, useMemo, useState } from "react";
+import { PeopleProspectingAction, WoodpeckerCampaignAction } from "./account-actions";
 import { EvidenceDrillIn } from "./evidence-drill-in";
 import { NextMoveCard } from "./next-move-card";
 
@@ -61,10 +62,14 @@ export function EligibleView({ snapshot }: { snapshot: Snapshot }) {
       </Flex>
 
       {snapshot.people.length === 0 ? (
-        <Text variant="microcopy">No contacts available for this reason.</Text>
+        <>
+          <Text variant="microcopy">No contacts available for this reason.</Text>
+          <PeopleProspectingAction companyId={snapshot.companyId} />
+        </>
       ) : null}
 
       <NextMoveCard snapshot={snapshot} />
+      {snapshot.people.length > 0 ? <WoodpeckerCampaignAction snapshot={snapshot} /> : null}
 
       {openEvidence !== null ? (
         <EvidenceDrillIn
